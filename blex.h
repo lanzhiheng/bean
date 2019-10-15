@@ -1,16 +1,23 @@
 #ifndef BEAN_LEX_H
 #define BEAN_LEX_H
-#include "commen.h"
+#include "stdio.h"
+#include "common.h"
+#include "bobject.h"
+#include "bstate.h"
+#include "bzio.h"
 
 #define FIRST_RESERVED	257
 
-/* #if !defined(BEAN_ENV) */
-/* #define BEAN_ENV		"_ENV" */
-/* #endif */
+#define next(ls) (*(ls) -> inputStream++)
 
-struct lua_State {
-  lua_State
-}
+#define currIsNewline(ls)	(ls->current == '\n' || ls->current == '\r')
+
+// TODO: Add more error information
+#define LEX_ERROR(ls, message) printf(message);
+
+#if !defined(BEAN_ENV)
+#define BEAN_ENV		"BEAN_ENV"
+#endif
 
 typedef enum RESERVED {
   /* terminal symbols denoted by reserved words */
@@ -28,24 +35,13 @@ typedef enum RESERVED {
 #define NUM_RESERVED	(cast_int(TK_WHILE-FIRST_RESERVED + 1))
 
 typedef union {
-  lua_Number r;
-  lua_Integer i;
+  double r;
   TString *ts;
 } SemInfo;  /* semantics information */
 
 
-
-
-
-
-
-
-
-
-
-
 typedef struct Token {
-  TokenType token;
+  TokenType type;
   SemInfo seminfo;
 } Token;
 
@@ -55,13 +51,14 @@ typedef struct LexState {
   int lastline;  /* line of last token 'consumed' */
   Token t;  /* current token */
   Token lookahead;  /* look ahead token */
-  /* struct FuncState *fs;  /\* current function (parser) *\/ */
-  /* struct lua_State *L; */
+  struct FuncState *fs;  /* current function (parser) */
+  struct bean_State *B;
+  Mbuffer *buff;  /* buffer for tokens */
   char * inputStream;
   TString *source;  /* current source name */
   TString *envn;  /* environment variable name */
-} LexState
+} LexState;
 
-static void beanX_init (lua_State *L);
+void beanX_init (bean_State *L);
 
 #endif

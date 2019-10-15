@@ -20,4 +20,9 @@ typedef struct value Value;
 #define cast(t, exp)	((t)(exp))
 #define cast_int(i)	cast(int, (i))
 
+/* minimum size for string buffer */
+#if !defined(BEAN_MINBUFFER)
+#define BEAN_MINBUFFER	32
+#endif
+
 #endif

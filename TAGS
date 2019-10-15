@@ -52,7 +52,7 @@ struct B_EXTRA { int lock; int *plock;plock4,41
 /Users/lan/Personal/bean/blex.h,2087
 #define BEAN_LEX_H2,19
 #define FIRST_RESERVED	5,59
-struct lua_State 11,161
+struct bean_State 11,161
 typedef enum RESERVED 15,195
   TK_AND 17,270
   TK_AND = FIRST_RESERVED, TK_BREAK,17,270
@@ -110,7 +110,7 @@ typedef struct LexState 52,925
   char * inputStream;60,1267
   TString *source;source61,1289
   TString *envn;envn62,1335
-static void beanX_init (lua_State *L)L65,1397
+static void beanX_init (bean_State *L)L65,1397
 
 /Users/lan/Personal/bean/bstate.h,108
 #define _BEAN_STATE_H2,22

@@ -21,8 +21,8 @@ void * beanM_reallocvchar(bean_State * B, void *ptr, size_t oldSize, size_t newS
 #define beanZ_resetbuffer(buff) ((buff)->n = 0)
 
 #define beanZ_resizebuffer(B, buff, size)                                \
-  ((buff) -> buffer = beanM_reallocvchar(B, (buff) -> buffer, (buff)->buffersize, size), \
-   (buff) -> buffersize = size)
+  ((buff) -> buffer = beanM_reallocvchar(B, (buff) -> buffer, (buff)->buffsize, size), \
+   (buff) -> buffsize = size)
 
 #define beanZ_freebuffer(B, buff)	luaZ_resizebuffer(B, buff, 0)
 
