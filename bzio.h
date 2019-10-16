@@ -4,6 +4,8 @@
 #include "common.h"
 #include "bstate.h"
 
+#define BUFFER_MAX INT_MAX
+
 typedef struct Mbuffer {
   char *buffer;
   size_t n;

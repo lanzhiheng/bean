@@ -9,6 +9,8 @@
 // Size of String is sum of the size of struct TString and the extra char array with the '\0' at the end of the string.
 #define sizelstring(l)  (sizeof(TString) + ((l) + 1) * sizeof(char))
 
+#define isreserved(ts) true // TODO: Need to add the string func
+
 TString * beanS_newString(bean_State * L, char * s);
 
 #endif
