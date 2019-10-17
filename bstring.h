@@ -3,6 +3,7 @@
 
 #include "bstate.h"
 #include "bobject.h"
+#include "blex.h"
 
 #define MEMERRMSG       "not enough memory"
 
@@ -11,6 +12,7 @@
 
 #define isreserved(ts) true // TODO: Need to add the string func
 
-TString * beanS_newString(bean_State * L, char * s);
+TString * beanS_newliteral(bean_State * B, char * s);
+TString * beanX_newstring(LexState * ls, char * s, size_t l);
 
 #endif

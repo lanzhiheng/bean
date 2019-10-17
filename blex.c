@@ -26,11 +26,10 @@ static void save(LexState * ls, int c) {
   b -> buffer[beanZ_bufflen(b)++] = cast_char(c);
 }
 
-void beanX_init(bean_State * L) {
+void beanX_init(bean_State * B) {
   int i;
-  TString * e = beanS_newString(L, BEAN_ENV);
+  TString * e = beanS_newliteral(B, BEAN_ENV);
 }
-
 
 void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source,
                      int firstchar) {
@@ -43,7 +42,7 @@ void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *s
   ls -> fs = NULL;
   ls -> B = B;
   ls -> inputStream = inputStream;
-  ls -> envn = beanS_newString(B, BEAN_ENV);
+  ls -> envn = beanS_newliteral(B, BEAN_ENV);
   beanZ_resizebuffer(B, ls -> buff, BEAN_MINBUFFER);
 }
 
@@ -53,6 +52,68 @@ static void inclinenumber(LexState * ls) {
   next(ls); // skip '\n' and '\r'
   if (currIsNewline(ls) && ls->current != old) next(ls);  // skip '\n\r' or '\r\n'
   if (++ls -> linenumber >= INT_MAX) LEX_ERROR(ls, "chunk has too many lines");
+}
+
+static void read_string(LexState *ls, int del, SemInfo *seminfo) {
+  save_and_next(ls);
+  while(ls -> current != del) {
+    switch(ls->current) {
+      case EOZ:
+        LEX_ERROR(ls, "unfinished string for end of file");
+        break;  /* to avoid warnings */
+      case '\n':
+      case '\r':
+        LEX_ERROR(ls, "unfinished string for line break");
+        break;  /* to avoid warnings */
+      case '\\': {
+        int c;  /* final character to be saved */
+        save_and_next(ls);  /* keep '\\' for error messages */
+
+        switch(ls -> current) {
+          case 'a': c = '\a'; goto read_save;
+          case 'b': c = '\b'; goto read_save;
+          case 'f': c = '\f'; goto read_save;
+          case 'n': c = '\n'; goto read_save;
+          case 'r': c = '\r'; goto read_save;
+          case 't': c = '\t'; goto read_save;
+          case 'v': c = '\v'; goto read_save;
+          /* TODO: May be we can remove it. */
+          /* case 'x': c = readhexaesc(ls); goto read_save; */
+          /* case 'u': utf8esc(ls);  goto no_save; */
+          case '\n': case '\r':
+            inclinenumber(ls); c = '\n'; goto only_save;
+          case '\\': case '\"': case '\'':
+            c = ls->current; goto read_save;
+          case EOZ: goto no_save;  /* will raise an error next loop */
+          case 'z': {  /* zap following span of spaces */
+            beanZ_buffremove(ls->buff, 1);  /* remove '\\' */
+            next(ls);  /* skip the 'z' */
+            while (bisspace(ls->current)) {
+              if (currIsNewline(ls)) inclinenumber(ls);
+              else next(ls);
+            }
+            goto no_save;
+          }
+          /* TODO: May be we can remove it. */
+          /* default: { */
+          /*   esccheck(ls, lisdigit(ls->current), "invalid escape sequence"); */
+          /*   c = readdecesc(ls);  /\* digital escape '\ddd' *\/ */
+          /*   goto only_save; */
+          /* } */
+        }
+        read_save:
+          next(ls);
+        only_save:
+          beanZ_buffremove(ls -> buff, 1);
+          save(ls, c);
+        no_save: break;
+      }
+      default:
+        save_and_next(ls);
+    }
+  }
+  save_and_next(ls);  /* skip delimiter */
+  seminfo -> ts = beanX_newstring(ls, beanZ_buffer(ls -> buff) + 1, beanZ_bufflen(ls -> buff) - 2);
 }
 
 static int check_next1(LexState * ls, int c) {
@@ -68,81 +129,85 @@ static int llex(LexState * ls, SemInfo * seminfo) {
 
   while (true) {
     switch(ls -> current) {
-    case '\n':
-    case '\r': {
-      inclinenumber(ls);
-      break;
-    }
-    case ' ', case '\f', case '\t', case '\v' {
-      next(ls);
-      break
-    }
-    case '=' {
-      next(ls);
-      if (check_next1(ls, '=')) return TK_EQ;
-      return '=';
-    }
-    case '>' {
-      next(ls);
-      if (check_next1(ls, '=')) return TK_GE;
-      else if (check_next1(ls, '>')) return TK_SHR;
-      return '>';
-    }
-    case '<' {
-      next(ls);
-      if (check_next1(ls, '=')) return TK_LE;
-      else if (check_next1(ls, '<')) return TK_SHL;
-      return '<';
-    }
-    case '/': {
-      next(ls);
-
-      if (check_next1(ls, '/')) {
-        // short comment
-        while (!currIsNewline(ls) && ls->current != EOZ) next(ls);
-      } else if (check_next1(ls, '*')){
-        // long comment
-        /* while (ls->current != EOZ && !check_next1(ls, '*')) { */
-        /*   if (ls -> current == '\n') { */
-        /*     inclinenumber(ls); */
-        /*   } */
-        /* } */
+      case '\n':
+      case '\r': {
+        inclinenumber(ls);
+        break;
       }
-    }
-    case '"': {
-      // TODO: 字符串
-      printf("I am string")
-    }
-    case '!': {
-      next(ls);
-      if (check_next1(ls, '=')) return TK_NE;
-      else return '!'
-    }
-    case '0': case '1': case '2': case '3': case '4':
-    case '5': case '6': case '7': case '8': case '9': {
-      /* return read_numeral(ls, seminfo); */
-      printf("I am number")
-    }
-    case EOZ: {
-      return TK_EOS;
-    }
-    default: {
-      if (bislalpha(ls -> current)) {
-        do {
-          save_and_next(ls);
-        } while(bislalnum(ls -> current) || ls -> current == '?'); // The name of variable or function can include '?'
-        TString * ts;
-        if (isreserved(ts)) { // TODO: need to add logic
-          return FIRST_RESERVED;
-        } else {
-          return TK_NAME;
-        }
-      } else {
-        int c = ls->current;
+      case ' ': case '\f': case '\t': case '\v': {
         next(ls);
-        return c;
+        break;
       }
-    }
+      case '=' {
+        next(ls);
+        if (check_next1(ls, '=')) return TK_EQ;
+        return '=';
+      }
+      case '>' {
+        next(ls);
+        if (check_next1(ls, '=')) return TK_GE;
+        else if (check_next1(ls, '>')) return TK_SHR;
+        return '>';
+      }
+      case '<' {
+        next(ls);
+        if (check_next1(ls, '=')) return TK_LE;
+        else if (check_next1(ls, '<')) return TK_SHL;
+        return '<';
+      }
+      case '/': {
+        next(ls);
+
+        if (check_next1(ls, '/')) {
+          // short comment
+          while (!currIsNewline(ls) && ls->current != EOZ) next(ls);
+        } else if (check_next1(ls, '*')){
+          // long comment
+          while(ls -> current != EOZ) {
+            int current = ls -> current;
+            next(ls);
+
+            if (current == '\n') inclinenumber(ls);
+            if (current == '*' && ls -> current == '/') break;
+          }
+        }
+        break;
+      }
+      case '"':
+      case '\'': {
+        read_string(ls, ls -> current, seminfo);
+        return TK_STRING;
+      }
+      case '!': {
+        next(ls);
+        if (check_next1(ls, '=')) return TK_NE;
+        else return '!';
+      }
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9': {
+        /* return read_numeral(ls, seminfo); */
+        printf("I am number");
+      }
+      case EOZ: {
+        return TK_EOS;
+      }
+      default: {
+        if (bislalpha(ls -> current)) {
+          do {
+            save_and_next(ls);
+          } while(bislalnum(ls -> current) || ls -> current == '?'); // The name of variable or function can include '?'
+          TString * ts;
+          if (isreserved(ts)) { // TODO: need to add logic
+            return FIRST_RESERVED;
+          } else {
+            return TK_NAME;
+          }
+        } else {
+          int c = ls->current;
+          next(ls);
+          return c;
+        }
+      }
     }
   }
 }
