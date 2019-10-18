@@ -21,4 +21,15 @@ typedef struct TString {
   unsigned int hash;
 } TString;
 
+typedef union Value {
+  struct GCObject * gc;
+  bean_Integer i;
+  bean_Number n;
+} Value;
+
+typedef struct TValue {
+  Value value_;
+  byte tt;
+} TValue;
+
 #endif

@@ -124,6 +124,54 @@ static int check_next1(LexState * ls, int c) {
   return false;
 }
 
+static int check_next2(LexState * ls, const char *set) {
+  ASSERT(set[2] == '\0');
+  if (ls->current == set[0] || ls->current == set[1]) {
+    save_and_next(ls);
+    return true;
+  }
+  else return false;
+}
+
+int luaO_str2num(char * c, TValue *) {
+  // TODO need to implement the string to number
+  return 0;
+}
+
+static int read_numeral(LexState * ls, SemInfo * seminfo) {
+  TValue obj;
+  const char *expo = "Ee";
+  int first = ls -> current;
+  ASSERT(bisdigit(ls->current));
+  save_and_next(ls);
+
+  if (first == '0' && check_next2(ls, "xX"))  /* hexadecimal? */
+    expo = "Pp";
+  while (true) {
+    if (check_next2(ls, expo)) check_next2(ls, "+-");
+    else if (bisxdigit(ls->current) || ls->current == '.')  /* '%x|%.' */
+      save_and_next(ls);
+    else break;
+  }
+
+  if (bislalpha(ls->current))  /* is numeral touching a letter? */
+    save_and_next(ls);  /* force an error */
+  save(ls, '\0');
+
+  // TODO need to continue
+  /* if (luaO_str2num(beanZ_buffer(ls -> buff), &obj) == 0) LEX_ERROR(ls, "malformed number"); */
+
+  /* if (ttisinteger(&obj)) { */
+  /*   seminfo->i = ivalue(&obj); */
+  /*   return TK_INT; */
+  /* } */
+  /* else { */
+  /*   lua_assert(ttisfloat(&obj)); */
+  /*   seminfo->r = fltvalue(&obj); */
+  /*   return TK_FLT; */
+  /* } */
+}
+
 static int llex(LexState * ls, SemInfo * seminfo) {
   beanZ_resetbuffer(ls -> buff);
 

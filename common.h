@@ -14,8 +14,6 @@ typedef signed char ls_byte;
 
 typedef struct parser Parser;
 typedef struct vm VM;
-typedef struct value Value;
-
 
 #define cast(t, exp)	((t)(exp))
 #define cast_int(i)	cast(int, (i))
@@ -24,6 +22,16 @@ typedef struct value Value;
 /* minimum size for string buffer */
 #if !defined(BEAN_MINBUFFER)
 #define BEAN_MINBUFFER	32
+#endif
+
+#define bean_Integer long
+#define bean_Number long double
+
+#if defined(DEBUG)
+#include <assert.h>
+#define ASSERT(c)           assert(c)
+#else
+#define ASSERT(c)           ((void)0)
 #endif
 
 #endif

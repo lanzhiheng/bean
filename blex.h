@@ -9,13 +9,13 @@
 
 #include <ctype.h>
 
+// ref: https://www.programiz.com/c-programming/library-function/ctype.h
 #define bislalpha(c)	(isalpha(c) || (c) == '_')
 #define bislalnum(c)	(isalnum(c) || (c) == '_')
 #define bisdigit(c)	(isdigit(c))
 #define bisspace(c)	(isspace(c))
 #define bisprint(c)	(isprint(c))
 #define bisxdigit(c)	(isxdigit(c))
-
 
 #define FIRST_RESERVED	257
 
