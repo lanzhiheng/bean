@@ -18,6 +18,7 @@ typedef struct vm VM;
 #define cast(t, exp)	((t)(exp))
 #define cast_int(i)	cast(int, (i))
 #define cast_char(i)	cast(char, (i))
+#define cast_uchar(i)	cast(unsigned char, (i))
 
 /* minimum size for string buffer */
 #if !defined(BEAN_MINBUFFER)

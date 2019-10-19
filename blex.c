@@ -133,8 +133,29 @@ static int check_next2(LexState * ls, const char *set) {
   else return false;
 }
 
-int luaO_str2num(char * c, TValue *) {
+static const char *b_str2int (const char *s, bean_Integer *result) {
+  const char * p = s;
+  int base = 10;
+  char * ptr;
+  while (bisspace(cast_uchar(*p))) p++;  /* skip initial spaces */
+  if (*p == '-' || * p == '+') p++;
+  if (*p == '0' && (*(p + 1) == 'x' || *(p + 1) == 'X')) base = 16;
+
+  *result = strtol(s, &ptr, base);
+
+  if (*ptr == '.') return NULL; // with pointer
+  if (*result == 0 && (ptr - p + 1) > 1) return NULL; // parse error
+  return ptr;
+}
+
+int luaO_str2num(char * s, TValue *o) {
   // TODO need to implement the string to number
+  bean_Integer i; bean_Number n;
+  const char *e;
+
+  if ((e = b_str2int(s, &i)) != NULL) {  /* try as an integer */
+  }
+
   return 0;
 }
 
