@@ -137,26 +137,41 @@ static const char *b_str2int (const char *s, bean_Integer *result) {
   const char * p = s;
   int base = 10;
   char * ptr;
+  errno = 0;
+
   while (bisspace(cast_uchar(*p))) p++;  /* skip initial spaces */
   if (*p == '-' || * p == '+') p++;
   if (*p == '0' && (*(p + 1) == 'x' || *(p + 1) == 'X')) base = 16;
 
   *result = strtol(s, &ptr, base);
 
+  if (errno) return NULL; // parse error
   if (*ptr == '.') return NULL; // with pointer
-  if (*result == 0 && (ptr - p + 1) > 1) return NULL; // parse error
+
   return ptr;
 }
 
-int luaO_str2num(char * s, TValue *o) {
-  // TODO need to implement the string to number
+static const char *b_str2d (const char *s, bean_Number *result) {
+  char * ptr;
+  errno = 0;
+  *result = strtod(s, &ptr);
+  if (errno) return NULL; // parse error
+  return ptr;
+}
+
+int beanO_str2num(char * s, TValue *o) {
   bean_Integer i; bean_Number n;
   const char *e;
 
   if ((e = b_str2int(s, &i)) != NULL) {  /* try as an integer */
+    setivalue(o, i);
+  } else if ((e = b_str2d(s, &n)) != NULL) {
+    setfltvalue(o, n);
+  } else {
+    return 0;
   }
 
-  return 0;
+  return e - s;
 }
 
 static int read_numeral(LexState * ls, SemInfo * seminfo) {
@@ -179,18 +194,17 @@ static int read_numeral(LexState * ls, SemInfo * seminfo) {
     save_and_next(ls);  /* force an error */
   save(ls, '\0');
 
-  // TODO need to continue
-  /* if (luaO_str2num(beanZ_buffer(ls -> buff), &obj) == 0) LEX_ERROR(ls, "malformed number"); */
+  if (beanO_str2num(beanZ_buffer(ls -> buff), &obj) == 0) LEX_ERROR(ls, "malformed number");
 
-  /* if (ttisinteger(&obj)) { */
-  /*   seminfo->i = ivalue(&obj); */
-  /*   return TK_INT; */
-  /* } */
-  /* else { */
-  /*   lua_assert(ttisfloat(&obj)); */
-  /*   seminfo->r = fltvalue(&obj); */
-  /*   return TK_FLT; */
-  /* } */
+  if (ttisinteger(&obj)) {
+    seminfo->i = ivalue(&obj);
+    return TK_INT;
+  }
+  else {
+    ASSERT(ttisfloat(&obj));
+    seminfo->r = fltvalue(&obj);
+    return TK_FLT;
+  }
 }
 
 static int llex(LexState * ls, SemInfo * seminfo) {
@@ -254,8 +268,7 @@ static int llex(LexState * ls, SemInfo * seminfo) {
       }
       case '0': case '1': case '2': case '3': case '4':
       case '5': case '6': case '7': case '8': case '9': {
-        /* return read_numeral(ls, seminfo); */
-        printf("I am number");
+        return read_numeral(ls, seminfo);
       }
       case EOZ: {
         return TK_EOS;

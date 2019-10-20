@@ -1,9 +1,13 @@
 #ifndef _BEAN_COMMON_H
 #define _BEAN_COMMON_H
 #include <stdlib.h>
+#include "bean.h"
 
 #define bool char
 #define byte char
+
+#define bean_Integer long
+#define bean_Number long double
 
 typedef unsigned char lu_byte;
 typedef signed char ls_byte;
@@ -17,6 +21,7 @@ typedef struct vm VM;
 
 #define cast(t, exp)	((t)(exp))
 #define cast_int(i)	cast(int, (i))
+#define cast_num(i)     cast(bean_Integer, (i))
 #define cast_char(i)	cast(char, (i))
 #define cast_uchar(i)	cast(unsigned char, (i))
 
@@ -25,8 +30,6 @@ typedef struct vm VM;
 #define BEAN_MINBUFFER	32
 #endif
 
-#define bean_Integer long
-#define bean_Number long double
 
 #if defined(DEBUG)
 #include <assert.h>

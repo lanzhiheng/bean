@@ -48,7 +48,8 @@ typedef enum RESERVED {
 #define NUM_RESERVED	(cast_int(TK_WHILE-FIRST_RESERVED + 1))
 
 typedef union {
-  double r;
+  bean_Number r;
+  bean_Integer i;
   TString *ts;
 } SemInfo;  /* semantics information */
 

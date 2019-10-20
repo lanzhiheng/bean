@@ -1,6 +1,8 @@
 #ifndef BEAN_STRING_H
 #define BEAN_STRING_H
 
+#include <string.h>
+#include <errno.h>
 #include "bstate.h"
 #include "bobject.h"
 #include "blex.h"
