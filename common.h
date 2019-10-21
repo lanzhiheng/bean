@@ -9,8 +9,8 @@
 #define bean_Integer long
 #define bean_Number long double
 
-typedef unsigned char lu_byte;
-typedef signed char ls_byte;
+typedef unsigned char bu_byte;
+typedef signed char bs_byte;
 
 #define true 1
 #define false 0
@@ -23,7 +23,10 @@ typedef struct vm VM;
 #define cast_int(i)	cast(int, (i))
 #define cast_num(i)     cast(bean_Integer, (i))
 #define cast_char(i)	cast(char, (i))
+#define cast_charp(i)	cast(char *, (i))
 #define cast_uchar(i)	cast(unsigned char, (i))
+#define cast_uint(i)	cast(unsigned int, (i))
+#define cast_byte(i)	cast(bu_byte, (i))
 
 /* minimum size for string buffer */
 #if !defined(BEAN_MINBUFFER)
@@ -33,9 +36,9 @@ typedef struct vm VM;
 
 #if defined(DEBUG)
 #include <assert.h>
-#define ASSERT(c)           assert(c)
+#define bean_assert(c)           assert(c)
 #else
-#define ASSERT(c)           ((void)0)
+#define bean_assert(c)           ((void)0)
 #endif
 
 #endif

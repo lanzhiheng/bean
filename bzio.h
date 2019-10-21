@@ -12,8 +12,6 @@ typedef struct Mbuffer {
   size_t buffsize;
 } Mbuffer;
 
-void * beanM_reallocvchar(bean_State * B, void *ptr, size_t oldSize, size_t newSize);
-
 #define beanZ_initbuffer(buff) ((buff)->buffer = NULL, (buff)->buffsize = 0)
 #define beanZ_buffer(buff)	((buff)->buffer)
 #define beanZ_sizebuffer(buff)	((buff)->buffsize)

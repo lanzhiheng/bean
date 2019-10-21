@@ -8,7 +8,7 @@
 ** Common Header for all collectable objects (in macro form, to be
 ** included in other objects)
 */
-#define CommonHeader	struct GCObject *next; lu_byte tt; lu_byte marked
+#define CommonHeader	struct GCObject *next; bu_byte tt; bu_byte marked
 
 /* Common type for all collectable objects */
 typedef struct GCObject {
@@ -17,8 +17,9 @@ typedef struct GCObject {
 
 typedef struct TString {
   CommonHeader;
-  size_t lnglen;  /* length for long strings */
+  size_t len;  /* length of string */
   unsigned int hash;
+  bu_byte reserved;
 } TString;
 
 typedef union Value {
@@ -37,7 +38,7 @@ typedef struct TValue {
 **
 */
 
-#define check_exp(c,e)		(ASSERT(c), (e))
+#define check_exp(c,e)		(bean_assert(c), (e))
 /* raw type tag of a TValue */
 #define rawtt(o)	((o)->tt_)
 

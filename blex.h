@@ -6,7 +6,6 @@
 #include "bstate.h"
 #include "bzio.h"
 
-
 #include <ctype.h>
 
 // ref: https://www.programiz.com/c-programming/library-function/ctype.h

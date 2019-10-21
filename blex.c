@@ -125,7 +125,7 @@ static int check_next1(LexState * ls, int c) {
 }
 
 static int check_next2(LexState * ls, const char *set) {
-  ASSERT(set[2] == '\0');
+  bean_assert(set[2] == '\0');
   if (ls->current == set[0] || ls->current == set[1]) {
     save_and_next(ls);
     return true;
@@ -178,7 +178,7 @@ static int read_numeral(LexState * ls, SemInfo * seminfo) {
   TValue obj;
   const char *expo = "Ee";
   int first = ls -> current;
-  ASSERT(bisdigit(ls->current));
+  bean_assert(bisdigit(ls->current));
   save_and_next(ls);
 
   if (first == '0' && check_next2(ls, "xX"))  /* hexadecimal? */
@@ -201,7 +201,7 @@ static int read_numeral(LexState * ls, SemInfo * seminfo) {
     return TK_INT;
   }
   else {
-    ASSERT(ttisfloat(&obj));
+    bean_assert(ttisfloat(&obj));
     seminfo->r = fltvalue(&obj);
     return TK_FLT;
   }
@@ -292,4 +292,32 @@ static int llex(LexState * ls, SemInfo * seminfo) {
       }
     }
   }
+}
+
+
+/*
+** creates a new string and anchors it in scanner's table so that
+** it will not be collected until the end of the compilation
+** (by that time it should be anchored somewhere)
+*/
+TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
+  bean_State *B = ls->B;
+  TString *ts = beanS_newlstr(B, str, l);  /* create new string */
+
+  // TODO: The VM logic
+  /* TValue *o;  /\* entry for 'str' *\/ */
+
+  /* setsvalue2s(L, L->top++, ts);  /\* temporarily anchor it in stack *\/ */
+  /* o = luaH_set(L, ls->h, s2v(L->top - 1)); */
+  /* if (isempty(o)) {  /\* not in use yet? *\/ */
+  /*   /\* boolean value does not need GC barrier; */
+  /*      table is not a metatable, so it does not need to invalidate cache *\/ */
+  /*   setbvalue(o, 1);  /\* t[string] = true *\/ */
+  /*   luaC_checkGC(L); */
+  /* } */
+  /* else {  /\* string already present *\/ */
+  /*   ts = keystrval(nodefromval(o));  /\* re-use value previously stored *\/ */
+  /* } */
+  /* L->top--;  /\* remove string from stack *\/ */
+  return ts;
 }
