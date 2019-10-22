@@ -39,3 +39,5 @@ typedef struct FuncState {
 /* macros to convert a GCObject into a specific value */
 #define gco2ts(o)  \
         check_exp(novariant((o)->tt) == LUA_TSTRING, &((cast_u(o))->ts))
+
+#endif

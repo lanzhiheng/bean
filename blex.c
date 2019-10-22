@@ -29,6 +29,11 @@ static void save(LexState * ls, int c) {
 void beanX_init(bean_State * B) {
   int i;
   TString * e = beanS_newliteral(B, BEAN_ENV);
+  /* luaC_fix(L, obj2gco(e));  /\* never collect this name *\/ */
+  for (i = 0; i < NUM_RESERVED; i++) {
+    TString * ts = beanS_newlstr(B, beanX_tokens[i], strlen(beanX_tokens[i]));
+    ts -> reserved = cast_byte(i + 1);
+  }
 }
 
 void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source,
@@ -44,6 +49,33 @@ void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *s
   ls -> inputStream = inputStream;
   ls -> envn = beanS_newliteral(B, BEAN_ENV);
   beanZ_resizebuffer(B, ls -> buff, BEAN_MINBUFFER);
+}
+
+/*
+** creates a new string and anchors it in scanner's table so that
+** it will not be collected until the end of the compilation
+** (by that time it should be anchored somewhere)
+*/
+TString *beanX_newstring (LexState *ls, const char *str, size_t l) {
+  bean_State *B = ls->B;
+  TString *ts = beanS_newlstr(B, str, l);  /* create new string */
+
+  // TODO: The VM logic
+  /* TValue *o;  /\* entry for 'str' *\/ */
+
+  /* setsvalue2s(L, L->top++, ts);  /\* temporarily anchor it in stack *\/ */
+  /* o = luaH_set(L, ls->h, s2v(L->top - 1)); */
+  /* if (isempty(o)) {  /\* not in use yet? *\/ */
+  /*   /\* boolean value does not need GC barrier; */
+  /*      table is not a metatable, so it does not need to invalidate cache *\/ */
+  /*   setbvalue(o, 1);  /\* t[string] = true *\/ */
+  /*   luaC_checkGC(L); */
+  /* } */
+  /* else {  /\* string already present *\/ */
+  /*   ts = keystrval(nodefromval(o));  /\* re-use value previously stored *\/ */
+  /* } */
+  /* L->top--;  /\* remove string from stack *\/ */
+  return ts;
 }
 
 static void inclinenumber(LexState * ls) {
@@ -275,12 +307,15 @@ static int llex(LexState * ls, SemInfo * seminfo) {
       }
       default: {
         if (bislalpha(ls -> current)) {
+          TString * ts;
           do {
             save_and_next(ls);
           } while(bislalnum(ls -> current) || ls -> current == '?'); // The name of variable or function can include '?'
-          TString * ts;
-          if (isreserved(ts)) { // TODO: need to add logic
-            return FIRST_RESERVED;
+          ts = beanX_newstring(ls,
+                               beanZ_buffer(ls -> buff),
+                               beanZ_bufflen(ls -> buff));
+          if (isreserved(ts)) { /* reserved word? */
+            return (ts -> reserved - 1 + FIRST_RESERVED) ;
           } else {
             return TK_NAME;
           }
@@ -292,32 +327,4 @@ static int llex(LexState * ls, SemInfo * seminfo) {
       }
     }
   }
-}
-
-
-/*
-** creates a new string and anchors it in scanner's table so that
-** it will not be collected until the end of the compilation
-** (by that time it should be anchored somewhere)
-*/
-TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
-  bean_State *B = ls->B;
-  TString *ts = beanS_newlstr(B, str, l);  /* create new string */
-
-  // TODO: The VM logic
-  /* TValue *o;  /\* entry for 'str' *\/ */
-
-  /* setsvalue2s(L, L->top++, ts);  /\* temporarily anchor it in stack *\/ */
-  /* o = luaH_set(L, ls->h, s2v(L->top - 1)); */
-  /* if (isempty(o)) {  /\* not in use yet? *\/ */
-  /*   /\* boolean value does not need GC barrier; */
-  /*      table is not a metatable, so it does not need to invalidate cache *\/ */
-  /*   setbvalue(o, 1);  /\* t[string] = true *\/ */
-  /*   luaC_checkGC(L); */
-  /* } */
-  /* else {  /\* string already present *\/ */
-  /*   ts = keystrval(nodefromval(o));  /\* re-use value previously stored *\/ */
-  /* } */
-  /* L->top--;  /\* remove string from stack *\/ */
-  return ts;
 }

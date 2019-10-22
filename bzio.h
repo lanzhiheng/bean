@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "bstate.h"
+#include "mem.h"
 
 #define BUFFER_MAX INT_MAX
 
