@@ -253,18 +253,18 @@ static int llex(LexState * ls, SemInfo * seminfo) {
         next(ls);
         break;
       }
-      case '=' {
+      case '=': {
         next(ls);
         if (check_next1(ls, '=')) return TK_EQ;
         return '=';
       }
-      case '>' {
+      case '>': {
         next(ls);
         if (check_next1(ls, '=')) return TK_GE;
         else if (check_next1(ls, '>')) return TK_SHR;
         return '>';
       }
-      case '<' {
+      case '<': {
         next(ls);
         if (check_next1(ls, '=')) return TK_LE;
         else if (check_next1(ls, '<')) return TK_SHL;
