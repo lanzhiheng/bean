@@ -47,4 +47,6 @@ typedef struct FuncState {
 #define gco2ts(o)  \
         check_exp(novariant((o)->tt) == LUA_TSTRING, &((cast_u(o))->ts))
 
+void global_init(bean_State * B);
+
 #endif

@@ -72,6 +72,6 @@ typedef struct LexState {
   TString *envn;  /* environment variable name */
 } LexState;
 
-void beanX_init (bean_State *L);
-
+void beanX_init (bean_State *B);
+void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source, int firstchar);
 #endif

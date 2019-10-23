@@ -67,8 +67,8 @@ unsigned int beanS_hash (const char *str, size_t l, unsigned int seed) {
 }
 
 TString * beanS_newlstr (bean_State * B, const char *str, size_t l) {
-  global_State g = G(B);
-  stringtable * tb = &(g->strb);
+  global_State * g = G(B);
+  stringtable * tb = &(g->strt);
   unsigned int h = beanS_hash(str, l, g->seed);
   TString ** list = &tb -> hash[bmod(h, tb->size)];
   TString * ts;
