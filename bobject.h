@@ -20,6 +20,7 @@ typedef struct TString {
   size_t len;  /* length of string */
   unsigned int hash;
   bu_byte reserved;
+  struct TString *hnext;  /* linked list for hash table */
 } TString;
 
 typedef union Value {
@@ -37,6 +38,12 @@ typedef struct TValue {
 ** Some helper macro
 **
 */
+
+/*
+** 'module' operation for hashing (size is always a power of 2)
+*/
+#define bmod(s,size) \
+        (check_exp((size&(size-1))==0, (cast_int((s) & ((size)-1)))))
 
 #define check_exp(c,e)		(bean_assert(c), (e))
 /* raw type tag of a TValue */

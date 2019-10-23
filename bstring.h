@@ -10,6 +10,8 @@
 
 #define MEMERRMSG       "not enough memory"
 #define HASHLIMIT		5
+#define MAXSTRTB	cast_int(beanM_limitN(INT_MAX, TString*))
+
 
 // Size of String is sum of the size of struct TString and the extra char array with the '\0' at the end of the string.
 #define sizeofstring(s)  (sizeof(TString) + ((s) + 1) * sizeof(char))

@@ -4,9 +4,16 @@
 #include "common.h"
 #include "bobject.h"
 
+typedef struct stringtable {
+  TString ** hash;
+  int nuse;
+  int size;
+} stringtable;
+
 typedef struct global_State {
   unsigned int seed;  /* randomized seed for hashes */
   GCObject *allgc;  /* list of all collectable objects */
+  stringtable strt;
 } global_State;
 
 #define G(B)	(B->l_G)

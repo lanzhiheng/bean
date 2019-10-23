@@ -1,6 +1,7 @@
 #ifndef _BEAN_COMMON_H
 #define _BEAN_COMMON_H
 #include <stdlib.h>
+#include <limits.h>
 #include "bean.h"
 
 #define bool char
@@ -27,12 +28,14 @@ typedef struct vm VM;
 #define cast_uchar(i)	cast(unsigned char, (i))
 #define cast_uint(i)	cast(unsigned int, (i))
 #define cast_byte(i)	cast(bu_byte, (i))
+#define cast_sizet(i)	cast(size_t, (i))
 
 /* minimum size for string buffer */
 #if !defined(BEAN_MINBUFFER)
 #define BEAN_MINBUFFER	32
 #endif
 
+#define MAX_SIZET (~cast_sizet(0))
 
 #if defined(DEBUG)
 #include <assert.h>
