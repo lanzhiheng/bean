@@ -70,11 +70,11 @@ TString * beanS_newlstr (bean_State * B, const char *str, size_t l) {
   global_State * g = G(B);
   stringtable * tb = &(g->strt);
   unsigned int h = beanS_hash(str, l, g->seed);
-  TString ** list = &tb -> hash[bmod(h, tb->size)];
+  TString ** list = &tb->hash[bmod(h, tb->size)];
   TString * ts;
 
   for (ts = *list; ts != NULL; ts = ts->hnext) {
-    if (l == ts -> len && (memcpy(getstr(ts), str, l) == 0)) return ts;
+    if (l == ts -> len && (memcmp(getstr(ts), str, l) == 0)) return ts;
   }
 
   /* else must create a new string */
