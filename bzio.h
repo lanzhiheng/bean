@@ -22,7 +22,7 @@ typedef struct Mbuffer {
 #define beanZ_resetbuffer(buff) ((buff)->n = 0)
 
 #define beanZ_resizebuffer(B, buff, size)                                \
-  ((buff) -> buffer = beanM_reallocvchar(B, (buff) -> buffer, (buff)->buffsize, size), \
+  ((buff) -> buffer = beanM_realloc_(B, (buff) -> buffer, (buff)->buffsize, size), \
    (buff) -> buffsize = size)
 
 #define beanZ_freebuffer(B, buff)	luaZ_resizebuffer(B, buff, 0)

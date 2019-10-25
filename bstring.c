@@ -38,7 +38,7 @@ static void beanS_resize (bean_State *B, int nsize) {
     tablerehash(tb -> hash, osize, nsize);
   } else {
     // Reallocate the memory
-    newvect = cast(TString **, beanM_reallocvchar(B, tb -> hash, osize, nsize));
+    newvect = beanM_reallocvchar(B, tb -> hash, osize, nsize, TString *);
 
     if (newvect == NULL) { // reallocate failed
       MEM_ERROR(B, MEMERRMSG);

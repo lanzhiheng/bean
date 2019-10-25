@@ -11,8 +11,13 @@
 
 #define MEM_ERROR(B, message) printf(message)
 
-void * beanM_reallocvchar(bean_State * B, void *ptr, size_t oldSize, size_t newSize);
+#define beanM_reallocvchar(B, ptr, oldsize, newsize, t) \
+  (cast(t *, beanM_realloc_(B, ptr, cast_sizet(oldsize) * sizeof(t),    \
+                            cast_sizet(newsize) * sizeof(t))))
 
-void *beanM_malloc_ (bean_State *B, size_t size, int tag);
+#define beanM_mallocvchar(B, size, t) (cast(t *, malloc(sizeof(t) * size)))
+
+void * beanM_malloc_ (bean_State *B, size_t size, int tag);
+void * beanM_realloc_(bean_State * B, void *ptr, size_t oldSize, size_t newSize);
 
 #endif
