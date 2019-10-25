@@ -1,6 +1,6 @@
 CC = gcc
 TARGET = bean
-CFLAGS = -g
+CFLAGS = -g -Wall
 CFILES = $(wildcard *.c)
 
 $(TARGET):$(OBJS)
