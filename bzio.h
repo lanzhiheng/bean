@@ -5,6 +5,11 @@
 #include "bstate.h"
 #include "mem.h"
 
+/* minimum size for string buffer */
+#if !defined(BEAN_MINBUFFER)
+#define BEAN_MINBUFFER	32
+#endif
+
 #define BUFFER_MAX INT_MAX
 
 typedef struct Mbuffer {
@@ -13,7 +18,7 @@ typedef struct Mbuffer {
   size_t buffsize;
 } Mbuffer;
 
-#define beanZ_initbuffer(buff) ((buff)->buffer = NULL, (buff)->buffsize = 0)
+#define beanZ_initbuffer(buff) ((buff)->buffer = beanM_mallocvchar(B, BEAN_MINBUFFER, char), (buff)->buffsize = BEAN_MINBUFFER)
 #define beanZ_buffer(buff)	((buff)->buffer)
 #define beanZ_sizebuffer(buff)	((buff)->buffsize)
 #define beanZ_bufflen(buff)	((buff)->n)

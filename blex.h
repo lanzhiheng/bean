@@ -74,4 +74,6 @@ typedef struct LexState {
 
 void beanX_init (bean_State *B);
 void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source, int firstchar);
+int beanX_lookahead (LexState *ls);
+void beanX_next (LexState *ls);
 #endif

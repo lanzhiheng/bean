@@ -74,7 +74,9 @@ TString * beanS_newlstr (bean_State * B, const char *str, size_t l) {
   TString * ts;
 
   for (ts = *list; ts != NULL; ts = ts->hnext) {
-    if (l == ts -> len && (memcmp(getstr(ts), str, l) == 0)) return ts;
+    if (l == ts -> len && (memcmp(getstr(ts), str, l) == 0)) {
+      return ts;
+    }
   }
 
   /* else must create a new string */

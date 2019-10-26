@@ -1,6 +1,6 @@
 #include "mem.h"
 
-void *beanM_malloc_ (bean_State *B UNUSED, size_t size, int tag UNUSED) {
+void * beanM_malloc_ (bean_State *B UNUSED, size_t size, int tag UNUSED) {
   void * ptr = malloc(size);
   return ptr;
 }

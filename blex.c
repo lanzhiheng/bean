@@ -27,17 +27,16 @@ static void save(LexState * ls, int c) {
 }
 
 void beanX_init(bean_State * B) {
-  int i;
   TString * e = beanS_newliteral(B, BEAN_ENV);
+  printf("BeanX initialize in %s.\n", getstr(e));
   /* luaC_fix(L, obj2gco(e));  /\* never collect this name *\/ */
-  for (i = 0; i < NUM_RESERVED; i++) {
+  for (int i = 0; i < NUM_RESERVED; i++) {
     TString * ts = beanS_newlstr(B, beanX_tokens[i], strlen(beanX_tokens[i]));
     ts -> reserved = cast_byte(i + 1);
   }
 }
 
-void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source,
-                     int firstchar) {
+void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source, int firstchar) {
   ls -> current = firstchar;
   ls -> linenumber = 1;
   ls -> lastline = 1;
@@ -48,7 +47,8 @@ void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *s
   ls -> B = B;
   ls -> inputStream = inputStream;
   ls -> envn = beanS_newliteral(B, BEAN_ENV);
-  beanZ_resizebuffer(B, ls -> buff, BEAN_MINBUFFER);
+  ls -> buff = malloc(sizeof(Mbuffer));
+  beanZ_initbuffer(ls -> buff);
 }
 
 /*
@@ -326,5 +326,20 @@ static int llex(LexState * ls, SemInfo * seminfo) {
         }
       }
     }
+  }
+}
+
+int beanX_lookahead (LexState *ls) {
+  bean_assert(ls -> lookahead.type == TK_EOS);
+  ls -> lookahead.type = llex(ls, &ls -> lookahead.seminfo);
+  return ls -> lookahead.type;
+}
+
+void beanX_next (LexState *ls) {
+  if (ls -> lookahead.type != TK_EOS) {
+    ls -> t = ls -> lookahead;
+    ls -> lookahead.type = TK_EOS;
+  } else {
+    ls -> t.type = llex(ls, &ls -> t.seminfo);
   }
 }
