@@ -5,7 +5,7 @@
 #include "bobject.h"
 
 typedef struct stringtable {
-  TString ** hash;
+  struct TString ** hash;
   int nuse;
   int size;
 } stringtable;
@@ -48,5 +48,5 @@ typedef struct FuncState {
         check_exp(novariant((o)->tt) == LUA_TSTRING, &((cast_u(o))->ts))
 
 void global_init(bean_State * B);
-
+const char *beanO_pushfstring (bean_State *B UNUSED, const char *fmt, ...);
 #endif

@@ -36,6 +36,22 @@ void beanX_init(bean_State * B) {
   }
 }
 
+const char *beanX_token2str (LexState *ls, int token) {
+  if (token < FIRST_RESERVED) {  /* single-byte symbols? */
+    if (bisprint(token))
+      return beanO_pushfstring(ls->B, "'%c'", token);
+    else  /* control character */
+      return beanO_pushfstring(ls->B, "'<\\%d>'", token);
+  }
+  else {
+    const char *s = beanX_tokens[token - FIRST_RESERVED];
+    if (token < TK_EOS)  /* fixed format (symbols and reserved words)? */
+      return beanO_pushfstring(ls->B, "'%s'", s);
+    else  /* names, strings, and numerals */
+      return s;
+  }
+}
+
 void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source, int firstchar) {
   ls -> current = firstchar;
   ls -> linenumber = 1;

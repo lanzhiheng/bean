@@ -4,6 +4,8 @@
 #include "common.h"
 #include <stdlib.h>
 
+#define MAX_STRING_BUFFER 256
+
 /*
 ** Common Header for all collectable objects (in macro form, to be
 ** included in other objects)

@@ -70,7 +70,8 @@ TString * beanS_newlstr (bean_State * B, const char *str, size_t l) {
   global_State * g = G(B);
   stringtable * tb = &(g->strt);
   unsigned int h = beanS_hash(str, l, g->seed);
-  TString ** list = &tb->hash[bmod(h, tb->size)];
+  int index = bmod(h, tb->size);
+  TString ** list = &tb->hash[index];
   TString * ts;
 
   for (ts = *list; ts != NULL; ts = ts->hnext) {

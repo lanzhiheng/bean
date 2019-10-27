@@ -41,7 +41,7 @@ static void run_file(const char * path) {
     char * root = (char*)malloc(lastSlash - path + 2); // Allocate more char space for string '/' and '\0'
     memcpy(root, path, lastSlash - path + 1);
     root[lastSlash - path + 1] = '\0';
-    rootDir = root; // From core.h
+    rootDir = root;
     filename = lastSlash + 1;
   }
 
@@ -55,8 +55,13 @@ static void run_file(const char * path) {
   printf("Source file name is %s.\n", getstr(e));
   char* source = read_source_file(path);
   beanX_setinput(B, ls, source, e, *source);
-}
 
+  while (ls -> current != '\0') {
+    beanX_next(ls);
+    const char * msg = beanX_token2str(ls, ls ->t.type);
+    printf("%s\n", msg);
+  }
+}
 
 int main(int argc, char ** argv) {
   if (argc == 1) {

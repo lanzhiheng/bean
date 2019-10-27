@@ -1,0 +1,1 @@
+1. When I use create a new TString in the blex, sometimes will cause the `segmentation fault c` issue. I don't know which code cause it.
