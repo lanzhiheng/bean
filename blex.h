@@ -77,4 +77,5 @@ void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *s
 int beanX_lookahead (LexState *ls);
 void beanX_next (LexState *ls);
 const char *beanX_token2str (LexState *ls, int token);
+const char *txtToken (LexState *ls, int token);
 #endif

@@ -58,7 +58,7 @@ static void run_file(const char * path) {
 
   while (ls -> current != '\0') {
     beanX_next(ls);
-    const char * msg = beanX_token2str(ls, ls ->t.type);
+    const char * msg = txtToken(ls, ls -> t.type);
     printf("%s\n", msg);
   }
 }

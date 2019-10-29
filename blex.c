@@ -36,6 +36,17 @@ void beanX_init(bean_State * B) {
   }
 }
 
+const char *txtToken (LexState *ls, int token) {
+  switch (token) {
+    case TK_NAME: case TK_STRING:
+    case TK_FLT: case TK_INT:
+      save(ls, '\0');
+      return beanO_pushfstring(ls->B, "'%s'", beanZ_buffer(ls->buff));
+    default:
+      return beanX_token2str(ls, token);
+  }
+}
+
 const char *beanX_token2str (LexState *ls, int token) {
   if (token < FIRST_RESERVED) {  /* single-byte symbols? */
     if (bisprint(token))

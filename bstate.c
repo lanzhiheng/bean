@@ -28,7 +28,6 @@ const char *beanO_pushfstring (bean_State *B UNUSED, const char *fmt, ...) {
   char * msg = malloc(MAX_STRING_BUFFER * sizeof(char));
   va_list argp;
   va_start(argp, fmt);
-  sprintf(msg, fmt, argp);
   vsnprintf(msg, MAX_STRING_BUFFER, fmt, argp); // Write the string to buffer
   va_end(argp);
   return msg;
