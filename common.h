@@ -31,6 +31,7 @@ typedef struct vm VM;
 #define cast_sizet(i)	cast(size_t, (i))
 
 #define MAX_SIZET (~cast_sizet(0))
+#define BEAN_IDSIZE	60
 
 #if defined(DEBUG)
 #include <assert.h>

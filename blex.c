@@ -2,6 +2,18 @@
 #include "bstring.h"
 #include <limits.h>
 
+#define save_and_next(ls) (save(ls, ls->current), next(ls))
+
+static void lexerror (LexState *ls, const char *msg, int token) {
+  msg = luaG_addinfo(ls->B, msg, ls -> source, ls -> linenumber);
+  if (token) {
+    msg = beanO_pushfstring(ls->B, "%s near %s", msg, txtToken(ls, token));
+  }
+
+  printf("%s\n", msg);
+  abort();
+}
+
 /* ORDER RESERVED */
 static const char *const beanX_tokens [] = {
     "and", "break", "do", "else", "elseif",
@@ -13,13 +25,11 @@ static const char *const beanX_tokens [] = {
     "<number>", "<integer>", "<name>", "<string>"
 };
 
-#define save_and_next(ls) (save(ls, ls->current), next(ls))
-
 static void save(LexState * ls, int c) {
   Mbuffer * b = ls -> buff;
   if (beanZ_bufflen(b) + 1 > beanZ_sizebuffer(b)) {
     size_t newsize;
-    if (beanZ_sizebuffer(b) >= BUFFER_MAX/2) LEX_ERROR(ls, "lexical element too long");
+    if (beanZ_sizebuffer(b) >= BUFFER_MAX/2) lexerror(ls, "lexical element too long", 0);
     newsize = beanZ_sizebuffer(b) * 2;
     beanZ_resizebuffer(ls -> B, b, newsize);
   }
@@ -110,7 +120,7 @@ static void inclinenumber(LexState * ls) {
   bean_assert(currIsNewline(ls));
   next(ls); // skip '\n' and '\r'
   if (currIsNewline(ls) && ls->current != old) next(ls);  // skip '\n\r' or '\r\n'
-  if (++ls -> linenumber >= INT_MAX) LEX_ERROR(ls, "chunk has too many lines");
+  if (++ls -> linenumber >= INT_MAX) lexerror(ls, "chunk has too many lines", 0);
 }
 
 static void read_string(LexState *ls, int del, SemInfo *seminfo) {
@@ -118,11 +128,11 @@ static void read_string(LexState *ls, int del, SemInfo *seminfo) {
   while(ls -> current != del) {
     switch(ls->current) {
       case EOZ:
-        LEX_ERROR(ls, "unfinished string for end of file");
+        lexerror(ls, "unfinished string for end of file", EOZ);
         break;  /* to avoid warnings */
       case '\n':
       case '\r':
-        LEX_ERROR(ls, "unfinished string for line break");
+        lexerror(ls, "unfinished string for line break", TK_STRING);
         break;  /* to avoid warnings */
       case '\\': {
         int c;  /* final character to be saved */
@@ -253,7 +263,7 @@ static int read_numeral(LexState * ls, SemInfo * seminfo) {
     save_and_next(ls);  /* force an error */
   save(ls, '\0');
 
-  if (beanO_str2num(beanZ_buffer(ls -> buff), &obj) == 0) LEX_ERROR(ls, "malformed number");
+  if (beanO_str2num(beanZ_buffer(ls -> buff), &obj) == 0) lexerror(ls, "malformed number", TK_FLT);
 
   if (ttisinteger(&obj)) {
     seminfo->i = ivalue(&obj);

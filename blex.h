@@ -5,6 +5,7 @@
 #include "bobject.h"
 #include "bstate.h"
 #include "bzio.h"
+#include "bdebug.h"
 
 #include <ctype.h>
 
@@ -23,9 +24,6 @@
 #define next(ls) (ls -> current = *(++ls -> inputStream))
 
 #define currIsNewline(ls)	(ls->current == '\n' || ls->current == '\r')
-
-// TODO: Add more error information
-#define LEX_ERROR(ls, message) printf(message);
 
 #if !defined(BEAN_ENV)
 #define BEAN_ENV		"BEAN_ENV"
