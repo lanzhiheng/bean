@@ -46,7 +46,7 @@ static void run_file(const char * path) {
   }
 
   bean_State * B = malloc(sizeof(B));
-  LexState * ls = malloc(sizeof(ls));
+  LexState * ls = malloc(sizeof(LexState));
   B -> allocateBytes = 0;
   global_init(B);
   beanX_init(B);

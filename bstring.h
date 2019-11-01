@@ -16,7 +16,7 @@
 // Size of String is sum of the size of struct TString and the extra char array with the '\0' at the end of the string.
 #define sizeofstring(s)  (sizeof(TString) + ((s) + 1) * sizeof(char))
 #define isreserved(s)	((s)->tt == BEAN_TSTRING && (s)->reserved > 0)
-#define getstr(ts) (cast_charp((ts)) + sizeof(TString))
+#define getstr(ts) (cast_charp(ts) + sizeof(TString))
 #define tslen(ts) (ts -> len)
 
 #define beanS_newliteral(B, s) beanS_newlstr(B, "" s, strlen(s))
