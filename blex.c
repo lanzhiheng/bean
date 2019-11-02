@@ -14,6 +14,10 @@ static void lexerror (LexState *ls, const char *msg, int token) {
   abort();
 }
 
+void beanX_syntaxerror (LexState *ls, const char *msg) {
+  lexerror(ls, msg, ls->t.type);
+}
+
 /* ORDER RESERVED */
 static const char *const beanX_tokens [] = {
     "and", "break", "do", "else", "elseif",

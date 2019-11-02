@@ -52,7 +52,7 @@ typedef union {
 
 
 typedef struct Token {
-  TokenType type;
+  int type;
   SemInfo seminfo;
 } Token;
 
@@ -76,4 +76,5 @@ int beanX_lookahead (LexState *ls);
 void beanX_next (LexState *ls);
 const char *beanX_token2str (LexState *ls, int token);
 const char *txtToken (LexState *ls, int token);
+void beanX_syntaxerror (LexState *ls, const char *msg);
 #endif
