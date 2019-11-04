@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include "common.h"
 #include "bobject.h"
+#include "bparser.h"
 #include "bstate.h"
 #include "bzio.h"
 #include "bdebug.h"
@@ -66,6 +67,7 @@ typedef struct LexState {
   struct bean_State *B;
   Mbuffer *buff;  /* buffer for tokens */
   char * inputStream;
+  struct Dyndata *dyd;
   TString *source;  /* current source name */
   TString *envn;  /* environment variable name */
 } LexState;

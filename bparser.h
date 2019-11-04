@@ -74,4 +74,37 @@ typedef struct expdesc {
   int f;  /* patch list of 'exit when false' */
 } expdesc;
 
+typedef struct FuncState {
+  Proto *f;  /* current function header */
+  struct LexState * ls;
+  int firstlocal;  /* index of first local var (in Dyndata array) */
+} FuncState;
+
+/* kinds of variables */
+#define VDKREG		0   /* regular */
+#define RDKCONST	1   /* constant */
+#define RDKTOCLOSE	2   /* to-be-closed */
+#define RDKCTC		3   /* compile-time constant */
+
+typedef union Vardesc {
+  struct {
+    TValuefields;
+    bu_byte kind;
+    bu_byte sidx; /* index of the variable in the stack */
+    short pidx;  /* index of the variable in the Proto's 'locvars' array */
+    TString *name;  /* variable name */
+  } vd;
+
+  // TODO: Why
+  TValue k;  /* constant value (if any) */
+} Vardesc;
+
+typedef struct Dyndata {
+  struct {
+    Vardesc *arr;
+    int n;
+    int size;
+  } actvar;
+} Dyndata;
+
 #endif

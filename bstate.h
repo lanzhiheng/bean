@@ -37,10 +37,6 @@ typedef struct bean_State {
   global_State *l_G;
 } bean_State;
 
-typedef struct FuncState {
-
-} FuncState;
-
 #define cast_u(o)	cast(union GCUnion *, (o))
 
 /* macros to convert a GCObject into a specific value */
