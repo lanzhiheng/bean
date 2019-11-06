@@ -5,4 +5,5 @@
 
 const char * luaG_addinfo(bean_State * B, const char * msg, TString * source, int line);
 
+void beanG_runerror (bean_State *B, const char *fmt, ...);
 #endif

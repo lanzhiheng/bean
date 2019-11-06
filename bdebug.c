@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include "bdebug.h"
 #include "bstring.h"
 
@@ -22,4 +23,15 @@ const char * luaG_addinfo(bean_State * B, const char * msg, TString * source, in
   }
 
   return beanO_pushfstring(B, "%s:%d %s", buff, line, msg);
+}
+
+
+void beanG_runerror (bean_State *B, const char *fmt, ...) {
+  const char *msg;
+  va_list argp;
+  va_start(argp, fmt);
+  msg = beanO_pushfstring(B, fmt, argp);  /* format message */
+  va_end(argp);
+  printf("%s", msg);
+  abort();
 }

@@ -65,10 +65,10 @@ typedef struct expdesc {
     /*   short idx;  /\* index (R or "long" K) *\/ */
     /*   lu_byte t;  /\* table (register or upvalue) *\/ */
     /* } ind; */
-    /* struct {  /\* for local variables *\/ */
-    /*   lu_byte sidx;  /\* index in the stack *\/ */
-    /*   unsigned short vidx;  /\* index in 'actvar.arr'  *\/ */
-    /* } var; */
+    struct {  /* for local variables */
+      bu_byte sidx;  /* index in the stack */
+      unsigned short vidx;  /* index in 'actvar.arr'  */
+    } var;
   } u;
   int t;  /* patch list of 'exit when true' */
   int f;  /* patch list of 'exit when false' */
@@ -77,7 +77,11 @@ typedef struct expdesc {
 typedef struct FuncState {
   Proto *f;  /* current function header */
   struct LexState * ls;
+  int pc;  /* next position to code (equivalent to 'ncode') */
   int firstlocal;  /* index of first local var (in Dyndata array) */
+  bu_byte nactvar;  /* number of active local variables */
+  bu_byte nups;  /* number of upvalues */
+  short ndebugvars;  /* number of elements in 'f->locvars' */
 } FuncState;
 
 /* kinds of variables */

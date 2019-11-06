@@ -31,6 +31,26 @@ typedef union Value {
   bean_Number n;
 } Value;
 
+/*
+** Description of a local variable for function prototypes
+** (used for debug information)
+*/
+typedef struct LocVar {
+  TString *varname;
+  int startpc;  /* first point where variable is active */
+  int endpc;  /* first point where variable is dead */
+} LocVar;
+
+/*
+** Description of an upvalue for function prototypes
+*/
+typedef struct Upvaldesc {
+  TString *name;  /* upvalue name (for debug information) */
+  bu_byte instack;  /* whether it is in stack (register) */
+  bu_byte idx;  /* index of upvalue (in stack or in outer function's list) */
+  bu_byte kind;  /* kind of corresponding variable */
+} Upvaldesc;
+
 #define TValuefields   Value value_; bu_byte tt_
 
 typedef struct TValue {
@@ -50,30 +70,20 @@ typedef struct Proto {
   /* int sizecode; */
   /* int sizelineinfo; */
   /* int sizep;  /\* size of 'p' *\/ */
-  /* int sizelocvars; */
+  int sizelocvars;
   /* int sizeabslineinfo;  /\* size of 'abslineinfo' *\/ */
   int linedefined;  /* debug information  */
   /* int lastlinedefined;  /\* debug information  *\/ */
   /* TValue *k;  /\* constants used by the function *\/ */
   /* Instruction *code;  /\* opcodes *\/ */
   /* struct Proto **p;  /\* functions defined inside the function *\/ */
-  /* Upvaldesc *upvalues;  /\* upvalue information *\/ */
+  Upvaldesc *upvalues;  /* upvalue information */
   /* ls_byte *lineinfo;  /\* information about source lines (debug information) *\/ */
   /* AbsLineInfo *abslineinfo;  /\* idem *\/ */
-  /* LocVar *locvars;  /\* information about local variables (debug information) *\/ */
+  LocVar *locvars;  /* information about local variables (debug information) */
   /* TString  *source;  /\* used for debug information *\/ */
   /* GCObject *gclist; */
 } Proto;
-
-/*
-** Description of a local variable for function prototypes
-** (used for debug information)
-*/
-typedef struct LocVar {
-  TString *varname;
-  int startpc;  /* first point where variable is active */
-  int endpc;    /* first point where variable is dead */
-} LocVar;
 
 /*
 ** Some helper macro

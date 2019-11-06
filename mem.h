@@ -17,7 +17,11 @@
 
 #define beanM_mallocvchar(B, size, t) (cast(t *, malloc(sizeof(t) * size)))
 
+#define beanM_growvector(B, v, nelems, size, t, limit, e) \
+  ((v) = cast(t *, beanM_grow_(B, v, nelems, &(size), sizeof(t), beanM_limitN(limit, t), e)))
+
 void * beanM_malloc_ (bean_State *B, size_t size, int tag);
 void * beanM_realloc_(bean_State * B, void *ptr, size_t oldSize, size_t newSize);
+void * beanM_grow_(bean_State * B, void * block, int n, int *psize, int size_elems, int limit, const char * what);
 
 #endif
