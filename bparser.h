@@ -52,6 +52,12 @@ typedef enum {
 #define vkisvar(k)	(VLOCAL <= (k) && (k) <= VINDEXSTR)
 #define vkisindexed(k)	(VINDEXED <= (k) && (k) <= VINDEXSTR)
 
+typedef struct BlockCnt {
+  struct BlockCnt *previous;
+  bu_byte nactvar;  /* # active locals outside the block */
+  bu_byte upval;  /* true if some variable in the block is an upvalue */
+} BlockCnt;
+
 typedef struct expdesc {
   expkind kind;
   union {
@@ -76,12 +82,15 @@ typedef struct expdesc {
 
 typedef struct FuncState {
   Proto *f;  /* current function header */
+  struct FuncState * prev; /* enclosing func */
   struct LexState * ls;
+  struct BlockCnt * bl;
   int pc;  /* next position to code (equivalent to 'ncode') */
   int firstlocal;  /* index of first local var (in Dyndata array) */
   bu_byte nactvar;  /* number of active local variables */
   bu_byte nups;  /* number of upvalues */
   short ndebugvars;  /* number of elements in 'f->locvars' */
+  bu_byte needclose;  /* function needs to close upvalues when returning */
 } FuncState;
 
 /* kinds of variables */

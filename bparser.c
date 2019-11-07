@@ -1,12 +1,18 @@
 #include <limits.h>
 #include "mem.h"
 #include "blex.h"
-#include "bstring.h>"
+#include "bstring.h"
 #include "bparser.h"
 
 /* maximum number of local variables per function (must be smaller
    than 250, due to the bytecode format) */
 #define MAXVARS		200
+
+/*
+** maximum number of upvalues in a closure (both C and Lua). (Value
+** must fit in a VM register.)
+*/
+#define MAXUPVAL	255
 
 /* because all strings are unified by the scanner, the parser
    can use pointer equality for string equality */
@@ -262,4 +268,117 @@ static int searchupvalue (FuncState * fs, TString * name) {
   }
 
   return -1;
+}
+
+static Upvaldesc *allocupvalue (FuncState *fs) {
+  Proto * f = fs->f;
+  int oldsize= f->sizeupvalues;
+  checklimit(fs, fs->nups + 1, MAXUPVAL, "upvalues");
+  beanM_growvector(fs->ls->B, f->upvalues, fs->nups, f->sizeupvalues, Upvaldesc, MAXUPVAL, "upvalues");
+  while(oldsize < f->sizeupvalues) {
+    f->upvalues[oldsize].name = NULL;
+  }
+  return &f->upvalues[fs->nups++];
+}
+
+static int newupvalue (FuncState *fs, TString *name, expdesc *v) {
+  Upvaldesc *up = allocupvalue(fs);
+  FuncState *prev = fs->prev;
+
+  if (v->k == VLOCAL) {
+    up->instack = 1;
+    up->idx = v->u.var.sidx;
+    up->kind = getlocalvardesc(fs, v->u.var.vidx)->vd.kind;
+    bean_assert(eqstr(name, getlocalvardesc(prev, v->u.var.vidx)->v.name));
+  } else {
+    up->instack = 0;
+    up->idx = cast_byte(v->u.info);
+    up->kind = prev->f->upvalues[v->u.info].kind;
+    bean_assert(eqstr(name, prev->f->upvalues[v->u.info].kind));
+  }
+  up->name = name;
+
+  /* luaC_objbarrier(fs->ls->L, fs->f, name); */
+  return fs->nups - 1;
+}
+
+/*
+** Look for an active local variable with the name 'n' in the
+** function 'fs'.
+*/
+static int searchvar(FuncState *fs, TString *n, expdesc *var) {
+  for (int i = cast_int(fs->nactvar) - 1; i >= 0; i--) {
+    Vardesc *vd = getlocalvardesc(fs, i);
+    if (eqstr(n, vd->vd.name)) {
+      if (vd->vd.kind == RDKCTC) {
+        init_exp(var, VCONST, fs->firstlocal + i);
+      } else {
+        init_var(fs, var, i);
+      }
+      return var->kind;
+    }
+  }
+  return -1;
+}
+
+/*
+** Mark block where variable at given level was defined
+** (to emit close instructions later).
+*/
+static void markupval (FuncState *fs, int level) {
+  BlockCnt *bl = fs->bl;
+  while (bl->nactvar > level)
+    bl = bl->previous;
+  bl->upval = true;
+  fs->needclose = true;
+}
+
+/*
+** Find a variable with the given name 'n'. If it is an upvalue, add
+** this upvalue into all intermediate functions. If it is a global, set
+** 'var' as 'void' as a flag.
+*/
+static void singlevaraux (FuncState *fs, TString *n, expdesc *var, int base) {
+  if (fs == NULL) {
+    init_exp(var, VVOID, 0);
+  } else {
+    int v = searchvar(fs, n, var);
+
+    if (v >= 0) {
+      if (v == VLOCAL && !base)
+        markupval(fs, var->u.var.vidx);
+    } else {
+      int idx = searchupvalue(fs, n);
+      if (idx < 0) {
+        singlevaraux(fs->prev, n, var, 0);
+
+        if (var->k == VLOCAL || var->k == VUPVAL) {
+          idx = newupvalue(fs, n, var);
+        } else {
+          return;
+        }
+      }
+      init_exp(var, VUPVAL, idx);
+    }
+  }
+}
+
+/*
+** Find a variable with the given name 'n', handling global variables
+** too.
+*/
+
+static void singlevar (LexState *ls, expdesc *var) {
+  TString *varname = str_checkname(ls);
+  FuncState *fs = ls->fs;
+  singlevaraux(fs, varname, var, 1);
+
+  if (var->k == VVOID) {
+    expdesc key;
+    singlevaraux(fs, ls->envn, var, 1);
+    bean_assert(var->k != VVOID);  /* this one must exist */
+    codestring(&key, varname);
+    // TODO: Need to implement the func
+    /* luaK_indexed(fs, var, &key);  /\* env[varname] *\/ */
+  }
 }

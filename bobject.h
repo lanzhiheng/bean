@@ -65,7 +65,7 @@ typedef struct Proto {
   /* lu_byte numparams;  /\* number of fixed (named) parameters *\/ */
   /* lu_byte is_vararg; */
   /* lu_byte maxstacksize;  /\* number of registers needed by this function *\/ */
-  /* int sizeupvalues;  /\* size of 'upvalues' *\/ */
+  int sizeupvalues;  /* size of 'upvalues' */
   /* int sizek;  /\* size of 'k' *\/ */
   /* int sizecode; */
   /* int sizelineinfo; */
