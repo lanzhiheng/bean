@@ -62,7 +62,7 @@ static void checknext (LexState *ls, int c) {
 static TString *str_checkname(LexState *ls) {
   TString *ts;
   check(ls, TK_NAME);
-  ts = ls -> t.seminfo.ts;
+  ts = ls -> t.seminfo.ts; // Get the seminfo from token structure
   beanX_next(ls);
   return ts;
 }
@@ -126,7 +126,7 @@ static int new_localvar (LexState * ls, TString *name) {
   FuncState *fs = ls -> fs;
   Dyndata * dyd = ls -> dyd;
   Vardesc * var;
-  checklimit(fs, dyd->actvar.n, MAXVARS, "local variables");
+  checklimit(fs, dyd->actvar.n + 1 - fs->firstlocal, MAXVARS, "local variables");
 
   beanM_growvector(B, dyd->actvar.arr, dyd->actvar.n + 1,
                    dyd->actvar.size, Vardesc, USHRT_MAX, "local variables");
