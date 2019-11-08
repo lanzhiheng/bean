@@ -35,9 +35,13 @@ union GCUnion {
 typedef struct bean_State {
   size_t allocateBytes;
   global_State *l_G;
+  unsigned long nCcalls;  /* number of allowed nested C calls - 'nci' */
 } bean_State;
 
 #define cast_u(o)	cast(union GCUnion *, (o))
+
+#define beanE_exitCcall(B)	((B)->nCcalls++)
+#define beanE_enterCcall(B)	((B)->nCcalls--)
 
 /* macros to convert a GCObject into a specific value */
 #define gco2ts(o)  \

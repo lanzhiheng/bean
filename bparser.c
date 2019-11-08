@@ -8,6 +8,8 @@
    than 250, due to the bytecode format) */
 #define MAXVARS		200
 
+#define hasmultret(kind)		((kind) == VCALL || (kind) == VVARARG)
+
 /*
 ** maximum number of upvalues in a closure (both C and Lua). (Value
 ** must fit in a VM register.)
@@ -382,4 +384,110 @@ static void singlevar (LexState *ls, expdesc *var) {
     // TODO: Need to implement the func
     /* luaK_indexed(fs, var, &key);  /\* env[varname] *\/ */
   }
+}
+
+/*
+** Adjust the number of results from an expression list 'e' with 'nexps'
+** expressions to 'nvars' values.
+*/
+
+static void adjust_assign (LexState *ls, int nvars, int nexps, expdesc *e) {
+  FuncState *fs = ls->fs;
+  int needed = nvars - nexps;  /* extra values needed */
+
+  if (hasmultret(e->kind)) {  /* last expression has multiple returns? */
+    int extra = needed + 1;  /* discount last expression itself */
+    if (extra < 0) {
+      extra = 0;
+    }
+    luaK_setreturns(fs, e, extra);  /* last exp. provides the difference */
+  } else {
+    if (e->kind != VVOID) {
+      luaK_exp2nextreg(fs, e);  /* close last expression */
+    }
+
+    if (needed > 0) {
+      luaK_nil(fs, fs->freereg, needed);  /* complete with nils */
+    }
+  }
+
+  if (needed > 0) {
+    luaK_reserveregs(fs, needed);  /* registers for extra values */
+  } else { /* adding 'needed' is actually a subtraction */
+    fs->freereg += needed;  /* remove extra values */
+  }
+}
+
+/*
+** Macros to limit the maximum recursion depth while parsing
+*/
+
+#define enterlevel(ls)	beanE_enterCcall((ls)->B)
+#define leavelevel(ls)	beanE_exitCcall((ls)->B)
+
+/*
+** Generates an error that a goto jumps into the scope of some
+** local variable.
+*/
+static void jumpscopeerror(LexState *ls, Labeldesc *gt) {
+  const char *varname = getstr(getlocalvardesc(ls->fs, gt->nactvar)->vd.name);
+  const char *msg = "<goto %s> at line %d jumps into the scope of local '%s'";
+  msg = beanO_pushfstring(ls->B, msg, getstr(gt->name), varname);
+  beanK_semerror(ls, msg);
+}
+
+
+/*
+** Solves the goto at index 'g' to given 'label' and removes it
+** from the list of pending goto's.
+** If it jumps into the scope of some variable, raises an error.
+*/
+
+static void solvegoto (LexState *ls, int g, Labeldesc *label) {
+  Labellist *gl = &ls->dyd->gt;
+  Labeldesc *gt = &gl->arr[g];
+  bean_assert(eqstr(gt->name, label->name));
+  if (gt->nactvar < label->nactvar) { /* enter some scope? */
+    jumpscopeerror(ls, gt);
+  }
+  luaK_patchlist(ls->fs, gt->pc, label->pc); // TODO: What it that?
+  for (int i = g; i<gl->n-1; i++) {
+    gl->arr[i] = gl->arr[i + 1];
+  }
+  gl->n--;
+}
+
+/*
+** Search for an active label with the given name.
+*/
+static Labeldesc *findlabel (LexState *ls, TString *name) {
+  Dyndata * dyd = ls->dyd;
+
+  for (int i = ls->fs->firstlabel; i < dyd->label.n; i++) {
+    Labeldesc *ld = &dyd->label.arr[i];
+    if (eqstr(ld->name, name)) {
+      return ld;
+    }
+  }
+  return NULL;
+}
+
+/*
+** Adds a new label/goto in the corresponding list.
+*/
+static int newlabelentry (LexState *ls, Labellist *l, TString *name,
+                          int line, int pc) {
+  int n = l->n; // Num of label in Labellist
+  beanM_growvector(ls->B, l->arr, n, l->size, Labeldesc, SHRT_MAX, "labels/gotos");
+  l->arr[n].name = name;
+  l->arr[n].line = line;
+  l->arr[n].nactvar = ls->fs->nactvar;
+  l->arr[n].close = 0;
+  l->arr[n].pc = pc;
+  l->n = n + 1;
+  return n;
+}
+
+static int newgotoentry (LexState *ls, TString *name, int line, int pc) {
+  return newlabelentry(ls, &ls->dyd->gt, name, line, pc);
 }

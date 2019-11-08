@@ -87,6 +87,7 @@ typedef struct FuncState {
   struct BlockCnt * bl;
   int pc;  /* next position to code (equivalent to 'ncode') */
   int firstlocal;  /* index of first local var (in Dyndata array) */
+  int firstlabel;  /* index of first label (in 'dyd->label->arr') */
   bu_byte nactvar;  /* number of active local variables */
   bu_byte nups;  /* number of upvalues */
   short ndebugvars;  /* number of elements in 'f->locvars' */
@@ -112,12 +113,29 @@ typedef union Vardesc {
   TValue k;  /* constant value (if any) */
 } Vardesc;
 
+typedef struct Labeldesc {
+  TString *name;  /* label identifier */
+  int pc;  /* position in code */
+  int line;  /* line where it appeared */
+  bu_byte nactvar;  /* number of active variables in that position */
+  bu_byte close;  /* goto that escapes upvalues */
+} Labeldesc;
+
+/* list of labels or gotos */
+typedef struct Labellist {
+  Labeldesc *arr;  /* array */
+  int n;  /* number of entries in use */
+  int size;  /* array size */
+} Labellist;
+
 typedef struct Dyndata {
   struct {
     Vardesc *arr;
     int n;
     int size;
   } actvar;
+  Labellist gt;  /* list of pending gotos */
+  Labellist label;   /* list of active labels */
 } Dyndata;
 
 #endif
