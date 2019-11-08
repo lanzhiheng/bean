@@ -191,6 +191,7 @@ static LocVar * localdebuginfo(FuncState * fs, int i) {
 
 static void init_var(FuncState * fs, expdesc * e, int i) {
   e->t = e->f = NO_JUMP;
+  e->kind = VLOCAL;
   e->u.var.vidx = i;
   e->u.var.sidx = getlocalvardesc(fs, i) -> vd.sidx;
 }
@@ -231,7 +232,7 @@ static void check_readonly (LexState *ls, expdesc *e) {
 
 static void adjustlocalvars(LexState *ls, int nvars) {
   FuncState * fs = ls->fs;
-  int stklevel = beanY_nvarstack(fs);
+  int stklevel = beanY_nvarstack(fs); // Return the number of variables in the stack for function 'fs'
   int i;
 
   for (i = 0; i < nvars; i++) {
@@ -285,11 +286,11 @@ static int newupvalue (FuncState *fs, TString *name, expdesc *v) {
   Upvaldesc *up = allocupvalue(fs);
   FuncState *prev = fs->prev;
 
-  if (v->k == VLOCAL) {
+  if (v->kind == VLOCAL) {
     up->instack = 1;
     up->idx = v->u.var.sidx;
     up->kind = getlocalvardesc(fs, v->u.var.vidx)->vd.kind;
-    bean_assert(eqstr(name, getlocalvardesc(prev, v->u.var.vidx)->v.name));
+    bean_assert(eqstr(name, getlocalvardesc(prev, v->u.var.vidx)->vd.name));
   } else {
     up->instack = 0;
     up->idx = cast_byte(v->u.info);
@@ -298,7 +299,7 @@ static int newupvalue (FuncState *fs, TString *name, expdesc *v) {
   }
   up->name = name;
 
-  /* luaC_objbarrier(fs->ls->L, fs->f, name); */
+  /* luaC_objbarrier(fs->ls->L, fs->f, name); */  // TODO: Why
   return fs->nups - 1;
 }
 
@@ -340,7 +341,7 @@ static void markupval (FuncState *fs, int level) {
 */
 static void singlevaraux (FuncState *fs, TString *n, expdesc *var, int base) {
   if (fs == NULL) {
-    init_exp(var, VVOID, 0);
+    init_exp(var, VVOID, 0); // global variable
   } else {
     int v = searchvar(fs, n, var);
 
@@ -373,7 +374,7 @@ static void singlevar (LexState *ls, expdesc *var) {
   FuncState *fs = ls->fs;
   singlevaraux(fs, varname, var, 1);
 
-  if (var->k == VVOID) {
+  if (var->kind == VVOID) {
     expdesc key;
     singlevaraux(fs, ls->envn, var, 1);
     bean_assert(var->k != VVOID);  /* this one must exist */
