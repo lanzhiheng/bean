@@ -4,6 +4,46 @@
 #include "bstring.h"
 #include "bparser.h"
 
+/*
+** grep "ORDER OPR" if you change these enums  (ORDER OP)
+*/
+
+// Power
+typedef enum {
+  BP_NONE,
+  BP_LOWEST,
+  BP_ASSIGN,
+  BP_CONDITION,
+  BP_LOGIC_OR,
+  BP_LOGIC_AND,
+  BP_EQUAL,
+  BP_IS,
+  BP_CMP,
+  BP_BIT_OR,
+  BP_BIT_AND,
+  BP_BIT_SHIFT,
+  BP_RANGE,
+  BP_TERM,
+  BP_FACTOR,
+  BP_UNARY,
+  BP_CALL,
+  BP_HIGHTEST
+} bindpower;
+
+typedef void (*denotation_fn) (bean_State * B, bool canAssign);
+
+typedef struct symbol {
+  const char * id;
+  bindpower lbp;
+  denotation_fn nud;
+  denotation_fn led;
+} symbol;
+
+symbol symbol_table[] = {
+  /* arithmetic operators */
+};
+
+
 /* maximum number of local variables per function (must be smaller
    than 250, due to the bytecode format) */
 #define MAXVARS		200
@@ -492,7 +532,19 @@ static int newgotoentry (LexState *ls, TString *name, int line, int pc) {
   return newlabelentry(ls, &ls->dyd->gt, name, line, pc);
 }
 
-void parse_statement(struct LexState *ls UNUSED) {};
+static void parse_statement(struct LexState *ls, bindpower rbp) {
+  symbol sym = symbol_table[ls->t.type];
+
+  bool can_assign = rbp < BP_ASSIGN;
+  sym.nud(ls->B, can_assign);
+  beanX_next(ls);
+
+  while (symbol_table[ls->t.type].lbp > rbp) {
+    denotation_fn led = symbol_table[ls->t.type].led;
+    beanX_next(ls);
+    led(ls->B, can_assign);
+  }
+};
 
 static void parse_program(struct LexState * ls) {
   if (testnext(ls, TK_FUNCTION)) {
@@ -500,15 +552,15 @@ static void parse_program(struct LexState * ls) {
   } else if (testnext(ls, TK_VAR)) {
     printf("I will define the variable\n");
   } else {
-    parse_statement(ls);
+    /* parse_statement(ls, BP_LOWEST); */
   }
 }
-
 
 void bparser(struct LexState * ls) {
   while (ls -> current != '\0') {
     beanX_next(ls);
     const char * msg = txtToken(ls, ls -> t.type);
+    printf("%s\n", msg);
     parse_program(ls);
   }
 }

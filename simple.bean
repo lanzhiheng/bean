@@ -1,6 +1,6 @@
-// I am comments
+// hello
 /* I am comments */
 
-func a() {}
+func a() { 1 / 10 }
 
 var a = 10

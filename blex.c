@@ -21,10 +21,12 @@ void beanX_syntaxerror (LexState *ls, const char *msg) {
 /* ORDER RESERVED */
 static const char *const beanX_tokens [] = {
     "and", "break", "do", "else", "elseif",
+    "+", "-", "*", "/",
+    "{", "}", "(", ")",
     "end", "false", "for", "func", "goto", "if",
     "in", "var", "nil", "not", "or", "repeat",
     "return", "then", "true", "until", "while",
-    "//", "..", "...", "==", ">=", "<=", "~=",
+    "..", "...", "==", "=", ">=", "<=", "~=",
     "<<", ">>", "::", "<eof>",
     "<number>", "<integer>", "<name>", "<string>"
 };
@@ -62,27 +64,19 @@ const char *txtToken (LexState *ls, int token) {
 }
 
 const char *beanX_token2str (LexState *ls, int token) {
-  if (token < FIRST_RESERVED) {  /* single-byte symbols? */
-    if (bisprint(token))
-      return beanO_pushfstring(ls->B, "'%c'", token);
-    else  /* control character */
-      return beanO_pushfstring(ls->B, "'<\\%d>'", token);
-  }
-  else {
-    const char *s = beanX_tokens[token - FIRST_RESERVED];
-    if (token < TK_EOS)  /* fixed format (symbols and reserved words)? */
-      return beanO_pushfstring(ls->B, "'%s'", s);
-    else  /* names, strings, and numerals */
-      return s;
-  }
+  const char *s = beanX_tokens[token];
+  if (token < TK_EOS)  /* fixed format (symbols and reserved words)? */
+    return beanO_pushfstring(ls->B, "'%s'", s);
+  else  /* names, strings, and numerals */
+    return s;
 }
 
 void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source, int firstchar) {
   ls -> current = firstchar;
   ls -> linenumber = 1;
   ls -> lastline = 1;
-  ls -> t.type = 0;
-  ls -> lookahead.type = TK_EOS;
+  ls -> t.type = TK_EOS;
+  ls -> pre.type = 0;
   ls -> source = source;
   ls -> fs = NULL;
   ls -> B = B;
@@ -294,10 +288,38 @@ static int llex(LexState * ls, SemInfo * seminfo) {
         next(ls);
         break;
       }
+      case '(': {
+        next(ls);
+        return TK_LEFT_PAREN;
+      }
+      case ')': {
+        next(ls);
+        return TK_RIGHT_PAREN;
+      }
+      case '{': {
+        next(ls);
+        return TK_LEFT_BRACE;
+      }
+      case '}': {
+        next(ls);
+        return TK_RIGHT_BRACE;
+      }
+      case '+': {
+        next(ls);
+        return TK_ADD;
+      }
+      case '-': {
+        next(ls);
+        return TK_SUB;
+      }
+      case '*': {
+        next(ls);
+        return TK_MUL;
+      }
       case '=': {
         next(ls);
         if (check_next1(ls, '=')) return TK_EQ;
-        return '=';
+        return TK_ASSIGN;
       }
       case '>': {
         next(ls);
@@ -326,6 +348,8 @@ static int llex(LexState * ls, SemInfo * seminfo) {
             if (current == '\n') inclinenumber(ls);
             if (current == '*' && ls -> current == '/') break;
           }
+        } else {
+          return TK_DIV;
         }
         break;
       }
@@ -355,11 +379,12 @@ static int llex(LexState * ls, SemInfo * seminfo) {
           ts = beanX_newstring(ls,
                                beanZ_buffer(ls -> buff),
                                beanZ_bufflen(ls -> buff));
-          if (isreserved(ts)) { /* reserved word? */
-            return (ts -> reserved - 1 + FIRST_RESERVED) ;
+          if (isreserved(ts)) {
+            return ts -> reserved - 1;
           } else {
             return TK_NAME;
           }
+
         } else {
           int c = ls->current;
           next(ls);
@@ -370,17 +395,7 @@ static int llex(LexState * ls, SemInfo * seminfo) {
   }
 }
 
-int beanX_lookahead (LexState *ls) {
-  bean_assert(ls -> lookahead.type == TK_EOS);
-  ls -> lookahead.type = llex(ls, &ls -> lookahead.seminfo);
-  return ls -> lookahead.type;
-}
-
 void beanX_next (LexState *ls) {
-  if (ls -> lookahead.type != TK_EOS) {
-    ls -> t = ls -> lookahead;
-    ls -> lookahead.type = TK_EOS;
-  } else {
-    ls -> t.type = llex(ls, &ls -> t.seminfo);
-  }
+  ls -> pre = ls -> t;
+  ls -> t.type = llex(ls, &ls -> t.seminfo);
 }

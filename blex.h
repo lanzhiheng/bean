@@ -18,8 +18,6 @@
 #define bisprint(c)	(isprint(c))
 #define bisxdigit(c)	(isxdigit(c))
 
-#define FIRST_RESERVED	257
-
 #define EOZ	(-1)			/* end of stream */
 
 #define next(ls) (ls -> current = *(++ls -> inputStream))
@@ -32,18 +30,22 @@
 
 typedef enum RESERVED {
   /* terminal symbols denoted by reserved words */
-  TK_AND = FIRST_RESERVED, TK_BREAK,
-  TK_DO, TK_ELSE, TK_ELSEIF, TK_END, TK_FALSE, TK_FOR, TK_FUNCTION,
+  TK_AND, TK_BREAK, TK_DO, TK_ELSE, TK_ELSEIF,
+  TK_ADD, TK_SUB,
+  TK_MUL, TK_DIV,
+  TK_LEFT_BRACE, TK_RIGHT_BRACE,
+  TK_LEFT_PAREN, TK_RIGHT_PAREN,
+  TK_END, TK_FALSE, TK_FOR, TK_FUNCTION,
   TK_GOTO, TK_IF, TK_IN, TK_VAR, TK_NIL, TK_NOT, TK_OR, TK_REPEAT,
   TK_RETURN, TK_THEN, TK_TRUE, TK_UNTIL, TK_WHILE,
   /* other terminal symbols */
-  TK_IDIV, TK_CONCAT, TK_DOTS, TK_EQ, TK_GE, TK_LE, TK_NE,
+  TK_CONCAT, TK_DOTS, TK_EQ, TK_ASSIGN, TK_GE, TK_LE, TK_NE,
   TK_SHL, TK_SHR,
   TK_DBCOLON, TK_EOS,
   TK_FLT, TK_INT, TK_NAME, TK_STRING
 } TokenType;
 
-#define NUM_RESERVED	(cast_int(TK_WHILE-FIRST_RESERVED + 1))
+#define NUM_RESERVED	(cast_int(TK_WHILE + 1))
 
 typedef union {
   bean_Number r;
@@ -62,7 +64,7 @@ typedef struct LexState {
   int linenumber;  /* input line counter */
   int lastline;  /* line of last token 'consumed' */
   Token t;  /* current token */
-  Token lookahead;  /* look ahead token */
+  Token pre;  /* prev token */
   struct FuncState *fs;  /* current function (parser) */
   struct bean_State *B;
   Mbuffer *buff;  /* buffer for tokens */
@@ -74,7 +76,6 @@ typedef struct LexState {
 
 void beanX_init (bean_State *B);
 void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source, int firstchar);
-int beanX_lookahead (LexState *ls);
 void beanX_next (LexState *ls);
 const char *beanX_token2str (LexState *ls, int token);
 const char *txtToken (LexState *ls, int token);
