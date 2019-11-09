@@ -1,11 +1,6 @@
 // I am comments
 /* I am comments */
 
-number 12 434 123123.12312321  () {} ==
+func a() {}
 
-"Hello World"
-
-'Hlloe World '
-
-
-"hell
+var a = 10

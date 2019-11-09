@@ -21,8 +21,8 @@ void beanX_syntaxerror (LexState *ls, const char *msg) {
 /* ORDER RESERVED */
 static const char *const beanX_tokens [] = {
     "and", "break", "do", "else", "elseif",
-    "end", "false", "for", "function", "goto", "if",
-    "in", "local", "nil", "not", "or", "repeat",
+    "end", "false", "for", "func", "goto", "if",
+    "in", "var", "nil", "not", "or", "repeat",
     "return", "then", "true", "until", "while",
     "//", "..", "...", "==", ">=", "<=", "~=",
     "<<", ">>", "::", "<eof>",

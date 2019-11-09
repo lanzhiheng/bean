@@ -1,6 +1,7 @@
 #ifndef BEAN_PARSER_H
 #define BEAN_PARSER_H
 
+#include "blex.h"
 #include "bobject.h"
 
 /*
@@ -137,5 +138,7 @@ typedef struct Dyndata {
   Labellist gt;  /* list of pending gotos */
   Labellist label;   /* list of active labels */
 } Dyndata;
+
+void bparser(struct LexState * ls);
 
 #endif

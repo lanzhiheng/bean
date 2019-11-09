@@ -42,7 +42,7 @@ static void check (LexState *ls, int c) {
 /*
 ** Test whether next token is 'c'; if so, skip it.
 */
-static int testnext (LexState *ls, int c) {
+static bool testnext (LexState *ls, int c) {
   if (ls->t.type == c) {
     beanX_next(ls);
     return true;
@@ -355,7 +355,7 @@ static void singlevaraux (FuncState *fs, TString *n, expdesc *var, int base) {
       if (idx < 0) {
         singlevaraux(fs->prev, n, var, 0);
 
-        if (var->k == VLOCAL || var->k == VUPVAL) {
+        if (var->kind == VLOCAL || var->kind == VUPVAL) {
           idx = newupvalue(fs, n, var);
         } else {
           return;
@@ -391,32 +391,32 @@ static void singlevar (LexState *ls, expdesc *var) {
 ** expressions to 'nvars' values.
 */
 
-static void adjust_assign (LexState *ls, int nvars, int nexps, expdesc *e) {
-  FuncState *fs = ls->fs;
-  int needed = nvars - nexps;  /* extra values needed */
+/* static void adjust_assign (LexState *ls, int nvars, int nexps, expdesc *e) { */
+/*   FuncState *fs = ls->fs; */
+/*   int needed = nvars - nexps;  /\* extra values needed *\/ */
 
-  if (hasmultret(e->kind)) {  /* last expression has multiple returns? */
-    int extra = needed + 1;  /* discount last expression itself */
-    if (extra < 0) {
-      extra = 0;
-    }
-    luaK_setreturns(fs, e, extra);  /* last exp. provides the difference */
-  } else {
-    if (e->kind != VVOID) {
-      luaK_exp2nextreg(fs, e);  /* close last expression */
-    }
+/*   if (hasmultret(e->kind)) {  /\* last expression has multiple returns? *\/ */
+/*     int extra = needed + 1;  /\* discount last expression itself *\/ */
+/*     if (extra < 0) { */
+/*       extra = 0; */
+/*     } */
+/*     luaK_setreturns(fs, e, extra);  /\* last exp. provides the difference *\/ */
+/*   } else { */
+/*     if (e->kind != VVOID) { */
+/*       luaK_exp2nextreg(fs, e);  /\* close last expression *\/ */
+/*     } */
 
-    if (needed > 0) {
-      luaK_nil(fs, fs->freereg, needed);  /* complete with nils */
-    }
-  }
+/*     if (needed > 0) { */
+/*       luaK_nil(fs, fs->freereg, needed);  /\* complete with nils *\/ */
+/*     } */
+/*   } */
 
-  if (needed > 0) {
-    luaK_reserveregs(fs, needed);  /* registers for extra values */
-  } else { /* adding 'needed' is actually a subtraction */
-    fs->freereg += needed;  /* remove extra values */
-  }
-}
+/*   if (needed > 0) { */
+/*     luaK_reserveregs(fs, needed);  /\* registers for extra values *\/ */
+/*   } else { /\* adding 'needed' is actually a subtraction *\/ */
+/*     fs->freereg += needed;  /\* remove extra values *\/ */
+/*   } */
+/* } */
 
 /*
 ** Macros to limit the maximum recursion depth while parsing
@@ -443,19 +443,19 @@ static void jumpscopeerror(LexState *ls, Labeldesc *gt) {
 ** If it jumps into the scope of some variable, raises an error.
 */
 
-static void solvegoto (LexState *ls, int g, Labeldesc *label) {
-  Labellist *gl = &ls->dyd->gt;
-  Labeldesc *gt = &gl->arr[g];
-  bean_assert(eqstr(gt->name, label->name));
-  if (gt->nactvar < label->nactvar) { /* enter some scope? */
-    jumpscopeerror(ls, gt);
-  }
-  luaK_patchlist(ls->fs, gt->pc, label->pc); // TODO: What it that?
-  for (int i = g; i<gl->n-1; i++) {
-    gl->arr[i] = gl->arr[i + 1];
-  }
-  gl->n--;
-}
+/* static void solvegoto (LexState *ls, int g, Labeldesc *label) { */
+/*   Labellist *gl = &ls->dyd->gt; */
+/*   Labeldesc *gt = &gl->arr[g]; */
+/*   bean_assert(eqstr(gt->name, label->name)); */
+/*   if (gt->nactvar < label->nactvar) { /\* enter some scope? *\/ */
+/*     jumpscopeerror(ls, gt); */
+/*   } */
+/*   luaK_patchlist(ls->fs, gt->pc, label->pc); // TODO: What it that? */
+/*   for (int i = g; i<gl->n-1; i++) { */
+/*     gl->arr[i] = gl->arr[i + 1]; */
+/*   } */
+/*   gl->n--; */
+/* } */
 
 /*
 ** Search for an active label with the given name.
@@ -490,4 +490,25 @@ static int newlabelentry (LexState *ls, Labellist *l, TString *name,
 
 static int newgotoentry (LexState *ls, TString *name, int line, int pc) {
   return newlabelentry(ls, &ls->dyd->gt, name, line, pc);
+}
+
+void parse_statement(struct LexState *ls UNUSED) {};
+
+static void parse_program(struct LexState * ls) {
+  if (testnext(ls, TK_FUNCTION)) {
+    printf("I will define the function\n");
+  } else if (testnext(ls, TK_VAR)) {
+    printf("I will define the variable\n");
+  } else {
+    parse_statement(ls);
+  }
+}
+
+
+void bparser(struct LexState * ls) {
+  while (ls -> current != '\0') {
+    beanX_next(ls);
+    const char * msg = txtToken(ls, ls -> t.type);
+    parse_program(ls);
+  }
 }

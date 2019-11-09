@@ -55,12 +55,7 @@ static void run_file(const char * path) {
   printf("Source file name is %s.\n", getstr(e));
   char* source = read_source_file(path);
   beanX_setinput(B, ls, source, e, *source);
-
-  while (ls -> current != '\0') {
-    beanX_next(ls);
-    const char * msg = txtToken(ls, ls -> t.type);
-    printf("%s\n", msg);
-  }
+  bparser(ls);
 }
 
 int main(int argc, char ** argv) {
