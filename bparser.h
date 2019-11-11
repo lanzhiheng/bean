@@ -61,6 +61,7 @@ typedef struct BlockCnt {
 
 typedef enum {
   EXPR_NUM,
+  EXPR_FLOAT,
   EXPR_BINARY,
   EXPR_FUN
 } EXPR_TYPE;
@@ -69,6 +70,7 @@ typedef struct expr {
   EXPR_TYPE type;
   union {
     bean_Integer ival;    /* for TK_INT */
+    bean_Number nval;  /* for VKFLT */
 
     struct {
       const char * op;

@@ -6,6 +6,27 @@
 
 #define get_tk_precedence(ls) (symbol_table[ls->t.type].lbp)
 
+/* maximum number of local variables per function (must be smaller
+   than 250, due to the bytecode format) */
+#define MAXVARS		200
+
+#define hasmultret(kind)		((kind) == VCALL || (kind) == VVARARG)
+
+/*
+** maximum number of upvalues in a closure (both C and Lua). (Value
+** must fit in a VM register.)
+*/
+#define MAXUPVAL	255
+
+/* because all strings are unified by the scanner, the parser
+   can use pointer equality for string equality */
+#define eqstr(a,b)	((a) == (b))
+
+/* semantic error */
+void beanK_semerror (LexState *ls, const char *msg) {
+  ls->t.type = 0;  /* remove "near <token>" from final message */ // TODO: Why
+  beanX_syntaxerror(ls, msg);
+}
 
 /*
 ** grep "ORDER OPR" if you change these enums  (ORDER OP)
@@ -41,8 +62,22 @@ static expr * infix (struct LexState *ls, expr * left);
 
 static expr* num(struct LexState *ls, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_NUM;
-  ep -> ival = ls->t.seminfo.i;
+  switch(ls->t.type) {
+    case(TK_INT): {
+      ep -> type = EXPR_NUM;
+      ep -> ival = ls->t.seminfo.i;
+      break;
+    }
+    case(TK_FLT): {
+      ep -> type = EXPR_FLOAT;
+      ep -> nval = ls->t.seminfo.r;
+      break;
+    }
+    default:
+      beanK_semerror(ls, "Not the valid number.");
+  }
+
+
   return ep;
 }
 
@@ -93,28 +128,6 @@ symbol symbol_table[] = {
   { "<string>", BP_NONE, NULL, NULL },
 };
 
-
-/* maximum number of local variables per function (must be smaller
-   than 250, due to the bytecode format) */
-#define MAXVARS		200
-
-#define hasmultret(kind)		((kind) == VCALL || (kind) == VVARARG)
-
-/*
-** maximum number of upvalues in a closure (both C and Lua). (Value
-** must fit in a VM register.)
-*/
-#define MAXUPVAL	255
-
-/* because all strings are unified by the scanner, the parser
-   can use pointer equality for string equality */
-#define eqstr(a,b)	((a) == (b))
-
-/* semantic error */
-void beanK_semerror (LexState *ls, const char *msg) {
-  ls->t.type = 0;  /* remove "near <token>" from final message */ // TODO: Why
-  beanX_syntaxerror(ls, msg);
-}
 
 static expr * infix (struct LexState *ls, expr * left) {
   expr * temp = malloc(sizeof(expr));
@@ -617,7 +630,7 @@ static void parse_program(struct LexState * ls) {
 }
 
 void bparser(struct LexState * ls) {
-  while (ls -> current != '\0') {
+  while (ls -> current != EOZ) {
     beanX_next(ls);
     /* const char * msg = txtToken(ls, ls -> t.type); */
     parse_program(ls);
