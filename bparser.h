@@ -59,6 +59,25 @@ typedef struct BlockCnt {
   bu_byte upval;  /* true if some variable in the block is an upvalue */
 } BlockCnt;
 
+typedef enum {
+  EXPR_NUM,
+  EXPR_BINARY,
+  EXPR_FUN
+} EXPR_TYPE;
+
+typedef struct expr {
+  EXPR_TYPE type;
+  union {
+    bean_Integer ival;    /* for TK_INT */
+
+    struct {
+      const char * op;
+      struct expr * left;  /* for   TK_ADD, TK_SUB, TK_MUL, TK_DIV, */
+      struct expr * right;
+    } infix;
+  };
+} expr;
+
 typedef struct expdesc {
   expkind kind;
   union {

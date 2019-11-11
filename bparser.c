@@ -4,6 +4,9 @@
 #include "bstring.h"
 #include "bparser.h"
 
+#define get_tk_precedence(ls) (symbol_table[ls->t.type].lbp)
+
+
 /*
 ** grep "ORDER OPR" if you change these enums  (ORDER OP)
 */
@@ -30,10 +33,21 @@ typedef enum {
   BP_HIGHTEST
 } bindpower;
 
-typedef void (*denotation_fn) (bean_State * B, bool canAssign);
+typedef expr* (*denotation_fn) (struct LexState *ls, expr * exp);
+
+
+static expr * parse_statement(struct LexState *ls, bindpower rbp);
+static expr * infix (struct LexState *ls, expr * left);
+
+static expr* num(struct LexState *ls, expr * exp UNUSED) {
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_NUM;
+  ep -> ival = ls->t.seminfo.i;
+  return ep;
+}
 
 typedef struct symbol {
-  const char * id;
+  char * id;
   bindpower lbp;
   denotation_fn nud;
   denotation_fn led;
@@ -41,6 +55,42 @@ typedef struct symbol {
 
 symbol symbol_table[] = {
   /* arithmetic operators */
+  { "and", BP_LOGIC_AND, NULL, NULL },
+  { "break", BP_NONE, NULL, NULL },
+  { "else", BP_NONE, NULL, NULL },
+  { "elseif", BP_NONE, NULL, NULL },
+  { "+", BP_TERM, NULL, infix },
+  { "-", BP_TERM, NULL, infix },
+  { "*", BP_FACTOR, NULL, infix },
+  { "/", BP_FACTOR, NULL, infix },
+  { "{", BP_NONE, NULL, NULL },
+  { "}", BP_NONE, NULL, NULL },
+  { "(", BP_NONE, NULL, NULL },
+  { ")", BP_NONE, NULL, NULL },
+  { "false", BP_NONE, NULL, NULL },
+  { "for", BP_NONE, NULL, NULL },
+  { "func", BP_NONE, NULL, NULL },
+  { "if", BP_NONE, NULL, NULL },
+  { "in", BP_CONDITION, NULL, NULL },
+  { "var", BP_NONE, NULL, NULL },
+  { "nil", BP_NONE, NULL, NULL },
+  { "not", BP_CONDITION, NULL, NULL },
+  { "or", BP_LOGIC_OR, NULL, NULL },
+  { "return", BP_NONE, NULL, NULL },
+  { "true", BP_NONE, NULL, NULL },
+  { "while", BP_NONE, NULL, NULL },
+  { "==", BP_EQUAL, NULL, NULL },
+  { "=", BP_ASSIGN, NULL, NULL },
+  { ">=", BP_CMP, NULL, NULL },
+  { "<=", BP_CMP, NULL, NULL },
+  { "~=", BP_CMP, NULL, NULL },
+  { "<<", BP_BIT_SHIFT, NULL, NULL },
+  { ">>", BP_BIT_SHIFT, NULL, NULL },
+  { "<eof>", BP_NONE, NULL, NULL },
+  { "<number>", BP_NONE, num, NULL },
+  { "<integer>", BP_NONE, num, NULL },
+  { "<name>", BP_NONE, NULL, NULL },
+  { "<string>", BP_NONE, NULL, NULL },
 };
 
 
@@ -64,6 +114,15 @@ symbol symbol_table[] = {
 void beanK_semerror (LexState *ls, const char *msg) {
   ls->t.type = 0;  /* remove "near <token>" from final message */ // TODO: Why
   beanX_syntaxerror(ls, msg);
+}
+
+static expr * infix (struct LexState *ls, expr * left) {
+  expr * temp = malloc(sizeof(expr));
+  temp -> type = EXPR_BINARY;
+  temp -> infix.op = beanX_tokens[ls->pre.type];
+  temp -> infix.left = left;
+  temp -> infix.right = parse_statement(ls, symbol_table[ls->pre.type].lbp);
+  return temp;
 }
 
 static void error_expected (LexState *ls, int token) {
@@ -532,18 +591,18 @@ static int newgotoentry (LexState *ls, TString *name, int line, int pc) {
   return newlabelentry(ls, &ls->dyd->gt, name, line, pc);
 }
 
-static void parse_statement(struct LexState *ls, bindpower rbp) {
-  symbol sym = symbol_table[ls->t.type];
+static expr * parse_statement(struct LexState *ls, bindpower rbp) {
+  expr * tree = symbol_table[ls->t.type].nud(ls, NULL);
 
-  bool can_assign = rbp < BP_ASSIGN;
-  sym.nud(ls->B, can_assign);
   beanX_next(ls);
 
-  while (symbol_table[ls->t.type].lbp > rbp) {
-    denotation_fn led = symbol_table[ls->t.type].led;
+  while (rbp < get_tk_precedence(ls)) {
+    Token token = ls->t;
     beanX_next(ls);
-    led(ls->B, can_assign);
+    tree = symbol_table[token.type].led(ls, tree);
   }
+
+  return tree;
 };
 
 static void parse_program(struct LexState * ls) {
@@ -552,15 +611,15 @@ static void parse_program(struct LexState * ls) {
   } else if (testnext(ls, TK_VAR)) {
     printf("I will define the variable\n");
   } else {
-    /* parse_statement(ls, BP_LOWEST); */
+    expr * ex = parse_statement(ls, BP_LOWEST);
+    printf("%p", ex);
   }
 }
 
 void bparser(struct LexState * ls) {
   while (ls -> current != '\0') {
     beanX_next(ls);
-    const char * msg = txtToken(ls, ls -> t.type);
-    printf("%s\n", msg);
+    /* const char * msg = txtToken(ls, ls -> t.type); */
     parse_program(ls);
   }
 }

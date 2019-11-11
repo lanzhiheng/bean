@@ -2,6 +2,19 @@
 #include "bstring.h"
 #include <limits.h>
 
+/* ORDER RESERVED */
+const char *const beanX_tokens [] = {
+    "and", "break", "else", "elseif",
+    "+", "-", "*", "/",
+    "{", "}", "(", ")",
+    "false", "for", "func", "if",
+    "in", "var", "nil", "not", "or",
+    "return", "true",  "while",
+    "==", "=", ">=", "<=", "~=",
+    "<<", ">>", "<eof>",
+    "<number>", "<integer>", "<name>", "<string>"
+};
+
 #define save_and_next(ls) (save(ls, ls->current), next(ls))
 
 static void lexerror (LexState *ls, const char *msg, int token) {
@@ -17,19 +30,6 @@ static void lexerror (LexState *ls, const char *msg, int token) {
 void beanX_syntaxerror (LexState *ls, const char *msg) {
   lexerror(ls, msg, ls->t.type);
 }
-
-/* ORDER RESERVED */
-static const char *const beanX_tokens [] = {
-    "and", "break", "else", "elseif",
-    "+", "-", "*", "/",
-    "{", "}", "(", ")",
-    "false", "for", "func", "if",
-    "in", "var", "nil", "not", "or",
-    "return", "true",  "while",
-    "==", "=", ">=", "<=", "~=",
-    "<<", ">>", "<eof>",
-    "<number>", "<integer>", "<name>", "<string>"
-};
 
 static void save(LexState * ls, int c) {
   Mbuffer * b = ls -> buff;

@@ -18,7 +18,7 @@
 #define bisprint(c)	(isprint(c))
 #define bisxdigit(c)	(isxdigit(c))
 
-#define EOZ	(-1)			/* end of stream */
+#define EOZ	('\0')			/* end of stream */
 
 #define next(ls) (ls -> current = *(++ls -> inputStream))
 
@@ -44,6 +44,10 @@ typedef enum RESERVED {
   TK_EOS,
   TK_FLT, TK_INT, TK_NAME, TK_STRING
 } TokenType;
+
+/* ORDER RESERVED */
+extern const char *const beanX_tokens[];
+
 
 #define NUM_RESERVED	(cast_int(TK_WHILE + 1))
 
