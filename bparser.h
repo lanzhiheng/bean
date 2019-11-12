@@ -63,7 +63,8 @@ typedef enum {
   EXPR_NUM,
   EXPR_FLOAT,
   EXPR_BINARY,
-  EXPR_FUN
+  EXPR_FUN,
+  EXPR_VAR
 } EXPR_TYPE;
 
 typedef struct expr {
@@ -77,88 +78,25 @@ typedef struct expr {
       struct expr * left;  /* for   TK_ADD, TK_SUB, TK_MUL, TK_DIV, */
       struct expr * right;
     } infix;
+
+    struct {
+      TString * name;
+    } var;
   };
 } expr;
 
-typedef struct expdesc {
-  expkind kind;
-  union {
-    bean_Integer ival;    /* for VKINT */
-    bean_Number nval;  /* for VKFLT */
-    TString *strval;  /* for VKSTR */
+typedef struct Proto {
+  TString * name;
+  TString ** args;
+  bu_byte arity;
+} Proto;
 
-    // TODO What is that
-    int info;  /* for generic use */
-    /* struct {  /\* for indexed variables *\/ */
-    /*   short idx;  /\* index (R or "long" K) *\/ */
-    /*   lu_byte t;  /\* table (register or upvalue) *\/ */
-    /* } ind; */
-    struct {  /* for local variables */
-      bu_byte sidx;  /* index in the stack */
-      unsigned short vidx;  /* index in 'actvar.arr'  */
-    } var;
-  } u;
-  int t;  /* patch list of 'exit when true' */
-  int f;  /* patch list of 'exit when false' */
-} expdesc;
+typedef struct Function {
+  Proto * p;
+  expr ** body;
+} Function;
 
-typedef struct FuncState {
-  Proto *f;  /* current function header */
-  struct FuncState * prev; /* enclosing func */
-  struct LexState * ls;
-  struct BlockCnt * bl;
-  int pc;  /* next position to code (equivalent to 'ncode') */
-  int firstlocal;  /* index of first local var (in Dyndata array) */
-  int firstlabel;  /* index of first label (in 'dyd->label->arr') */
-  bu_byte nactvar;  /* number of active local variables */
-  bu_byte nups;  /* number of upvalues */
-  short ndebugvars;  /* number of elements in 'f->locvars' */
-  bu_byte needclose;  /* function needs to close upvalues when returning */
-} FuncState;
-
-/* kinds of variables */
-#define VDKREG		0   /* regular */
-#define RDKCONST	1   /* constant */
-#define RDKTOCLOSE	2   /* to-be-closed */
-#define RDKCTC		3   /* compile-time constant */
-
-typedef union Vardesc {
-  struct {
-    TValuefields;
-    bu_byte kind;
-    bu_byte sidx; /* index of the variable in the stack */
-    short pidx;  /* index of the variable in the Proto's 'locvars' array */
-    TString *name;  /* variable name */
-  } vd;
-
-  // TODO: Why
-  TValue k;  /* constant value (if any) */
-} Vardesc;
-
-typedef struct Labeldesc {
-  TString *name;  /* label identifier */
-  int pc;  /* position in code */
-  int line;  /* line where it appeared */
-  bu_byte nactvar;  /* number of active variables in that position */
-  bu_byte close;  /* goto that escapes upvalues */
-} Labeldesc;
-
-/* list of labels or gotos */
-typedef struct Labellist {
-  Labeldesc *arr;  /* array */
-  int n;  /* number of entries in use */
-  int size;  /* array size */
-} Labellist;
-
-typedef struct Dyndata {
-  struct {
-    Vardesc *arr;
-    int n;
-    int size;
-  } actvar;
-  Labellist gt;  /* list of pending gotos */
-  Labellist label;   /* list of active labels */
-} Dyndata;
+typedef struct LexState LexState;
 
 void bparser(struct LexState * ls);
 
