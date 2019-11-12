@@ -5,8 +5,8 @@
 /* ORDER RESERVED */
 const char *const beanX_tokens [] = {
     "and", "break", "else", "elseif",
-    ",", ";",
     "+", "-", "*", "/",
+    ",", ";",
     "{", "}", "(", ")",
     "false", "for", "func", "if",
     "in", "var", "nil", "not", "or",

@@ -115,8 +115,9 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
 static expr* variable(LexState *ls, expr *exp UNUSED) {
     expr * ep = malloc(sizeof(expr));
     if (ls->pre.type != TK_VAR) {
-      beanK_semerror(ls, "Must have 'var' key word before the variable");
+      beanK_semerror(ls, "Must have 'var' key word before the variable.");
     }
+
     ep -> type = EXPR_VAR;
     ep -> var.name = ls->t.seminfo.ts;
     return ep;
@@ -159,14 +160,19 @@ static Proto * parse_prototype(LexState *ls) {
 
 static Function * parse_definition(LexState *ls) {
   Proto * p = parse_prototype(ls);
-  // TODO: record some expr in body
   expr ** body = malloc(sizeof(expr) * 10);
   Function * f = malloc(sizeof(Function));
   testnext(ls, TK_LEFT_BRACE);
+
+  int i = 0;
+  while (ls->t.type != TK_RIGHT_BRACE) {
+    body[i++] = parse_statement(ls, BP_LOWEST);
+  }
+
   testnext(ls, TK_RIGHT_BRACE);
   f -> p = p;
   f -> body = body;
-  return NULL;
+  return f;
 }
 
 typedef struct symbol {
@@ -182,12 +188,12 @@ symbol symbol_table[] = {
   { "break", BP_NONE, NULL, NULL },
   { "else", BP_NONE, NULL, NULL },
   { "elseif", BP_NONE, NULL, NULL },
-  { ",", BP_NONE, NULL, NULL },
-  { ";", BP_NONE, NULL, NULL },
   { "+", BP_TERM, NULL, infix },
   { "-", BP_TERM, NULL, infix },
   { "*", BP_FACTOR, NULL, infix },
   { "/", BP_FACTOR, NULL, infix },
+  { ",", BP_NONE, NULL, NULL },
+  { ";", BP_NONE, NULL, NULL },
   { "{", BP_NONE, NULL, NULL },
   { "}", BP_NONE, NULL, NULL },
   { "(", BP_NONE, NULL, NULL },
@@ -253,6 +259,14 @@ static expr * infix (LexState *ls, expr * left) {
 /* } */
 
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {
+  if (ls->t.type == TK_VAR) { // Define an variable
+    beanX_next(ls);
+
+    if (ls->t.type != TK_NAME) {
+      beanK_semerror(ls, "Must have a variable name.");
+    }
+  }
+
   expr * tree = symbol_table[ls->t.type].nud(ls, NULL);
 
   beanX_next(ls);
@@ -269,11 +283,8 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
 static void parse_program(struct LexState * ls) {
   if (testnext(ls, TK_FUNCTION)) {
     printf("I will define the function\n");
-    parse_definition(ls);
-  } else if (testnext(ls, TK_VAR)) {
-    printf("I will define the variable\n");
-    expr * ex = parse_statement(ls, BP_LOWEST);
-    printf("%p\n", ex);
+    Function * f = parse_definition(ls);
+    printf("%p\n", f);
   } else {
     expr * ex = parse_statement(ls, BP_LOWEST);
     printf("%p\n", ex);
