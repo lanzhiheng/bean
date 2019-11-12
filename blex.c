@@ -5,6 +5,7 @@
 /* ORDER RESERVED */
 const char *const beanX_tokens [] = {
     "and", "break", "else", "elseif",
+    ",", ";",
     "+", "-", "*", "/",
     "{", "}", "(", ")",
     "false", "for", "func", "if",
@@ -308,6 +309,14 @@ static int llex(LexState * ls, SemInfo * seminfo) {
         next(ls);
         return TK_ADD;
       }
+      case ',': {
+        next(ls);
+        return TK_COMMA;
+      }
+      case ';': {
+        next(ls);
+        return TK_SEMI;
+      }
       case '-': {
         next(ls);
         return TK_SUB;
@@ -379,6 +388,7 @@ static int llex(LexState * ls, SemInfo * seminfo) {
           ts = beanX_newstring(ls,
                                beanZ_buffer(ls -> buff),
                                beanZ_bufflen(ls -> buff));
+          seminfo->ts = ts;
           if (isreserved(ts)) {
             return ts -> reserved - 1;
           } else {
