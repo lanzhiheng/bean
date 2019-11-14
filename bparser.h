@@ -64,7 +64,8 @@ typedef enum {
   EXPR_FLOAT,
   EXPR_BINARY,
   EXPR_FUN,
-  EXPR_VAR
+  EXPR_VAR,
+  EXPR_CALL
 } EXPR_TYPE;
 
 typedef struct expr {
@@ -82,6 +83,12 @@ typedef struct expr {
     struct {
       TString * name;
     } var;
+
+    struct {
+      TString * callee;
+      struct expr ** args;
+      bu_byte count;
+    } call;
   };
 } expr;
 

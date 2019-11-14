@@ -6,5 +6,9 @@
 
 func hello(a,b) {
   var addd = 3333
-  1 + 3 + 4
+  hello(b, c)
+  var debug = 3333
+  call(debug, 1 + 33)
 }
+
+hello(b, c)

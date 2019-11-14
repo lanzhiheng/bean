@@ -3,6 +3,7 @@
 #include "bstring.h"
 #include "bparser.h"
 
+#define MAX_ARGS 16 // MAX args of function
 #define get_tk_precedence(ls) (symbol_table[ls->t.type].lbp)
 
 /* maximum number of local variables per function (must be smaller
@@ -108,18 +109,39 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
     default:
       beanK_semerror(ls, "Not the valid number.");
   }
-
+  beanX_next(ls);
   return ep;
 }
 
 static expr* variable(LexState *ls, expr *exp UNUSED) {
     expr * ep = malloc(sizeof(expr));
-    if (ls->pre.type != TK_VAR) {
-      beanK_semerror(ls, "Must have 'var' key word before the variable.");
+
+    Token token = ls->t;
+    beanX_next(ls);
+
+    if (ls->t.type == TK_LEFT_PAREN) { // func call
+      expr * func_call = malloc(sizeof(expr));
+      expr ** args = malloc(sizeof(expr*) * MAX_ARGS);
+      func_call->type = EXPR_CALL;
+      func_call->call.callee = token.seminfo.ts;
+      func_call->call.count = 0;
+      func_call->call.args = args;
+
+      beanX_next(ls);
+      if (ls->t.type == TK_RIGHT_PAREN) return func_call;
+
+      do {
+        func_call->call.args[func_call->call.count++] = parse_statement(ls, BP_LOWEST);
+      } while(testnext(ls, TK_COMMA));
+
+      beanX_next(ls);
+      testnext(ls, TK_RIGHT_PAREN);
+
+      return func_call;
     }
 
     ep -> type = EXPR_VAR;
-    ep -> var.name = ls->t.seminfo.ts;
+    ep -> var.name = token.seminfo.ts;
     return ep;
 }
 
@@ -132,7 +154,7 @@ static Proto * parse_prototype(LexState *ls) {
 
   TString *name = ls->t.seminfo.ts;
   p -> name = name;
-  p -> args = malloc(sizeof(TString) * 16);
+  p -> args = malloc(sizeof(TString) * MAX_ARGS);
   p -> arity = 0;
 
   if (!testnext(ls, TK_LEFT_PAREN)) {
@@ -268,8 +290,6 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
   }
 
   expr * tree = symbol_table[ls->t.type].nud(ls, NULL);
-
-  beanX_next(ls);
 
   while (rbp < get_tk_precedence(ls)) {
     Token token = ls->t;
