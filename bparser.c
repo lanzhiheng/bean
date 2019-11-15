@@ -28,18 +28,18 @@ void beanK_semerror (LexState *ls, const char *msg) {
   beanX_syntaxerror(ls, msg);
 }
 
-static void error_expected (LexState *ls, int token) {
-  beanX_syntaxerror(ls,
-      beanO_pushfstring(ls->B, "%s expected", beanX_token2str(ls, token)));
-}
+/* static void error_expected (LexState *ls, int token) { */
+/*   beanX_syntaxerror(ls, */
+/*       beanO_pushfstring(ls->B, "%s expected", beanX_token2str(ls, token))); */
+/* } */
 
 /*
 ** Check that next token is 'c'.
 */
-static void check (LexState *ls, int c) {
-  if (ls->t.type != c)
-    error_expected(ls, c);
-}
+/* static void check (LexState *ls, int c) { */
+/*   if (ls->t.type != c) */
+/*     error_expected(ls, c); */
+/* } */
 
 /*
 ** Test whether next token is 'c'; if so, skip it.
@@ -55,10 +55,10 @@ static bool testnext (LexState *ls, int c) {
 /*
 ** Check that next token is 'c' and skip it.
 */
-static void checknext (LexState *ls, int c) {
-  check(ls, c);
-  beanX_next(ls);
-}
+/* static void checknext (LexState *ls, int c) { */
+/*   check(ls, c); */
+/*   beanX_next(ls); */
+/* } */
 
 
 #define check_condition(ls, c, msg) { if(!c) beanX_syntaxerror(ls, msg); }
@@ -112,7 +112,6 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
   beanX_next(ls);
   return ep;
 }
-
 static expr* variable(LexState *ls, expr *exp UNUSED) {
     expr * ep = malloc(sizeof(expr));
 
@@ -143,6 +142,13 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
     ep -> type = EXPR_VAR;
     ep -> var.name = token.seminfo.ts;
     return ep;
+}
+static expr* return_exp(LexState *ls, expr * exp UNUSED) {
+  expr * ep = malloc(sizeof(expr));
+  beanX_next(ls);
+  ep -> type = EXPR_RETURN;
+  ep -> ret.ret_val = parse_statement(ls, BP_LOWEST);
+  return ep;
 }
 
 static Proto * parse_prototype(LexState *ls) {
@@ -229,7 +235,7 @@ symbol symbol_table[] = {
   { "nil", BP_NONE, NULL, NULL },
   { "not", BP_CONDITION, NULL, NULL },
   { "or", BP_LOGIC_OR, NULL, NULL },
-  { "return", BP_NONE, NULL, NULL },
+  { "return", BP_NONE, return_exp, NULL },
   { "true", BP_NONE, NULL, NULL },
   { "while", BP_NONE, NULL, NULL },
   { "==", BP_EQUAL, NULL, NULL },
