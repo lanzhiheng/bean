@@ -132,6 +132,14 @@ static expr* boolean(LexState *ls, expr * exp UNUSED) {
   return ep;
 }
 
+static expr* left_paren(LexState *ls, expr *exp UNUSED) {
+  testnext(ls, TK_LEFT_PAREN);
+  expr * ep = malloc(sizeof(expr));
+  ep = parse_statement(ls, BP_LOWEST);
+  testnext(ls, TK_RIGHT_PAREN);
+  return ep;
+}
+
 static expr* variable(LexState *ls, expr *exp UNUSED) {
     expr * ep = malloc(sizeof(expr));
 
@@ -244,7 +252,7 @@ symbol symbol_table[] = {
   { ";", BP_NONE, NULL, NULL },
   { "{", BP_NONE, NULL, NULL },
   { "}", BP_NONE, NULL, NULL },
-  { "(", BP_NONE, NULL, NULL },
+  { "(", BP_NONE, left_paren, NULL },
   { ")", BP_NONE, NULL, NULL },
   { "false", BP_NONE, boolean, NULL },
   { "for", BP_NONE, NULL, NULL },
