@@ -112,6 +112,26 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
   beanX_next(ls);
   return ep;
 }
+
+static expr* boolean(LexState *ls, expr * exp UNUSED) {
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_BOOLEAN;
+  switch(ls->t.type) {
+    case(TK_TRUE): {
+      ep -> bval = true;
+      break;
+    }
+    case(TK_FALSE): {
+      ep -> bval = false;
+      break;
+    }
+    default:
+      beanK_semerror(ls, "Not the valid boolean value.");
+  }
+  beanX_next(ls);
+  return ep;
+}
+
 static expr* variable(LexState *ls, expr *exp UNUSED) {
     expr * ep = malloc(sizeof(expr));
 
@@ -226,7 +246,7 @@ symbol symbol_table[] = {
   { "}", BP_NONE, NULL, NULL },
   { "(", BP_NONE, NULL, NULL },
   { ")", BP_NONE, NULL, NULL },
-  { "false", BP_NONE, NULL, NULL },
+  { "false", BP_NONE, boolean, NULL },
   { "for", BP_NONE, NULL, NULL },
   { "func", BP_NONE, NULL, NULL },
   { "if", BP_NONE, NULL, NULL },
@@ -236,7 +256,7 @@ symbol symbol_table[] = {
   { "not", BP_CONDITION, NULL, NULL },
   { "or", BP_LOGIC_OR, NULL, NULL },
   { "return", BP_NONE, return_exp, NULL },
-  { "true", BP_NONE, NULL, NULL },
+  { "true", BP_NONE, boolean, NULL },
   { "while", BP_NONE, NULL, NULL },
   { "==", BP_EQUAL, NULL, NULL },
   { "=", BP_ASSIGN, NULL, infix },

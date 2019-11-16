@@ -66,7 +66,8 @@ typedef enum {
   EXPR_FUN,
   EXPR_VAR,
   EXPR_CALL,
-  EXPR_RETURN
+  EXPR_RETURN,
+  EXPR_BOOLEAN
 } EXPR_TYPE;
 
 typedef struct expr {
@@ -74,6 +75,7 @@ typedef struct expr {
   union {
     bean_Integer ival;    /* for TK_INT */
     bean_Number nval;  /* for VKFLT */
+    bu_byte bval;
 
     struct {
       const char * op;

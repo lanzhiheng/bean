@@ -9,7 +9,7 @@ func hello(a,b) {
   hello(b, c)
   var debug = 3333
   call(debug, 1 + 33)
-  return 1 + 223
+  return true
 }
 
 hello(b, c)
