@@ -4,7 +4,16 @@
 
 // hello = 300
 
-func hello(a,b) {
+// func hello(a,b) {
+//   var addd = 3333
+//   hello(b, c)
+//   var debug = 3333
+//   call(debug, 1 + 33)
+//   ((1 + 2) * 10) - 10
+//   return true
+// }
+
+while true {
   var addd = 3333
   hello(b, c)
   var debug = 3333
@@ -12,5 +21,4 @@ func hello(a,b) {
   ((1 + 2) * 10) - 10
   return true
 }
-
-hello(b, c)
+// hello(b, c)

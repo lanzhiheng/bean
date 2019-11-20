@@ -67,7 +67,8 @@ typedef enum {
   EXPR_VAR,
   EXPR_CALL,
   EXPR_RETURN,
-  EXPR_BOOLEAN
+  EXPR_BOOLEAN,
+  EXPR_LOOP
 } EXPR_TYPE;
 
 typedef struct expr {
@@ -96,6 +97,11 @@ typedef struct expr {
       struct expr ** args;
       bu_byte count;
     } call;
+
+    struct {
+      struct expr * condition;
+      struct expr ** body;
+    } loop;
   };
 } expr;
 

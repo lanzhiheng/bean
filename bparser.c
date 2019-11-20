@@ -216,7 +216,7 @@ static Proto * parse_prototype(LexState *ls) {
 
 static Function * parse_definition(LexState *ls) {
   Proto * p = parse_prototype(ls);
-  expr ** body = malloc(sizeof(expr) * 10);
+  expr ** body = malloc(sizeof(expr) * 10); // TODO: auto extend
   Function * f = malloc(sizeof(Function));
   testnext(ls, TK_LEFT_BRACE);
 
@@ -266,13 +266,13 @@ symbol symbol_table[] = {
   { "return", BP_NONE, return_exp, NULL },
   { "true", BP_NONE, boolean, NULL },
   { "while", BP_NONE, NULL, NULL },
-  { "==", BP_EQUAL, NULL, NULL },
+  { "==", BP_EQUAL, NULL, infix },
   { "=", BP_ASSIGN, NULL, infix },
-  { ">=", BP_CMP, NULL, NULL },
-  { "<=", BP_CMP, NULL, NULL },
-  { "~=", BP_CMP, NULL, NULL },
-  { "<<", BP_BIT_SHIFT, NULL, NULL },
-  { ">>", BP_BIT_SHIFT, NULL, NULL },
+  { ">=", BP_CMP, NULL, infix },
+  { "<=", BP_CMP, NULL, infix },
+  { "~=", BP_CMP, NULL, infix },
+  { "<<", BP_BIT_SHIFT, NULL, infix },
+  { ">>", BP_BIT_SHIFT, NULL, infix },
   { "<eof>", BP_NONE, NULL, NULL },
   { "<number>", BP_NONE, num, NULL },
   { "<integer>", BP_NONE, num, NULL },
@@ -314,7 +314,29 @@ static expr * infix (LexState *ls, expr * left) {
 /*   codestring(e, str_checkname(ls)); */
 /* } */
 
+static expr * parse_while(struct LexState *ls, bindpower rbp) {
+  beanX_next(ls);
+  expr * tree = malloc(sizeof(expr));
+  tree -> type = EXPR_LOOP;
+  tree -> loop.condition = parse_statement(ls, rbp);
+  expr ** body = malloc(sizeof(expr) * 10); // TODO: auto extend
+  testnext(ls, TK_LEFT_BRACE);
+
+  int i = 0;
+  while (ls->t.type != TK_RIGHT_BRACE) {
+    body[i++] = parse_statement(ls, rbp);
+  }
+
+  testnext(ls, TK_RIGHT_BRACE);
+  tree -> loop.body = body;
+  return tree;
+}
+
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {
+  if (ls->t.type == TK_WHILE) {
+    return parse_while(ls, rbp);
+  }
+
   if (ls->t.type == TK_VAR) { // Define an variable
     beanX_next(ls);
 
