@@ -4,16 +4,27 @@
 
 // hello = 300
 
-// func hello(a,b) {
-//   var addd = 3333
-//   hello(b, c)
-//   var debug = 3333
-//   call(debug, 1 + 33)
-//   ((1 + 2) * 10) - 10
-//   return true
-// }
+
 
 while true {
+  var addd = 3333
+  hello(b, c)
+  var debug = 3333
+  call(debug, 1 + 33)
+  ((1 + 2) * 10) - 10
+  return true
+}
+
+
+if a == 3 {
+  call(1)
+} else if a == 4 {
+  call(2)
+} else {
+  call(3)
+}
+
+func hello(a,b) {
   var addd = 3333
   hello(b, c)
   var debug = 3333

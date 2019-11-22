@@ -314,6 +314,42 @@ static expr * infix (LexState *ls, expr * left) {
 /*   codestring(e, str_checkname(ls)); */
 /* } */
 
+static expr * parse_branch(struct LexState *ls, bindpower rbp) {
+  testnext(ls, TK_IF);
+  expr * tree = malloc(sizeof(expr));
+  tree -> type = EXPR_BRANCH;
+  tree -> branch.condition = parse_statement(ls, rbp);
+  expr ** if_body = malloc(sizeof(expr) * 10); // TODO: auto extend
+  testnext(ls, TK_LEFT_BRACE);
+  int i = 0;
+  while (ls->t.type != TK_RIGHT_BRACE) {
+    if_body[i++] = parse_statement(ls, rbp);
+  }
+  testnext(ls, TK_RIGHT_BRACE);
+  tree -> branch.if_body = if_body;
+
+  if (ls->t.type == TK_ELSE) {
+    testnext(ls, TK_ELSE);
+
+    if (ls -> t.type == TK_IF) { // else if ... => else { if ... }
+      tree -> branch.else_body = malloc(sizeof(expr)); // TODO: auto extend
+      tree -> branch.else_body[0] = parse_branch(ls, rbp);
+    } else {
+      expr ** else_body = malloc(sizeof(expr) * 10); // TODO: auto extend
+      testnext(ls, TK_LEFT_BRACE);
+      int i = 0;
+      while (ls->t.type != TK_RIGHT_BRACE) {
+        else_body[i++] = parse_statement(ls, rbp);
+      }
+      testnext(ls, TK_RIGHT_BRACE);
+      tree -> branch.else_body = else_body;
+    }
+  } else {
+    tree -> branch.else_body = NULL;
+  }
+  return tree;
+}
+
 static expr * parse_while(struct LexState *ls, bindpower rbp) {
   beanX_next(ls);
   expr * tree = malloc(sizeof(expr));
@@ -335,6 +371,10 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {
   if (ls->t.type == TK_WHILE) {
     return parse_while(ls, rbp);
+  }
+
+  if (ls->t.type == TK_IF) {
+    return parse_branch(ls, rbp);
   }
 
   if (ls->t.type == TK_VAR) { // Define an variable

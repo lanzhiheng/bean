@@ -68,7 +68,8 @@ typedef enum {
   EXPR_CALL,
   EXPR_RETURN,
   EXPR_BOOLEAN,
-  EXPR_LOOP
+  EXPR_LOOP,
+  EXPR_BRANCH
 } EXPR_TYPE;
 
 typedef struct expr {
@@ -102,6 +103,12 @@ typedef struct expr {
       struct expr * condition;
       struct expr ** body;
     } loop;
+
+    struct {
+      struct expr * condition;
+      struct expr ** if_body;
+      struct expr ** else_body;
+    } branch;
   };
 } expr;
 
