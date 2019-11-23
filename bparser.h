@@ -2,6 +2,7 @@
 #define BEAN_PARSER_H
 
 #include "blex.h"
+#include "mem.h"
 #include "bobject.h"
 
 /*
@@ -9,7 +10,6 @@
 ** address, and as a list link (would link an element to itself).
 */
 #define NO_JUMP (-1)
-
 
 /* TODO: Copy from lua source code, we can remove some of them */
 /* kinds of variables/expressions */
@@ -72,6 +72,12 @@ typedef enum {
   EXPR_BRANCH
 } EXPR_TYPE;
 
+typedef struct dynamic_expr {
+  struct expr ** es;
+  int size;
+  int count;
+} dynamic_expr;
+
 typedef struct expr {
   EXPR_TYPE type;
   union {
@@ -95,19 +101,18 @@ typedef struct expr {
 
     struct {
       TString * callee;
-      struct expr ** args;
-      bu_byte count;
+      dynamic_expr * args;
     } call;
 
     struct {
       struct expr * condition;
-      struct expr ** body;
+      dynamic_expr * body;
     } loop;
 
     struct {
       struct expr * condition;
-      struct expr ** if_body;
-      struct expr ** else_body;
+      dynamic_expr * if_body;
+      dynamic_expr * else_body;
     } branch;
   };
 } expr;
@@ -120,7 +125,7 @@ typedef struct Proto {
 
 typedef struct Function {
   Proto * p;
-  expr ** body;
+  dynamic_expr * body;
 } Function;
 
 typedef struct LexState LexState;

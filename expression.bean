@@ -4,8 +4,6 @@
 
 // hello = 300
 
-
-
 while true {
   var addd = 3333
   hello(b, c)
@@ -14,7 +12,6 @@ while true {
   ((1 + 2) * 10) - 10
   return true
 }
-
 
 if a == 3 {
   call(1)
@@ -32,4 +29,5 @@ func hello(a,b) {
   ((1 + 2) * 10) - 10
   return true
 }
-// hello(b, c)
+
+hello(b, c)

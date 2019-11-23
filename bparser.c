@@ -4,7 +4,29 @@
 #include "bparser.h"
 
 #define MAX_ARGS 16 // MAX args of function
+#define MIN_EXPR_SIZE 16
 #define get_tk_precedence(ls) (symbol_table[ls->t.type].lbp)
+
+static dynamic_expr * init_dynamic_expr(bean_State * B UNUSED) {
+  dynamic_expr * target = malloc(sizeof(dynamic_expr));
+  target -> es = malloc(sizeof(struct expr *) * MIN_EXPR_SIZE);
+  target -> size = MIN_EXPR_SIZE;
+  target -> count = 0;
+  return target;
+}
+
+static void add_element(bean_State * B, dynamic_expr * target, struct expr * expression) {
+  if (target -> count + 1 > target -> size) {
+    size_t oldSize = (target -> size) * sizeof(struct expr *);
+    size_t newSize = oldSize * 2;
+    target -> es = beanM_realloc_(B, target -> es, oldSize, newSize);
+
+    if (target -> es) {
+      target -> size = newSize;
+    }
+  }
+  target -> es[target -> count++] = expression;
+}
 
 /* maximum number of local variables per function (must be smaller
    than 250, due to the bytecode format) */
@@ -148,17 +170,15 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
 
     if (ls->t.type == TK_LEFT_PAREN) { // func call
       expr * func_call = malloc(sizeof(expr));
-      expr ** args = malloc(sizeof(expr*) * MAX_ARGS);
       func_call->type = EXPR_CALL;
       func_call->call.callee = token.seminfo.ts;
-      func_call->call.count = 0;
-      func_call->call.args = args;
+      func_call->call.args = init_dynamic_expr(ls->B);
 
       beanX_next(ls);
       if (ls->t.type == TK_RIGHT_PAREN) return func_call;
 
       do {
-        func_call->call.args[func_call->call.count++] = parse_statement(ls, BP_LOWEST);
+        add_element(ls->B, func_call->call.args, parse_statement(ls, BP_LOWEST));
       } while(testnext(ls, TK_COMMA));
 
       beanX_next(ls);
@@ -215,19 +235,16 @@ static Proto * parse_prototype(LexState *ls) {
 }
 
 static Function * parse_definition(LexState *ls) {
-  Proto * p = parse_prototype(ls);
-  expr ** body = malloc(sizeof(expr) * 10); // TODO: auto extend
   Function * f = malloc(sizeof(Function));
+  f -> p = parse_prototype(ls);
+  f -> body = init_dynamic_expr(ls->B);
   testnext(ls, TK_LEFT_BRACE);
 
-  int i = 0;
   while (ls->t.type != TK_RIGHT_BRACE) {
-    body[i++] = parse_statement(ls, BP_LOWEST);
+    add_element(ls->B, f->body, parse_statement(ls, BP_LOWEST));
   }
 
   testnext(ls, TK_RIGHT_BRACE);
-  f -> p = p;
-  f -> body = body;
   return f;
 }
 
@@ -319,30 +336,26 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   expr * tree = malloc(sizeof(expr));
   tree -> type = EXPR_BRANCH;
   tree -> branch.condition = parse_statement(ls, rbp);
-  expr ** if_body = malloc(sizeof(expr) * 10); // TODO: auto extend
+  tree -> branch.if_body = init_dynamic_expr(ls->B);
   testnext(ls, TK_LEFT_BRACE);
-  int i = 0;
   while (ls->t.type != TK_RIGHT_BRACE) {
-    if_body[i++] = parse_statement(ls, rbp);
+    add_element(ls->B, tree -> branch.if_body, parse_statement(ls, rbp));
   }
   testnext(ls, TK_RIGHT_BRACE);
-  tree -> branch.if_body = if_body;
 
   if (ls->t.type == TK_ELSE) {
     testnext(ls, TK_ELSE);
 
     if (ls -> t.type == TK_IF) { // else if ... => else { if ... }
-      tree -> branch.else_body = malloc(sizeof(expr)); // TODO: auto extend
-      tree -> branch.else_body[0] = parse_branch(ls, rbp);
+      tree -> branch.else_body = init_dynamic_expr(ls->B);
+      add_element(ls->B, tree -> branch.else_body, parse_branch(ls, rbp));
     } else {
-      expr ** else_body = malloc(sizeof(expr) * 10); // TODO: auto extend
+      tree -> branch.else_body = init_dynamic_expr(ls->B);
       testnext(ls, TK_LEFT_BRACE);
-      int i = 0;
       while (ls->t.type != TK_RIGHT_BRACE) {
-        else_body[i++] = parse_statement(ls, rbp);
+        add_element(ls->B, tree -> branch.else_body, parse_statement(ls, rbp));
       }
       testnext(ls, TK_RIGHT_BRACE);
-      tree -> branch.else_body = else_body;
     }
   } else {
     tree -> branch.else_body = NULL;
@@ -352,19 +365,18 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
 
 static expr * parse_while(struct LexState *ls, bindpower rbp) {
   beanX_next(ls);
+
   expr * tree = malloc(sizeof(expr));
   tree -> type = EXPR_LOOP;
   tree -> loop.condition = parse_statement(ls, rbp);
-  expr ** body = malloc(sizeof(expr) * 10); // TODO: auto extend
+  tree -> loop.body = init_dynamic_expr(ls->B);
   testnext(ls, TK_LEFT_BRACE);
 
-  int i = 0;
   while (ls->t.type != TK_RIGHT_BRACE) {
-    body[i++] = parse_statement(ls, rbp);
+    add_element(ls->B, tree->loop.body, parse_statement(ls, rbp));
   }
 
   testnext(ls, TK_RIGHT_BRACE);
-  tree -> loop.body = body;
   return tree;
 }
 
