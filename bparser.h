@@ -62,12 +62,12 @@ typedef struct BlockCnt {
 typedef enum {
   EXPR_NUM,
   EXPR_FLOAT,
+  EXPR_BOOLEAN,
   EXPR_BINARY,
   EXPR_FUN,
   EXPR_VAR,
   EXPR_CALL,
   EXPR_RETURN,
-  EXPR_BOOLEAN,
   EXPR_LOOP,
   EXPR_BRANCH
 } EXPR_TYPE;
@@ -86,7 +86,7 @@ typedef struct expr {
     bu_byte bval;
 
     struct {
-      const char * op;
+      int op; // Store the TokenType
       struct expr * left;  /* for   TK_ADD, TK_SUB, TK_MUL, TK_DIV, */
       struct expr * right;
     } infix;

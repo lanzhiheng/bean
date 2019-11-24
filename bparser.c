@@ -2,6 +2,7 @@
 #include "mem.h"
 #include "bstring.h"
 #include "bparser.h"
+#include "vm.h"
 
 #define MAX_ARGS 16 // MAX args of function
 #define MIN_EXPR_SIZE 16
@@ -301,7 +302,7 @@ symbol symbol_table[] = {
 static expr * infix (LexState *ls, expr * left) {
   expr * temp = malloc(sizeof(expr));
   temp -> type = EXPR_BINARY;
-  temp -> infix.op = beanX_tokens[ls->pre.type];
+  temp -> infix.op = ls->pre.type;
   temp -> infix.left = left;
   temp -> infix.right = parse_statement(ls, symbol_table[ls->pre.type].lbp);
   return temp;
@@ -415,7 +416,9 @@ static void parse_program(struct LexState * ls) {
     printf("%p\n", f);
   } else {
     expr * ex = parse_statement(ls, BP_LOWEST);
-    printf("%p\n", ex);
+    /* printf("%p\n", ex); */
+    TValue * v = eval(ls->B, ex);
+    printf("%p\n", v);
   }
 }
 
@@ -423,7 +426,6 @@ void bparser(LexState * ls) {
   beanX_next(ls);
 
   while (ls -> current != EOZ) {
-    /* const char * msg = txtToken(ls, ls -> t.type); */
     parse_program(ls);
   }
 }

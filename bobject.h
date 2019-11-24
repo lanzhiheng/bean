@@ -29,6 +29,7 @@ typedef union Value {
   struct GCObject * gc;
   bean_Integer i;
   bean_Number n;
+  bu_byte b;
 } Value;
 
 /*
