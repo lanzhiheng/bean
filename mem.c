@@ -8,7 +8,8 @@
 */
 #define MINSIZEARRAY	4
 
-void * beanM_malloc_ (bean_State *B UNUSED, size_t size, int tag UNUSED) {
+// TODO: Remove it later
+void * old_beanM_malloc_ (bean_State *B UNUSED, size_t size, int tag UNUSED) {
   void * ptr = malloc(size);
   return ptr;
 }
