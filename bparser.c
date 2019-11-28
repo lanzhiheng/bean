@@ -423,6 +423,16 @@ static void parse_program(struct LexState * ls) {
     /* printf("%p\n", v); */
     Hash * hash = init_hash(ls -> B);
     hash_set(ls -> B, hash, key, value);
+    value = malloc(sizeof(TValue));
+    setivalue(value, 3333)
+    hash_set(ls -> B, hash, key, value);
+    key = malloc(sizeof(TValue));
+    setivalue(key, 11)
+    hash_set(ls -> B, hash, key, value);
+    printf("count are: %d\n", hash -> count);
+    /* printf("%d\n", tvalue_equal(key, key)); */
+    /* printf("%d\n", tvalue_equal(key, value)); */
+    /* printf("%d\n", tvalue_equal(value, value)); */
   }
 }
 

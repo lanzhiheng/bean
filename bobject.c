@@ -2,6 +2,7 @@
 #include "bstring.h"
 
 bool tvalue_equal(TValue * v1, TValue * v2) {
+  if (v1 == v2) return true;
   if (rawtt(v1) != rawtt(v2)) return false;
 
   switch(v1 -> tt_) {

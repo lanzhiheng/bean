@@ -54,6 +54,7 @@ static uint32_t hash_obj(TValue * key, uint32_t size) {
 
 static void hash_resize(bean_State * B, Hash * hash, int newCapacity) {
   Entry ** new_entries = beanM_array_malloc_(B, Entry *, newCapacity);
+  for (int i = 0; i < newCapacity; i++) new_entries[i] = NULL;
 
   if (hash -> capacity > 0) {
     for (uint32_t i = 0; i < hash -> capacity; i++) {
@@ -74,6 +75,14 @@ static void hash_resize(bean_State * B, Hash * hash, int newCapacity) {
   hash -> capacity = newCapacity;
 }
 
+static Entry * create_entry(bean_State * B, TValue * key, TValue * value) {
+  Entry * entry = beanM_malloc_(B, Entry);
+  entry -> key = key;
+  entry -> value = value;
+  entry -> next = NULL;
+  return entry;
+}
+
 bool hash_set(bean_State * B, Hash * hash, TValue * key, TValue * value) {
   if (hash -> capacity * FACTOR <= hash -> count) {
     int newCapacity = hash -> capacity * ENLARGE_FACTOR;
@@ -82,11 +91,19 @@ bool hash_set(bean_State * B, Hash * hash, TValue * key, TValue * value) {
   }
   uint32_t index = hash_obj(key, hash -> capacity);
 
-  Entry * entry = beanM_malloc_(B, Entry);
-  entry -> key = key;
-  entry -> value = value;
-  entry -> next = hash -> entries[index];
-  hash -> entries[index] = entry;
+  Entry * entry = create_entry(B, key, value);
+
+  Entry ** header = &hash -> entries[index];
+  while (*header && !tvalue_equal((*header) -> key, key)) {
+    header = &(*header) -> next;
+  }
+  if (*header == NULL) {
+    *header = entry;
+    hash -> count++;
+  } else {
+    (*header) -> value = value;
+  }
+
   return true;
 }
 
