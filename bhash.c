@@ -1,5 +1,5 @@
 #include "mem.h"
-#include "hash.h"
+#include "bhash.h"
 #include "bstring.h"
 #include "stdio.h"
 
@@ -107,12 +107,19 @@ bool hash_set(bean_State * B, Hash * hash, TValue * key, TValue * value) {
   return true;
 }
 
-TValue * hash_get(bean_State * B, Hash * hash, TValue * key) {
+TValue * hash_get(bean_State * B UNUSED, Hash * hash, TValue * key) {
   uint32_t index = hash_obj(key, hash -> capacity);
-  Entry * entry = hash -> entries[index];
+  Entry ** entry = &hash -> entries[index];
 
-  while (entry) {
-    /* entry -> key  */
-    entry = entry -> next;
+  TValue * result = NULL;
+
+  while (*entry) {
+    if (tvalue_equal((*entry) -> key, key)) {
+      result = (*entry) -> value;
+      break;
+    }
+
+    entry = &(*entry) -> next;
   }
+  return result;
 }
