@@ -23,4 +23,6 @@
 
 TString * beanS_newlstr (bean_State * B, const char *str, size_t l);
 
+bool beanS_equal(TString * ts1, TString * ts2);
+
 #endif

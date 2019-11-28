@@ -1,8 +1,8 @@
 #ifndef _BEAN_OBJECT_H
 #define _BEAN_OBJECT_H
 
-#include "common.h"
 #include <stdlib.h>
+#include "common.h"
 
 #define MAX_STRING_BUFFER 256
 
@@ -121,4 +121,5 @@ typedef struct TValue {
 #define ttisstring(o)		checktag((o), BEAN_TSTRING)
 #define svalue(o)       check_exp(ttisstring(o), val_(o).s)
 
+bool tvalue_equal(TValue * v1, TValue * v2);
 #endif
