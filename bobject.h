@@ -29,6 +29,7 @@ typedef union Value {
   struct GCObject * gc;
   bean_Integer i;
   bean_Number n;
+  TString * s;
   bu_byte b;
 } Value;
 
@@ -116,5 +117,8 @@ typedef struct TValue {
   { TValue *io = obj; val_(io).n=(x); settt_(io, BEAN_TNUMFLT); }
 
 /* }================================================================== */
+
+#define ttisstring(o)		checktag((o), BEAN_TSTRING)
+#define svalue(o)       check_exp(ttisstring(o), val_(o).s)
 
 #endif

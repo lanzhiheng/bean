@@ -1,4 +1,5 @@
 #include "bstate.h"
+#include "bparser.h"
 #include "blex.h"
 #include "bstring.h"
 #include <stdio.h>

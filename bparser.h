@@ -2,8 +2,9 @@
 #define BEAN_PARSER_H
 
 #include "blex.h"
-#include "mem.h"
 #include "bobject.h"
+
+#define MAX_LEN_ID 255
 
 /*
 ** Marks the end of a patch list. It is an invalid value both as an absolute
@@ -59,69 +60,16 @@ typedef struct BlockCnt {
   bu_byte upval;  /* true if some variable in the block is an upvalue */
 } BlockCnt;
 
-typedef enum {
-  EXPR_NUM,
-  EXPR_FLOAT,
-  EXPR_BOOLEAN,
-  EXPR_BINARY,
-  EXPR_FUN,
-  EXPR_VAR,
-  EXPR_CALL,
-  EXPR_RETURN,
-  EXPR_LOOP,
-  EXPR_BRANCH
-} EXPR_TYPE;
-
-typedef struct dynamic_expr {
-  struct expr ** es;
-  int size;
-  int count;
-} dynamic_expr;
-
-typedef struct expr {
-  EXPR_TYPE type;
-  union {
-    bean_Integer ival;    /* for TK_INT */
-    bean_Number nval;  /* for VKFLT */
-    bu_byte bval;
-
-    struct {
-      int op; // Store the TokenType
-      struct expr * left;  /* for   TK_ADD, TK_SUB, TK_MUL, TK_DIV, */
-      struct expr * right;
-    } infix;
-
-    struct {
-      TString * name;
-    } var;
-
-    struct {
-      struct expr * ret_val;
-    } ret;
-
-    struct {
-      TString * callee;
-      dynamic_expr * args;
-    } call;
-
-    struct {
-      struct expr * condition;
-      dynamic_expr * body;
-    } loop;
-
-    struct {
-      struct expr * condition;
-      dynamic_expr * if_body;
-      dynamic_expr * else_body;
-    } branch;
-  };
-} expr;
-
 typedef struct Proto {
   TString * name;
   TString ** args;
   bu_byte arity;
 } Proto;
+
+typedef struct LocalVar {
+  TString * name;
+  TValue value;
+} LocalVar;
 
 typedef struct Function {
   Proto * p;

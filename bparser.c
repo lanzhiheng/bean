@@ -1,8 +1,7 @@
 #include <limits.h>
-#include "mem.h"
 #include "bstring.h"
+#include "hash.h"
 #include "bparser.h"
-#include "vm.h"
 
 #define MAX_ARGS 16 // MAX args of function
 #define MIN_EXPR_SIZE 16
@@ -417,8 +416,13 @@ static void parse_program(struct LexState * ls) {
   } else {
     expr * ex = parse_statement(ls, BP_LOWEST);
     /* printf("%p\n", ex); */
-    TValue * v = eval(ls->B, ex);
-    printf("%p\n", v);
+    TValue * key = malloc(sizeof(TValue));
+    setivalue(key, 10);
+    TValue * value = eval(ls->B, ex);
+
+    /* printf("%p\n", v); */
+    Hash * hash = init_hash(ls -> B);
+    hash_set(ls -> B, hash, key, value);
   }
 }
 

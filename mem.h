@@ -26,10 +26,11 @@
 #define beanM_array_malloc_(B, type, count)             \
   (type *) beanM_realloc_(B, NULL, 0, sizeof(type) * count)
 
-#define beanM_array_dealloc_(vmPtr, arrayPtr, count)                \
-  beanM_realloc_(vmPtr, NULL, sizeof(arrayPtr[0]) * count, 0)
+#define beanM_array_dealloc_(B, arrayPtr, count)                \
+  beanM_realloc_(B, NULL, sizeof(arrayPtr[0]) * count, 0)
 
 void * beanM_realloc_(bean_State * B, void *ptr, size_t oldSize, size_t newSize);
 void * beanM_grow_(bean_State * B, void * block, int n, int *psize, int size_elems, int limit, const char * what);
+void * old_beanM_malloc_ (bean_State *B UNUSED, size_t size, int tag UNUSED);
 
 #endif

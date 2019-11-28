@@ -3,8 +3,6 @@
 #include "stdio.h"
 #include "common.h"
 #include "bobject.h"
-#include "bparser.h"
-#include "bstate.h"
 #include "bzio.h"
 #include "bdebug.h"
 
