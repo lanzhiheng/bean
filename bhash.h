@@ -21,6 +21,6 @@ typedef struct Hash {
 Hash * init_hash(bean_State * B);
 bool hash_set(bean_State * B, Hash * hash, TValue * key, TValue * value);
 TValue * hash_get(bean_State * B, Hash * hash, TValue * key);
-
+TValue * hash_remove(bean_State * B, Hash * hash, TValue * key);
 
 #endif

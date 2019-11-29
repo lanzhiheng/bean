@@ -123,3 +123,27 @@ TValue * hash_get(bean_State * B UNUSED, Hash * hash, TValue * key) {
   }
   return result;
 }
+
+TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
+  uint32_t index = hash_obj(key, hash -> capacity);
+  TValue * rValue = NULL;
+
+  Entry ** header = &hash -> entries[index];
+  while ((*header) -> next) {
+    header = &(*header) -> next;
+    if (tvalue_equal((*header) -> key, key)) break;
+  }
+
+  if (*header != NULL) {
+    rValue = (*header) -> value;
+    hash -> count--;
+  }
+
+    if (hash -> capacity / ENLARGE_FACTOR * FACTOR > hash -> count) {
+    int newCapacity = hash -> capacity / ENLARGE_FACTOR;
+    newCapacity = newCapacity > HASH_MIN_CAPACITY ? newCapacity : HASH_MIN_CAPACITY;
+    hash_resize(B, hash, newCapacity);
+  }
+
+  return rValue;
+}
