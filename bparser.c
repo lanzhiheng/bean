@@ -416,15 +416,17 @@ static void parse_program(struct LexState * ls) {
     printf("%p\n", f);
   } else {
     expr * ex = parse_statement(ls, BP_LOWEST);
-    /* TValue * key = malloc(sizeof(TValue)); */
-    /* setivalue(key, 10); */
-    /* TValue * value = eval(ls->B, ex); */
-    /* Hash * hash = init_hash(ls -> B); */
-    /* hash_set(ls -> B, hash, key, value); */
-    /* assert(tvalue_equal(hash_get(ls -> B, hash, key), value)); */
-    /* assert(nvalue(key) == 10); */
-    /* assert(nvalue(hash_get(ls->B, hash, key)) == nvalue(value)); */
-
+    TValue * key = malloc(sizeof(TValue));
+    setivalue(key, 10);
+    TValue * value = eval(ls->B, ex);
+    Hash * hash = init_hash(ls -> B);
+    hash_set(ls -> B, hash, key, value);
+    assert(tvalue_equal(hash_get(ls -> B, hash, key), value));
+    assert(nvalue(key) == 10);
+    assert(nvalue(hash_get(ls->B, hash, key)) == nvalue(value));
+    TValue * rValue = hash_remove(ls->B, hash, key);
+    assert(tvalue_equal(rValue, value));
+    assert(hash->count == 0);
     /* key = malloc(sizeof(TValue)); */
     /* setivalue(key, 10000); */
     /* assert(hash_get(ls->B, hash, key) == NULL); */
