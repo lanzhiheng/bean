@@ -14,11 +14,10 @@ typedef struct Array {
 
 Array * init_array(bean_State * B);
 bool array_set(bean_State * B, Array * arr, uint32_t index, TValue * value);
-/* TValue * array_delete(bean_State * B, uint32_t index); */
-/* bool array_push(bean_State * B, TValue value); */
-/* bool array_pop(bean_State * B, TValue value); */
-/* bool array_unshift(bean_State * B, TValue value); */
-/* bool array_shift(bean_State * B, TValue value); */
-
+TValue * array_get(bean_State * B, Array * arr, uint32_t index);
+bool array_push(bean_State * B, Array * arr, TValue * value);
+TValue * array_pop(bean_State * B, Array * arr);
+bool array_unshift(bean_State * B, Array * arr, TValue * value);
+TValue * array_shift(bean_State * B, Array * arr);
 
 #endif
