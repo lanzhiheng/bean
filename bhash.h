@@ -4,6 +4,7 @@
 #include "bobject.h"
 #include "bstate.h"
 
+#define HASH_MAX_LEN_OF_KEY 255
 #define HASH_MIN_CAPACITY 16
 
 typedef struct Entry {

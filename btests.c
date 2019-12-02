@@ -4,6 +4,8 @@
 #include <assert.h>
 #include "blex.h"
 #include "barray.h"
+#include "bstring.h"
+#include "bhash.h"
 #include "bstate.h"
 #include "math.h"
 
@@ -77,6 +79,61 @@ void test_barray_set_value(bean_State * B) {
   assert(tvalue_equal(array_get(B, array, 10), v1));
 }
 
+static TValue * getValue(bean_State * B, uint32_t i) {
+  TValue * value = malloc(sizeof(TValue));
+  setivalue(value, i);
+  return value;
+}
+
+static TValue * getKey(bean_State * B, uint32_t i) {
+  TValue * key = malloc(sizeof(TValue));
+  char keyBuffer[HASH_MAX_LEN_OF_KEY];
+  sprintf(keyBuffer, "key-%d", i);
+  TString * sKey = beanS_newlstr(B, keyBuffer, strlen(keyBuffer));
+  setsvalue(key, sKey);
+  return key;
+}
+
+static void testing_value_by_count (bean_State * B, Hash * hash, uint32_t count) {
+
+  for (uint32_t i = 0; i < count; i ++) {
+    TValue * key = getKey(B, i);
+    TValue * value = getValue(B, i);
+    hash_set(B, hash, key, value);
+  }
+
+  for (uint32_t i = 0; i < count; i ++) {
+    TValue * key = getKey(B, i);
+    TValue * value = getValue(B, i);
+    assert(tvalue_equal(hash_get(B, hash, key), value));
+  }
+}
+
+void test_hash_set(bean_State * B) {
+  Hash * hash = init_hash(B);
+
+  assert(hash->count == 0);
+  assert(hash->capacity == 0);
+
+  testing_value_by_count(B, hash, 10);
+
+  assert(hash->count == 10);
+  assert(hash->capacity == 16);
+
+  testing_value_by_count(B, hash, 100);
+
+  assert(hash->count == 100);
+  assert(hash->capacity == 256);
+}
+
+void test_bhash() {
+  bean_State * B = get_state();
+  test_hash_set(B);
+  printf("==============================\n");
+  printf("All tests of hash passed!\n");
+  printf("==============================\n");
+}
+
 void test_barray() {
   bean_State * B = get_state();
   test_barray_pop_and_push(B);
@@ -90,4 +147,5 @@ void test_barray() {
 
 void test() {
   test_barray();
+  test_bhash();
 }
