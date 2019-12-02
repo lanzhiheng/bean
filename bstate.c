@@ -8,6 +8,11 @@
 #include "mem.h"
 #define MIN_STRT_SIZE 8
 
+typedef struct Scope {
+  struct Scope *previous;
+  Hash * variable;
+} Scope;
+
 typedef TValue* (*eval_func) (bean_State * B, struct expr * expression);
 char * rootDir = NULL;
 
@@ -96,14 +101,6 @@ static stringtable stringtable_init(bean_State * B) {
   return tb;
 }
 
-void global_init(bean_State * B) {
-  global_State * G = malloc(sizeof(global_State));
-  G -> seed = rand();
-  G -> allgc = NULL;
-  G -> strt = stringtable_init(B);
-  B -> l_G = G;
-}
-
 const char *beanO_pushfstring (bean_State *B UNUSED, const char *fmt, ...) {
   char * msg = malloc(MAX_STRING_BUFFER * sizeof(char));
   va_list argp;
@@ -137,6 +134,21 @@ static char * read_source_file(const char * path) {
   return fileContent;
 }
 
+static Scope * create_scope(bean_State * B, Scope * previous) {
+  Scope * scope = malloc(sizeof(Scope));
+  scope->previous = previous;
+  scope->variable = init_hash(B);
+  return scope;
+}
+
+static bean_State * bean_State_init() {
+  bean_State * B = malloc(sizeof(B));
+  B -> allocateBytes = 0;
+  global_init(B);
+  beanX_init(B);
+  return B;
+}
+
 void run_file(const char * path) {
   const char * lastSlash = strrchr(path, '/');
   const char * filename = path;
@@ -149,17 +161,25 @@ void run_file(const char * path) {
     filename = lastSlash + 1;
   }
 
-  bean_State * B = malloc(sizeof(B));
   LexState * ls = malloc(sizeof(LexState));
-  B -> allocateBytes = 0;
-  global_init(B);
-  beanX_init(B);
+  bean_State * B = bean_State_init();
+  ls->B = B;
 
   TString * e = beanS_newlstr(B, filename, strlen(filename));
   printf("Source file name is %s.\n", getstr(e));
   char* source = read_source_file(path);
   beanX_setinput(B, ls, source, e, *source);
   bparser(ls);
+}
+
+void global_init(bean_State * B) {
+  global_State * G = malloc(sizeof(global_State));
+  G -> seed = rand();
+  G -> allgc = NULL;
+  G -> strt = stringtable_init(B);
+  G -> globalScope = create_scope(B, NULL);
+  G -> cScope = create_scope(B, NULL);
+  B -> l_G = G;
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {
