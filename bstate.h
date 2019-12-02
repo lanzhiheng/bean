@@ -10,12 +10,6 @@ typedef struct stringtable {
   int size;
 } stringtable;
 
-typedef struct global_State {
-  unsigned int seed;  /* randomized seed for hashes */
-  GCObject *allgc;  /* list of all collectable objects */
-  stringtable strt;
-} global_State;
-
 #define G(B)	(B->l_G)
 
 /*
@@ -34,10 +28,16 @@ union GCUnion {
 
 typedef struct bean_State {
   size_t allocateBytes;
-  global_State *l_G;
-  unsigned long nCcalls;  /* number of allowed nested C calls - 'nci' */
+  struct global_State *l_G;
 } bean_State;
 
+typedef struct global_State {
+  unsigned int seed;  /* randomized seed for hashes */
+  GCObject *allgc;  /* list of all collectable objects */
+  stringtable strt;
+  struct Scope * globalScope;
+  struct Scope * cScope;
+} global_State;
 
 typedef struct dynamic_expr {
   struct expr ** es;
