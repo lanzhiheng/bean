@@ -246,6 +246,12 @@ static Function * parse_definition(LexState *ls) {
   }
 
   testnext(ls, TK_RIGHT_BRACE);
+  Hash * h = G(ls->B) -> cScope -> variables;
+  TValue * func = malloc(sizeof(TValue));
+  TValue * name = malloc(sizeof(TValue));
+  setsvalue(name, f->p->name);
+  setfcvalue(func, f);
+  hash_set(ls->B, h, name, func);
   return f;
 }
 

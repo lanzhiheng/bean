@@ -8,11 +8,6 @@
 #include "mem.h"
 #define MIN_STRT_SIZE 8
 
-typedef struct Scope {
-  struct Scope *previous;
-  Hash * variable;
-} Scope;
-
 typedef TValue* (*eval_func) (bean_State * B, struct expr * expression);
 char * rootDir = NULL;
 
@@ -137,7 +132,7 @@ static char * read_source_file(const char * path) {
 static struct Scope * create_scope(bean_State * B, struct Scope * previous) {
   Scope * scope = malloc(sizeof(Scope));
   scope->previous = previous;
-  scope->variable = init_hash(B);
+  scope->variables = init_hash(B);
   return scope;
 }
 
@@ -189,7 +184,7 @@ void global_init(bean_State * B) {
   G -> allgc = NULL;
   G -> strt = stringtable_init(B);
   G -> globalScope = create_scope(B, NULL);
-  G -> cScope = create_scope(B, NULL);
+  G -> cScope = G -> globalScope;
   B -> l_G = G;
 }
 
