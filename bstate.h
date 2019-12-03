@@ -117,4 +117,6 @@ void global_init(bean_State * B);
 const char *beanO_pushfstring (bean_State *B UNUSED, const char *fmt, ...);
 TValue * eval(bean_State * B, expr * expression);
 void run_file(const char * path);
+void enter_scope(bean_State * B);
+void leave_scope(bean_State * B);
 #endif
