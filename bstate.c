@@ -134,7 +134,7 @@ static char * read_source_file(const char * path) {
   return fileContent;
 }
 
-static Scope * create_scope(bean_State * B, Scope * previous) {
+static struct Scope * create_scope(bean_State * B, struct Scope * previous) {
   Scope * scope = malloc(sizeof(Scope));
   scope->previous = previous;
   scope->variable = init_hash(B);
@@ -147,6 +147,17 @@ static bean_State * bean_State_init() {
   global_init(B);
   beanX_init(B);
   return B;
+}
+
+void enter_scope(bean_State * B) {
+  Scope * scope = create_scope(B, G(B) -> cScope);
+  G(B) -> cScope = scope;
+}
+
+void leave_scope(bean_State * B) {
+  Scope * scope = G(B) -> cScope;
+  G(B) -> cScope = scope -> previous;
+  free(scope);
 }
 
 void run_file(const char * path) {

@@ -25,14 +25,14 @@
 //   call(3)
 // }
 
-// func hello(a,b) {
-//   var addd = 3333
-//   hello(b, c)
-//   var debug = 3333
-//   call(debug, 1 + 33)
-//   ((1 + 2) * 10) - 10
-//   return true
-// }
+func hello(a,b) {
+  var addd = 3333
+  hello(b, c)
+  var debug = 3333
+  call(debug, 1 + 33)
+  ((1 + 2) * 10) - 10
+  return true
+}
 
 ((1 + 2) * 10) - 10
 
