@@ -246,12 +246,6 @@ static Function * parse_definition(LexState *ls) {
   }
 
   testnext(ls, TK_RIGHT_BRACE);
-  Hash * h = G(ls->B) -> cScope -> variables;
-  TValue * func = malloc(sizeof(TValue));
-  TValue * name = malloc(sizeof(TValue));
-  setsvalue(name, f->p->name);
-  setfcvalue(func, f);
-  hash_set(ls->B, h, name, func);
   return f;
 }
 
@@ -419,23 +413,12 @@ static void parse_program(struct LexState * ls) {
   if (testnext(ls, TK_FUNCTION)) {
     printf("I will define the function\n");
     Function * f = parse_definition(ls);
-    printf("%p\n", f);
+    expr * ex = malloc(sizeof(expr));
+    ex->type = EXPR_FUN;
+    ex->fun = f;
+    eval(ls->B, ex);
   } else {
     expr * ex = parse_statement(ls, BP_LOWEST);
-    /* TValue * key = malloc(sizeof(TValue)); */
-    /* setivalue(key, 10); */
-    /* TValue * value = eval(ls->B, ex); */
-    /* Hash * hash = init_hash(ls -> B); */
-    /* hash_set(ls -> B, hash, key, value); */
-    /* assert(tvalue_equal(hash_get(ls -> B, hash, key), value)); */
-    /* assert(nvalue(key) == 10); */
-    /* assert(nvalue(hash_get(ls->B, hash, key)) == nvalue(value)); */
-    /* TValue * rValue = hash_remove(ls->B, hash, key); */
-    /* assert(tvalue_equal(rValue, value)); */
-    /* assert(hash->count == 0); */
-    /* key = malloc(sizeof(TValue)); */
-    /* setivalue(key, 10000); */
-    /* assert(hash_get(ls->B, hash, key) == NULL); */
   }
 }
 
