@@ -164,11 +164,23 @@ static expr* left_paren(LexState *ls, expr *exp UNUSED) {
 }
 
 static expr* variable(LexState *ls, expr *exp UNUSED) {
-    expr * ep = malloc(sizeof(expr));
+  expr * ep = malloc(sizeof(expr));
 
-    Token token = ls->t;
-    beanX_next(ls);
+  Token preToken = ls->pre;
+  Token token = ls->t;
+  beanX_next(ls);
 
+  if (preToken.type == TK_VAR) { // variable definition
+    ep -> type = EXPR_DVAR;
+    ep -> var.name = token.seminfo.ts;
+
+    if (ls->t.type == TK_ASSIGN) {
+      beanX_next(ls);
+      ep -> var.value = parse_statement(ls, BP_LOWEST);
+    } else {
+      ep -> var.value = NULL;
+    }
+  } else {
     if (ls->t.type == TK_LEFT_PAREN) { // func call
       expr * func_call = malloc(sizeof(expr));
       func_call->type = EXPR_CALL;
@@ -186,12 +198,15 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
       testnext(ls, TK_RIGHT_PAREN);
 
       return func_call;
-    }
+    } else {
+      ep -> type = EXPR_GVAR;
+      ep -> gvar.name = token.seminfo.ts;
 
-    ep -> type = EXPR_VAR;
-    ep -> var.name = token.seminfo.ts;
-    return ep;
+    }
+  }
+  return ep;
 }
+
 static expr* return_exp(LexState *ls, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   beanX_next(ls);
@@ -419,6 +434,7 @@ static void parse_program(struct LexState * ls) {
     eval(ls->B, ex);
   } else {
     expr * ex = parse_statement(ls, BP_LOWEST);
+    eval(ls->B, ex);
   }
 }
 

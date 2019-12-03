@@ -12,7 +12,9 @@ typedef struct stringtable {
 } stringtable;
 
 #define G(B)	(B->l_G)
-
+#define CS(B)    (B->l_G->cScope)
+#define GCSV(B, n)   (hash_get(B, CS(B)->variables, n))
+#define SCSV(B, n, v)   (hash_set(B, CS(B)->variables, n, v))
 /*
 ** Union of all collectable objects (only for conversions)
 */
@@ -68,7 +70,8 @@ typedef enum {
   EXPR_BOOLEAN,
   EXPR_BINARY,
   EXPR_FUN,
-  EXPR_VAR,
+  EXPR_DVAR,
+  EXPR_GVAR,
   EXPR_CALL,
   EXPR_RETURN,
   EXPR_LOOP,
@@ -92,7 +95,12 @@ typedef struct expr {
 
     struct {
       TString * name;
+      struct expr * value;
     } var;
+
+    struct {
+      TString * name;
+    } gvar;
 
     struct {
       struct expr * ret_val;
