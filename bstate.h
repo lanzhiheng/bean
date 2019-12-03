@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "bobject.h"
+#include "bhash.h"
 
 typedef struct stringtable {
   struct TString ** hash;
@@ -31,12 +32,17 @@ typedef struct bean_State {
   struct global_State *l_G;
 } bean_State;
 
+typedef struct Scope {
+  struct Scope *previous;
+  Hash * variables;
+} Scope;
+
 typedef struct global_State {
   unsigned int seed;  /* randomized seed for hashes */
   GCObject *allgc;  /* list of all collectable objects */
   stringtable strt;
-  struct Scope * globalScope;
-  struct Scope * cScope;
+  Scope * globalScope;
+  Scope * cScope;
 } global_State;
 
 typedef struct dynamic_expr {
@@ -44,6 +50,17 @@ typedef struct dynamic_expr {
   int size;
   int count;
 } dynamic_expr;
+
+typedef struct Proto {
+  TString * name;
+  TString ** args;
+  bu_byte arity;
+} Proto;
+
+typedef struct Function {
+  Proto * p;
+  dynamic_expr * body;
+} Function;
 
 typedef enum {
   EXPR_NUM,
@@ -60,6 +77,7 @@ typedef enum {
 
 typedef struct expr {
   EXPR_TYPE type;
+
   union {
     bean_Integer ival;    /* for TK_INT */
     bean_Number nval;  /* for VKFLT */
@@ -99,9 +117,6 @@ typedef struct expr {
 
 
 #define cast_u(o)	cast(union GCUnion *, (o))
-
-#define beanE_exitCcall(B)	((B)->nCcalls++)
-#define beanE_enterCcall(B)	((B)->nCcalls--)
 
 /* macros to convert a GCObject into a specific value */
 #define gco2ts(o)  \

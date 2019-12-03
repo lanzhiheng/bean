@@ -30,6 +30,7 @@ typedef union Value {
   bean_Integer i;
   bean_Number n;
   TString * s;
+  struct Function * fc;
   bu_byte b;
 } Value;
 
@@ -123,5 +124,8 @@ typedef struct TValue {
 
 #define setsvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).s=(x); settt_(io, BEAN_TSTRING); }
+
+#define setfcvalue(obj,x)                                                \
+  { TValue *io = obj; val_(io).fc=(x); settt_(io, BEAN_TFUNCTION); }
 bool tvalue_equal(TValue * v1, TValue * v2);
 #endif

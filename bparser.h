@@ -13,21 +13,12 @@
 */
 #define NO_JUMP (-1)
 
-typedef struct Proto {
-  TString * name;
-  TString ** args;
-  bu_byte arity;
-} Proto;
 
 typedef struct LocalVar {
   TString * name;
   TValue value;
 } LocalVar;
 
-typedef struct Function {
-  Proto * p;
-  dynamic_expr * body;
-} Function;
 
 typedef struct LexState LexState;
 
