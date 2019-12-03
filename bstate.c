@@ -13,6 +13,7 @@ char * rootDir = NULL;
 
 #define io_error(message) printf("%s", message)
 #define mem_error(message) printf("%s", message)
+#define eval_error(message) printf("%s", message)
 
 static TValue * int_eval (bean_State * B UNUSED, struct expr * expression) {
   TValue * v = malloc(sizeof(TValue));
@@ -85,12 +86,39 @@ static TValue * function_eval (bean_State * B UNUSED, struct expr * expression) 
   return func;
 }
 
+static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expression) {
+  TString * variable = expression->gvar.name;
+  TValue * name = malloc(sizeof(TValue));
+  setsvalue(name, variable);
+  TValue * value = GCSV(B, name);
+  if (!value) eval_error("Can't reference the variable before defined");
+  return value;
+}
+
+static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expression) {
+  TString * variable = expression->var.name;
+  TValue * name = malloc(sizeof(TValue));
+  setsvalue(name, variable);
+  TValue * value = eval(B, expression->var.value);
+  SCSV(B, name, value);
+  return value;
+}
+
+/* static TValue * function_call_eval (bean_State * B UNUSED, struct expr * expression) { */
+/*   TString * funcName = expression->call.callee; */
+/*   TValue * name = malloc(sizeof(TValue)); */
+/*   TValue * func = hash_get(B, B->l_G->cScope, name); */
+
+/* } */
+
 eval_func fn[] = {
    int_eval,
    float_eval,
    boolean_eval,
    binary_eval,
-   function_eval
+   function_eval,
+   variable_define_eval,
+   variable_get_eval
 };
 
 

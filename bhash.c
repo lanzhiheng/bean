@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "mem.h"
 #include "bhash.h"
 #include "bstring.h"
@@ -38,6 +39,7 @@ static uint32_t hash_num(double num) {
 }
 
 static uint32_t hash_obj(TValue * key, uint32_t size) {
+  assert(size > 0);
   switch (key -> tt_) {
     case BEAN_TNUMFLT:
     case BEAN_TNUMINT:
