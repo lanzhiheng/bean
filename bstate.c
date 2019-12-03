@@ -74,13 +74,23 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
   return v;
 }
 
-/* static TValue * funcall_eval (bean_State * B UNUSED, struct expr * expression) {} */
+static TValue * function_eval (bean_State * B UNUSED, struct expr * expression) {
+  Hash * h = G(B) -> cScope -> variables;
+  TValue * func = malloc(sizeof(TValue));
+  TValue * name = malloc(sizeof(TValue));
+  Function * f = expression -> fun;
+  setsvalue(name, f->p->name);
+  setfcvalue(func, f);
+  hash_set(B, h, name, func);
+  return func;
+}
 
 eval_func fn[] = {
    int_eval,
    float_eval,
    boolean_eval,
-   binary_eval
+   binary_eval,
+   function_eval
 };
 
 

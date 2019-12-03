@@ -82,6 +82,7 @@ typedef struct expr {
     bean_Integer ival;    /* for TK_INT */
     bean_Number nval;  /* for VKFLT */
     bu_byte bval;
+    Function * fun;
 
     struct {
       int op; // Store the TokenType
