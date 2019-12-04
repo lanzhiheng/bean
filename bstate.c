@@ -167,7 +167,7 @@ static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expre
   return value;
 }
 
-static TValue * loop(bean_State * B, struct expr * expression) {
+static TValue * loop_eval(bean_State * B, struct expr * expression) {
   expr * condition = expression->loop.condition;
   dynamic_expr * body = expression->loop.body;
 
@@ -230,7 +230,7 @@ eval_func fn[] = {
    variable_get_eval,
    function_call_eval,
    return_eval,
-   loop
+   loop_eval
 };
 
 
