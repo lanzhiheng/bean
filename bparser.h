@@ -19,8 +19,39 @@ typedef struct LocalVar {
   TValue value;
 } LocalVar;
 
+// Power
+typedef enum {
+  BP_NONE,
+  BP_LOWEST,
+  BP_ASSIGN,
+  BP_CONDITION,
+  BP_LOGIC_OR,
+  BP_LOGIC_AND,
+  BP_EQUAL,
+  BP_IS,
+  BP_CMP,
+  BP_BIT_OR,
+  BP_BIT_AND,
+  BP_BIT_SHIFT,
+  BP_RANGE,
+  BP_TERM,
+  BP_FACTOR,
+  BP_UNARY,
+  BP_CALL,
+  BP_HIGHTEST
+} bindpower;
 
 typedef struct LexState LexState;
+typedef expr* (*denotation_fn) (LexState *ls, expr * exp);
+
+typedef struct symbol {
+  char * id;
+  bindpower lbp;
+  denotation_fn nud;
+  denotation_fn led;
+} symbol;
+
+extern symbol symbol_table[];
 
 void bparser(struct LexState * ls);
 

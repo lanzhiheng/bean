@@ -75,7 +75,8 @@ typedef enum {
   EXPR_CALL,
   EXPR_RETURN,
   EXPR_LOOP,
-  EXPR_BRANCH
+  EXPR_BRANCH,
+  EXPR_BREAK
 } EXPR_TYPE;
 
 typedef struct expr {
@@ -136,6 +137,12 @@ typedef struct expr {
 #define sub(a, b) (a - b)
 #define mul(a, b) (a * b)
 #define div(a, b) (a / b)
+#define eq(a, b) (a == b)
+#define gte(a, b) (a >= b)
+#define gt(a, b) (a > b)
+#define lte(a, b) (a <= b)
+#define lt(a, b) (a < b)
+#define neq(a, b) (a != b)
 
 void global_init(bean_State * B);
 const char *beanO_pushfstring (bean_State *B UNUSED, const char *fmt, ...);

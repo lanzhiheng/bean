@@ -38,7 +38,7 @@ typedef enum RESERVED {
   TK_IF, TK_IN, TK_VAR, TK_NIL, TK_NOT, TK_OR,
   TK_RETURN, TK_TRUE, TK_WHILE,
   /* other terminal symbols */
-  TK_EQ, TK_ASSIGN, TK_GE, TK_LE, TK_NE,
+  TK_EQ, TK_ASSIGN, TK_GE, TK_GT, TK_LE, TK_LT, TK_NE,
   TK_SHL, TK_SHR,
   TK_EOS,
   TK_FLT, TK_INT, TK_NAME, TK_STRING

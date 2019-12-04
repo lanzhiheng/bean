@@ -15,3 +15,20 @@ bool tvalue_equal(TValue * v1, TValue * v2) {
       return false;
   }
 }
+
+void tvalue_inspect(TValue * value) {
+  switch(value -> tt_) {
+    case BEAN_TNUMFLT:
+      printf("%Lf", fltvalue(value));
+      break;
+    case BEAN_TNUMINT:
+      printf("%lu", ivalue(value));
+      break;
+    case BEAN_TSTRING:
+      printf("%s", getstr(svalue(value)));
+      break;
+    default:
+      printf("invalid value\n");
+      break;
+  }
+}

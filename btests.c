@@ -7,6 +7,7 @@
 #include "bstring.h"
 #include "bhash.h"
 #include "bstate.h"
+#include "bparser.h"
 #include "math.h"
 
 bean_State * get_state() {
@@ -145,7 +146,16 @@ void test_barray() {
   printf("==============================\n");
 }
 
+void test_tokens() {
+  uint32_t size = TK_STRING - TK_AND + 1;
+  for (uint32_t i = 0; i < size; i++) {
+    assert(memcmp(symbol_table[i].id, beanX_tokens[i], strlen(symbol_table[i].id)) == 0);
+  }
+  printf("Length of tokens area %d.\n", size);
+}
+
 void test() {
   test_barray();
   test_bhash();
+  test_tokens();
 }

@@ -11,7 +11,7 @@ const char *const beanX_tokens [] = {
     "false", "for", "func", "if",
     "in", "var", "nil", "not", "or",
     "return", "true",  "while",
-    "==", "=", ">=", "<=", "~=",
+    "==", "=", ">=", ">", "<=", "<", "~=",
     "<<", ">>", "<eof>",
     "<number>", "<integer>", "<name>", "<string>"
 };
@@ -334,13 +334,13 @@ static int llex(LexState * ls, SemInfo * seminfo) {
         next(ls);
         if (check_next1(ls, '=')) return TK_GE;
         else if (check_next1(ls, '>')) return TK_SHR;
-        return '>';
+        return TK_GT;
       }
       case '<': {
         next(ls);
         if (check_next1(ls, '=')) return TK_LE;
         else if (check_next1(ls, '<')) return TK_SHL;
-        return '<';
+        return TK_LT;
       }
       case '/': {
         next(ls);
