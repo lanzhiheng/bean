@@ -41,7 +41,9 @@ func sub(c, d) {
 }
 
 func add(a,b) {
-  a + b + sub(100, 300) + hello
+  var m = a + b + sub(100, 300) + hello
+  return
+  10000
 }
 
 // ((1 + 2) * 10) - 10
