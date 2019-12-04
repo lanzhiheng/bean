@@ -34,26 +34,6 @@ typedef union Value {
   bu_byte b;
 } Value;
 
-/*
-** Description of a local variable for function prototypes
-** (used for debug information)
-*/
-typedef struct LocVar {
-  TString *varname;
-  int startpc;  /* first point where variable is active */
-  int endpc;  /* first point where variable is dead */
-} LocVar;
-
-/*
-** Description of an upvalue for function prototypes
-*/
-typedef struct Upvaldesc {
-  TString *name;  /* upvalue name (for debug information) */
-  bu_byte instack;  /* whether it is in stack (register) */
-  bu_byte idx;  /* index of upvalue (in stack or in outer function's list) */
-  bu_byte kind;  /* kind of corresponding variable */
-} Upvaldesc;
-
 #define TValuefields   Value value_; bu_byte tt_
 
 typedef struct TValue {
@@ -64,6 +44,10 @@ typedef struct TValue {
 ** Some helper macro
 **
 */
+
+#define fvalue(o) (ttisfalse(o) || ttisnil(o))
+#define tvalue(o) !fvalue(o)
+
 
 /*
 ** 'module' operation for hashing (size is always a power of 2)
@@ -92,6 +76,16 @@ typedef struct TValue {
 #define val_(o)		((o)->value_)
 
 /* }================================================================== */
+
+#define ttisnil(o)           checktype((o), BEAN_TNIL)
+#define ttisboolean(o)		checktype((o), BEAN_TBOOLEAN)
+#define ttisfalse(o)         (ttisboolean(o) && !val_(o).b)
+#define ttistrue(o)         (ttisboolean(o) && val_(o).b)
+
+#define setnilvalue(obj)                                                \
+  { TValue *io = obj; settt_(io, BEAN_TNIL); }
+#define setbvalue(obj,x)                                                \
+  { TValue *io = obj; val_(io).b=(x); settt_(io, BEAN_TBOOLEAN); }
 
 /*
 ** {==================================================================
@@ -131,4 +125,5 @@ typedef struct TValue {
 
 #define fcvalue(o)       check_exp(ttisfunction(o), val_(o).fc)
 bool tvalue_equal(TValue * v1, TValue * v2);
+void tvalue_inspect(TValue * value);
 #endif

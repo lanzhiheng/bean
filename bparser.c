@@ -89,31 +89,6 @@ static bool testnext (LexState *ls, int c) {
 /*
 ** grep "ORDER OPR" if you change these enums  (ORDER OP)
 */
-
-// Power
-typedef enum {
-  BP_NONE,
-  BP_LOWEST,
-  BP_ASSIGN,
-  BP_CONDITION,
-  BP_LOGIC_OR,
-  BP_LOGIC_AND,
-  BP_EQUAL,
-  BP_IS,
-  BP_CMP,
-  BP_BIT_OR,
-  BP_BIT_AND,
-  BP_BIT_SHIFT,
-  BP_RANGE,
-  BP_TERM,
-  BP_FACTOR,
-  BP_UNARY,
-  BP_CALL,
-  BP_HIGHTEST
-} bindpower;
-
-typedef expr* (*denotation_fn) (LexState *ls, expr * exp);
-
 static expr * parse_statement(LexState *ls, bindpower rbp);
 static expr * infix (LexState *ls, expr * left);
 static expr* num(LexState *ls, expr * exp UNUSED) {
@@ -198,6 +173,16 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
       testnext(ls, TK_RIGHT_PAREN);
 
       return func_call;
+    } else if (ls->t.type == TK_ASSIGN) { // Reset the variable
+      expr * left = malloc(sizeof(expr));
+      left -> type = EXPR_GVAR;
+      left -> gvar.name = token.seminfo.ts;
+
+      beanX_next(ls);
+      ep -> type = EXPR_BINARY;
+      ep -> infix.op = TK_ASSIGN;
+      ep -> infix.left = left;
+      ep -> infix.right = parse_statement(ls, BP_LOWEST);
     } else {
       ep -> type = EXPR_GVAR;
       ep -> gvar.name = token.seminfo.ts;
@@ -268,13 +253,6 @@ static Function * parse_definition(LexState *ls) {
   return f;
 }
 
-typedef struct symbol {
-  char * id;
-  bindpower lbp;
-  denotation_fn nud;
-  denotation_fn led;
-} symbol;
-
 symbol symbol_table[] = {
   /* arithmetic operators */
   { "and", BP_LOGIC_AND, NULL, NULL },
@@ -306,7 +284,9 @@ symbol symbol_table[] = {
   { "==", BP_EQUAL, NULL, infix },
   { "=", BP_ASSIGN, NULL, infix },
   { ">=", BP_CMP, NULL, infix },
+  { ">", BP_CMP, NULL, infix },
   { "<=", BP_CMP, NULL, infix },
+  { "<", BP_CMP, NULL, infix },
   { "~=", BP_CMP, NULL, infix },
   { "<<", BP_BIT_SHIFT, NULL, infix },
   { ">>", BP_BIT_SHIFT, NULL, infix },
@@ -400,7 +380,18 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   return tree;
 }
 
+static expr * parse_break(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_BREAK;
+  beanX_next(ls);
+  return ep;
+}
+
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {
+  if (ls->t.type == TK_BREAK) {
+    return parse_break(ls, rbp);
+  }
+
   if (ls->t.type == TK_WHILE) {
     return parse_while(ls, rbp);
   }
