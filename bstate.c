@@ -119,6 +119,11 @@ static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expre
   return value;
 }
 
+static TValue * return_eval(bean_State * B, struct expr * expression) {
+  expr * retValue = expression->ret.ret_val;
+  return eval(B, retValue);
+}
+
 static TValue * function_call_eval (bean_State * B, struct expr * expression) {
   TValue * ret;
 
@@ -135,7 +140,9 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
     SCSV(B, key, eval(B, expression->call.args->es[i]));
   }
   for (int j = 0; j < f->body->count; j++) {
-    ret = eval(B, f->body->es[j]);
+    expr * ex = f->body->es[j];
+    ret = eval(B, ex);
+    if (ex->type == EXPR_RETURN) break;
   }
   leave_scope(B);
   return ret;
@@ -149,7 +156,8 @@ eval_func fn[] = {
    function_eval,
    variable_define_eval,
    variable_get_eval,
-   function_call_eval
+   function_call_eval,
+   return_eval
 };
 
 
