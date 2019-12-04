@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <assert.h>
 #include <sys/stat.h>
 #include "bstring.h"
 #include "bstate.h"
@@ -13,7 +14,10 @@ char * rootDir = NULL;
 
 #define io_error(message) printf("%s", message)
 #define mem_error(message) printf("%s", message)
-#define eval_error(message) printf("%s", message)
+#define eval_error(message) ({                  \
+      printf("%s\n", message);                    \
+      abort();                                  \
+})
 
 static TValue * int_eval (bean_State * B UNUSED, struct expr * expression) {
   TValue * v = malloc(sizeof(TValue));
@@ -86,11 +90,22 @@ static TValue * function_eval (bean_State * B UNUSED, struct expr * expression) 
   return func;
 }
 
+static TValue * find_variable(bean_State * B, TValue * name) {
+  TValue * res;
+  Scope * scope = B->l_G->cScope;
+  while (scope) {
+    res = hash_get(B, scope->variables, name);
+    scope = scope -> previous;
+    if (res) break;
+  }
+  return res;
+}
+
 static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expression) {
   TString * variable = expression->gvar.name;
   TValue * name = malloc(sizeof(TValue));
   setsvalue(name, variable);
-  TValue * value = GCSV(B, name);
+  TValue * value = find_variable(B, name);
   if (!value) eval_error("Can't reference the variable before defined");
   return value;
 }
@@ -104,12 +119,27 @@ static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expre
   return value;
 }
 
-/* static TValue * function_call_eval (bean_State * B UNUSED, struct expr * expression) { */
-/*   TString * funcName = expression->call.callee; */
-/*   TValue * name = malloc(sizeof(TValue)); */
-/*   TValue * func = hash_get(B, B->l_G->cScope, name); */
+static TValue * function_call_eval (bean_State * B, struct expr * expression) {
+  TValue * ret;
 
-/* } */
+  TString * funcName = expression->call.callee;
+  TValue * name = malloc(sizeof(TValue));
+  setsvalue(name, funcName);
+  enter_scope(B);
+  TValue * func = find_variable(B, name);
+  Function * f = fcvalue(func);
+  assert(expression->call.args -> count == f->p->arity);
+  for (int i = 0; i < expression->call.args -> count; i++) {
+    TValue * key = malloc(sizeof(TValue));
+    setsvalue(key, f->p->args[i]);
+    SCSV(B, key, eval(B, expression->call.args->es[i]));
+  }
+  for (int j = 0; j < f->body->count; j++) {
+    ret = eval(B, f->body->es[j]);
+  }
+  leave_scope(B);
+  return ret;
+}
 
 eval_func fn[] = {
    int_eval,
@@ -118,11 +148,12 @@ eval_func fn[] = {
    binary_eval,
    function_eval,
    variable_define_eval,
-   variable_get_eval
+   variable_get_eval,
+   function_call_eval
 };
 
 
-static stringtable stringtable_init(bean_State * B) {
+static stringtable stringtable_init(bean_State * B UNUSED) {
   stringtable tb;
   tb.nuse = 0;
   tb.size = MIN_STRT_SIZE;

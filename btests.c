@@ -113,7 +113,7 @@ void test_hash_set(bean_State * B) {
   Hash * hash = init_hash(B);
 
   assert(hash->count == 0);
-  assert(hash->capacity == 0);
+  assert(hash->capacity == 16);
 
   testing_value_by_count(B, hash, 10);
 

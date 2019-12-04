@@ -16,8 +16,10 @@ typedef union {
 Hash * init_hash(bean_State * B) {
   Hash * hash = beanM_malloc_(B, Hash);
   hash -> count = 0;
-  hash -> capacity = 0;
-  hash -> entries = NULL;
+  Entry ** entries = beanM_array_malloc_(B, Entry *, HASH_MIN_CAPACITY);
+  for (int i = 0; i < HASH_MIN_CAPACITY; i++) entries[i] = NULL;
+  hash -> capacity = HASH_MIN_CAPACITY;
+  hash -> entries = entries;
   return hash;
 }
 

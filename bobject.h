@@ -120,6 +120,7 @@ typedef struct TValue {
 /* }================================================================== */
 
 #define ttisstring(o)		checktag((o), BEAN_TSTRING)
+#define ttisfunction(o)		checktag((o), BEAN_TFUNCTION)
 #define svalue(o)       check_exp(ttisstring(o), val_(o).s)
 
 #define setsvalue(obj,x)                                                \
@@ -127,5 +128,7 @@ typedef struct TValue {
 
 #define setfcvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).fc=(x); settt_(io, BEAN_TFUNCTION); }
+
+#define fcvalue(o)       check_exp(ttisfunction(o), val_(o).fc)
 bool tvalue_equal(TValue * v1, TValue * v2);
 #endif

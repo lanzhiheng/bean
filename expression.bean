@@ -34,15 +34,21 @@
 //   return true
 // }
 
-// func add(a,b) {
-//   return a + b
-// }
+var hello = 10000
+
+func sub(c, d) {
+  c - d
+}
+
+func add(a,b) {
+  a + b + sub(100, 300) + hello
+}
 
 // ((1 + 2) * 10) - 10
 
 
-// add(1000, 300)
-var a = 100
-var b = 100 + 300
+add(1000, 300)
+// var a = 100
+// var b = 100 + 300
 
-a + 100 + b
+// a + 100 + b
