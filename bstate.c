@@ -207,8 +207,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
   if (checktag(func, BEAN_TTOOL)) {
     Tool * t = tlvalue(func);
     ret = t -> function(B, eval(B, expression->call.args->es[0]));
-    return ret;
-  } else {
+   } else {
     Function * f = fcvalue(func);
     assert(expression->call.args -> count == f->p->arity);
     for (int i = 0; i < expression->call.args -> count; i++) {
