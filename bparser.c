@@ -246,7 +246,8 @@ static Proto * parse_prototype(LexState *ls) {
   return p;
 }
 
-static Function * parse_definition(LexState *ls) {
+static expr * parse_definition(LexState *ls) {
+  beanX_next(ls);
   Function * f = malloc(sizeof(Function));
   f -> p = parse_prototype(ls);
   f -> body = init_dynamic_expr(ls->B);
@@ -257,7 +258,10 @@ static Function * parse_definition(LexState *ls) {
   }
 
   testnext(ls, TK_RIGHT_BRACE);
-  return f;
+  expr * ex = malloc(sizeof(expr));
+  ex->type = EXPR_FUN;
+  ex->fun = f;
+  return ex;
 }
 
 symbol symbol_table[] = {
@@ -382,6 +386,10 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
     return parse_branch(ls, rbp);
   }
 
+  if (ls->t.type == TK_FUNCTION) { // Define an function
+    return parse_definition(ls);
+  }
+
   if (ls->t.type == TK_VAR) { // Define an variable
     beanX_next(ls);
 
@@ -401,18 +409,16 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
   return tree;
 };
 
-static void parse_program(struct LexState * ls) {
-  if (testnext(ls, TK_FUNCTION)) {
-    printf("I will define the function\n");
-    Function * f = parse_definition(ls);
-    expr * ex = malloc(sizeof(expr));
-    ex->type = EXPR_FUN;
-    ex->fun = f;
-    eval(ls->B, ex);
-  } else {
-    expr * ex = parse_statement(ls, BP_LOWEST);
-    eval(ls->B, ex);
-  }
+static void skip_semicolon(LexState * ls) { // Skip all the semicolon
+  while (ls -> t.type == TK_SEMI) beanX_next(ls);
+}
+
+static void parse_program(LexState * ls) {
+  skip_semicolon(ls);
+  expr * ex = parse_statement(ls, BP_LOWEST);
+  skip_semicolon(ls);
+  eval(ls->B, ex);
+
 }
 
 void bparser(LexState * ls) {

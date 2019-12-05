@@ -1,3 +1,4 @@
+;;
 // 1
 // 1223.4
 // true
@@ -70,10 +71,10 @@ func gt?(a, b) {
   return a > b
 }
 
-var m = "lanzhiheng"
-m = 222
-print(m)
-print(add(100, 300), add(100, 300), add(100, add(100, 300)))
-print("hello")
-var cc = gt?(333, 333)
-print(cc, m, 333)
+var m = "lanzhiheng";
+m = 222;
+print(m);
+print(add(100, 300), add(100, 300), add(100, add(100, 300)));
+print("hello");
+var cc = gt?(333, 333);
+print(cc, m, 333);
