@@ -12,6 +12,8 @@
 */
 #define CommonHeader	struct GCObject *next; bu_byte tt; bu_byte marked
 
+typedef struct bean_State bean_State;
+
 /* Common type for all collectable objects */
 typedef struct GCObject {
   CommonHeader;
@@ -31,6 +33,7 @@ typedef union Value {
   bean_Number n;
   TString * s;
   struct Function * fc;
+  struct Tool * tl;
   bu_byte b;
 } Value;
 
@@ -115,6 +118,7 @@ typedef struct TValue {
 
 #define ttisstring(o)		checktag((o), BEAN_TSTRING)
 #define ttisfunction(o)		checktag((o), BEAN_TFUNCTION)
+#define ttistool(o)		checktag((o), BEAN_TTOOL)
 #define svalue(o)       check_exp(ttisstring(o), val_(o).s)
 
 #define setsvalue(obj,x)                                                \
@@ -123,7 +127,12 @@ typedef struct TValue {
 #define setfcvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).fc=(x); settt_(io, BEAN_TFUNCTION); }
 
+#define settlvalue(obj,x)                                                \
+  { TValue *io = obj; val_(io).tl=(x); settt_(io, BEAN_TTOOL); }
+
 #define fcvalue(o)       check_exp(ttisfunction(o), val_(o).fc)
+#define tlvalue(o)       check_exp(ttistool(o), val_(o).tl)
+
 bool tvalue_equal(TValue * v1, TValue * v2);
-void tvalue_inspect(TValue * value);
+TValue * tvalue_inspect(bean_State * B, TValue * value);
 #endif

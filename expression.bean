@@ -44,22 +44,29 @@
 
 // add(1000, 300)
 
-var addd = 1000
+// var addd = 1000
 
-while addd < 2000 {
-  addd = addd + 100
+// while addd < 2000 {
+//   addd = addd + 100
+// }
+
+// var addd = 10
+
+// if addd > 300 {
+//    addd = 400
+//    var m = 1000
+//    addd = m + addd
+// } else if addd > 100 {
+//    addd = 1000
+// } else {
+//    addd = 99999
+// }
+
+func add(a, b) {
+  return a + b
 }
 
-var addd = 10
-
-if addd > 300 {
-   addd = 400
-   var m = 1000
-   addd = m + addd
-} else if addd > 100 {
-   addd = 1000
-} else {
-   addd = 99999
-}
-
-m = 3333
+var m = "lanzhiheng"
+// m = 222
+print(m)
+print(add(100, 300))

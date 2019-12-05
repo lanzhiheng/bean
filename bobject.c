@@ -16,7 +16,7 @@ bool tvalue_equal(TValue * v1, TValue * v2) {
   }
 }
 
-void tvalue_inspect(TValue * value) {
+TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
   switch(value -> tt_) {
     case BEAN_TNUMFLT:
       printf("%Lf", fltvalue(value));
@@ -31,4 +31,6 @@ void tvalue_inspect(TValue * value) {
       printf("invalid value\n");
       break;
   }
+  printf("\n");
+  return value;
 }

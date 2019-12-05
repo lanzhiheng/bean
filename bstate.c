@@ -126,8 +126,6 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       Scope * scope = find_variable_scope(B, left);
       if (!scope) eval_error("Can't reference the variable before defined");
       hash_set(B, scope->variables, left, right);
-      tvalue_inspect(right);
-      printf("\n");
       break;
     }
     default:
@@ -205,18 +203,26 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
   setsvalue(name, funcName);
   enter_scope(B);
   TValue * func = find_variable(B, name);
-  Function * f = fcvalue(func);
-  assert(expression->call.args -> count == f->p->arity);
-  for (int i = 0; i < expression->call.args -> count; i++) {
-    TValue * key = malloc(sizeof(TValue));
-    setsvalue(key, f->p->args[i]);
-    SCSV(B, key, eval(B, expression->call.args->es[i]));
+
+  if (checktag(func, BEAN_TTOOL)) {
+    Tool * t = tlvalue(func);
+    ret = t -> function(B, eval(B, expression->call.args->es[0]));
+    return ret;
+  } else {
+    Function * f = fcvalue(func);
+    assert(expression->call.args -> count == f->p->arity);
+    for (int i = 0; i < expression->call.args -> count; i++) {
+      TValue * key = malloc(sizeof(TValue));
+      setsvalue(key, f->p->args[i]);
+      SCSV(B, key, eval(B, expression->call.args->es[i]));
+    }
+    for (int j = 0; j < f->body->count; j++) {
+      expr * ex = f->body->es[j];
+      ret = eval(B, ex);
+      if (ex->type == EXPR_RETURN) break;
+    }
   }
-  for (int j = 0; j < f->body->count; j++) {
-    expr * ex = f->body->es[j];
-    ret = eval(B, ex);
-    if (ex->type == EXPR_RETURN) break;
-  }
+
   leave_scope(B);
   return ret;
 }
@@ -243,11 +249,19 @@ static TValue * branch_eval(bean_State * B, struct expr * expression) {
   return nilValue;
 }
 
+static TValue * string_eval(bean_State * B UNUSED, struct expr * expression) {
+  TString * str = expression->sval;
+  TValue * value = malloc(sizeof(TValue));
+  setsvalue(value, str);
+  return value;
+}
+
 eval_func fn[] = {
    int_eval,
    float_eval,
    boolean_eval,
    binary_eval,
+   string_eval,
    function_eval,
    variable_define_eval,
    variable_get_eval,
@@ -352,6 +366,21 @@ void run_file(const char * path) {
   bparser(ls);
 }
 
+// Add some default tool functions
+void add_tools(bean_State * B) {
+  Hash * variables = B -> l_G -> globalScope -> variables;
+  TValue * name = malloc(sizeof(TValue));
+  TString * ts = beanS_newlstr(B, "print", 5);
+  setsvalue(name, ts);
+
+  Tool * tool = malloc(sizeof(Tool));
+  tool -> arity = 1;
+  tool -> function = tvalue_inspect;
+  TValue * func = malloc(sizeof(TValue));
+  settlvalue(func, tool);
+  hash_set(B, variables, name, func);
+}
+
 void global_init(bean_State * B) {
   global_State * G = malloc(sizeof(global_State));
   G -> seed = rand();
@@ -360,6 +389,7 @@ void global_init(bean_State * B) {
   G -> globalScope = create_scope(B, NULL);
   G -> cScope = G -> globalScope;
   B -> l_G = G;
+  add_tools(B);
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {
