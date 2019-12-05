@@ -59,6 +59,12 @@ typedef struct Proto {
   bu_byte arity;
 } Proto;
 
+typedef TValue* (*core_fn) (bean_State * B, TValue * value);
+typedef struct Tool {
+  bu_byte arity;
+  core_fn function;
+} Tool;
+
 typedef struct Function {
   Proto * p;
   dynamic_expr * body;
@@ -69,6 +75,7 @@ typedef enum {
   EXPR_FLOAT,
   EXPR_BOOLEAN,
   EXPR_BINARY,
+  EXPR_STRING,
   EXPR_FUN,
   EXPR_DVAR,
   EXPR_GVAR,
@@ -86,6 +93,7 @@ typedef struct expr {
     bean_Integer ival;    /* for TK_INT */
     bean_Number nval;  /* for VKFLT */
     bu_byte bval;
+    TString * sval;
     Function * fun;
 
     struct {

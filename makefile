@@ -1,6 +1,6 @@
 CC = gcc
 TARGET = bean
-CFLAGS = -g -Wall -v
+CFLAGS = -g -Wall
 TFLAGS = -g -Wall -DTEST
 CFILES = $(wildcard *.c)
 

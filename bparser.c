@@ -91,6 +91,14 @@ static bool testnext (LexState *ls, int c) {
 */
 static expr * parse_statement(LexState *ls, bindpower rbp);
 static expr * infix (LexState *ls, expr * left);
+static expr * string (LexState *ls, expr * exp UNUSED) {
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_STRING;
+  ep -> sval = ls->t.seminfo.ts;
+  beanX_next(ls);
+  return ep;
+}
+
 static expr* num(LexState *ls, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   switch(ls->t.type) {
@@ -294,9 +302,8 @@ symbol symbol_table[] = {
   { "<number>", BP_NONE, num, NULL },
   { "<integer>", BP_NONE, num, NULL },
   { "<name>", BP_NONE, variable, NULL },
-  { "<string>", BP_NONE, NULL, NULL },
+  { "<string>", BP_NONE, string, NULL },
 };
-
 
 static expr * infix (LexState *ls, expr * left) {
   expr * temp = malloc(sizeof(expr));
@@ -306,30 +313,6 @@ static expr * infix (LexState *ls, expr * left) {
   temp -> infix.right = parse_statement(ls, symbol_table[ls->pre.type].lbp);
   return temp;
 }
-
-
-/* static TString *str_checkname(LexState *ls) { */
-/*   TString *ts; */
-/*   check(ls, TK_NAME); */
-/*   ts = ls -> t.seminfo.ts; // Get the seminfo from token structure */
-/*   beanX_next(ls); */
-/*   return ts; */
-/* } */
-
-/* static void init_exp(expdesc *e, expkind kind, int i) { */
-/*   e -> t = e -> f = NO_JUMP; */
-/*   e -> kind = kind; */
-/*   e -> u.info = i; */
-/* } */
-
-/* static void codestring(expdesc *e, TString *ts) { */
-/*   e -> kind = VKSTR; */
-/*   e -> u.strval = ts; */
-/* } */
-
-/* static void codename (LexState *ls, expdesc *e) { */
-/*   codestring(e, str_checkname(ls)); */
-/* } */
 
 static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   testnext(ls, TK_IF);
