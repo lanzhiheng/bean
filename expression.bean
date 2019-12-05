@@ -71,10 +71,9 @@ func gt?(a, b) {
 }
 
 var m = "lanzhiheng"
-// m = 222
+m = 222
 print(m)
-// print(gt?(100, 300)) // print(add(100, 300))
-// print(add(100, 300))
-// print("hello")
+print(add(100, 300), add(100, 300), add(100, add(100, 300)))
+print("hello")
 var cc = gt?(333, 333)
-print(cc)
+print(cc, m, 333)
