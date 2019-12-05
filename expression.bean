@@ -46,6 +46,20 @@
 
 var addd = 1000
 
-while (addd < 2000) {
+while addd < 2000 {
   addd = addd + 100
 }
+
+var addd = 10
+
+if addd > 300 {
+   addd = 400
+   var m = 1000
+   addd = m + addd
+} else if addd > 100 {
+   addd = 1000
+} else {
+   addd = 99999
+}
+
+m = 3333

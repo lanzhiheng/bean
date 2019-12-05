@@ -124,6 +124,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       setsvalue(left, ts);
       TValue * right = eval(B, expression -> infix.right);
       Scope * scope = find_variable_scope(B, left);
+      if (!scope) eval_error("Can't reference the variable before defined");
       hash_set(B, scope->variables, left, right);
       tvalue_inspect(right);
       printf("\n");
@@ -134,7 +135,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
   }
 
   #undef cal_statement
-
+  #undef compare_statement
   return v;
 }
 
@@ -220,6 +221,28 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
   return ret;
 }
 
+static TValue * branch_eval(bean_State * B, struct expr * expression) {
+  expr * condition = expression->branch.condition;
+  dynamic_expr * body;
+  enter_scope(B);
+
+  if (tvalue(eval(B, condition))) {
+    body = expression->branch.if_body;
+  } else {
+    body = expression->branch.else_body;
+  }
+
+  for (int i = 0; i < body->count; i++) {
+    expr * ep = body->es[i];
+    eval(B, ep);
+  }
+
+  leave_scope(B);
+  TValue * nilValue = malloc(sizeof(TValue));
+  setnilvalue(nilValue);
+  return nilValue;
+}
+
 eval_func fn[] = {
    int_eval,
    float_eval,
@@ -230,7 +253,8 @@ eval_func fn[] = {
    variable_get_eval,
    function_call_eval,
    return_eval,
-   loop_eval
+   loop_eval,
+   branch_eval
 };
 
 
