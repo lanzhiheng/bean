@@ -89,6 +89,7 @@ typedef struct TValue {
   { TValue *io = obj; settt_(io, BEAN_TNIL); }
 #define setbvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).b=(x); settt_(io, BEAN_TBOOLEAN); }
+#define bvalue(o)       check_exp(ttisboolean(o), val_(o).b)
 
 /*
 ** {==================================================================
