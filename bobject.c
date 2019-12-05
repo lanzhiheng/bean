@@ -1,3 +1,4 @@
+#include "bean.h"
 #include "bobject.h"
 #include "bstring.h"
 
@@ -18,6 +19,15 @@ bool tvalue_equal(TValue * v1, TValue * v2) {
 
 TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
   switch(value -> tt_) {
+    case BEAN_TBOOLEAN: {
+      bool b = bvalue(value);
+      if (b) {
+        printf("true");
+      } else {
+        printf("false");
+      }
+      break;
+    }
     case BEAN_TNUMFLT:
       printf("%Lf", fltvalue(value));
       break;
@@ -28,7 +38,7 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
       printf("%s", getstr(svalue(value)));
       break;
     default:
-      printf("invalid value\n");
+      printf("invalid value");
       break;
   }
   printf("\n");
