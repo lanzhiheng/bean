@@ -206,7 +206,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
 
   if (checktag(func, BEAN_TTOOL)) {
     Tool * t = tlvalue(func);
-    ret = t -> function(B, eval(B, expression->call.args->es[0]));
+    ret = t -> function(B, expression);
    } else {
     Function * f = fcvalue(func);
     assert(expression->call.args -> count == f->p->arity);
@@ -374,7 +374,7 @@ void add_tools(bean_State * B) {
 
   Tool * tool = malloc(sizeof(Tool));
   tool -> arity = 1;
-  tool -> function = tvalue_inspect;
+  tool -> function = primitive_print;
   TValue * func = malloc(sizeof(TValue));
   settlvalue(func, tool);
   hash_set(B, variables, name, func);

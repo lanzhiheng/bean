@@ -13,6 +13,7 @@
 #define CommonHeader	struct GCObject *next; bu_byte tt; bu_byte marked
 
 typedef struct bean_State bean_State;
+typedef struct expr expr;
 
 /* Common type for all collectable objects */
 typedef struct GCObject {
@@ -136,4 +137,5 @@ typedef struct TValue {
 
 bool tvalue_equal(TValue * v1, TValue * v2);
 TValue * tvalue_inspect(bean_State * B, TValue * value);
+TValue * primitive_print(bean_State * B UNUSED, expr * expression);
 #endif

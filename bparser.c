@@ -177,7 +177,6 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
         add_element(ls->B, func_call->call.args, parse_statement(ls, BP_LOWEST));
       } while(testnext(ls, TK_COMMA));
 
-      beanX_next(ls);
       testnext(ls, TK_RIGHT_PAREN);
 
       return func_call;

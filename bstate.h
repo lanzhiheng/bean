@@ -59,10 +59,10 @@ typedef struct Proto {
   bu_byte arity;
 } Proto;
 
-typedef TValue* (*core_fn) (bean_State * B, TValue * value);
+typedef TValue* (*primitive_Fn) (bean_State * B, struct expr * expression);
 typedef struct Tool {
   bu_byte arity;
-  core_fn function;
+  primitive_Fn function;
 } Tool;
 
 typedef struct Function {

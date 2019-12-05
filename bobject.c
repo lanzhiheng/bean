@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "bean.h"
 #include "bobject.h"
 #include "bstring.h"
@@ -41,6 +42,21 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
       printf("invalid value");
       break;
   }
-  printf("\n");
   return value;
+}
+
+TValue * primitive_print(bean_State * B UNUSED, expr * expression) {
+  assert(expression -> type == EXPR_CALL);
+
+  for (int i = 0; i < expression -> call.args -> count; i ++) {
+    expr * ep = expression -> call.args -> es[i];
+    TValue * tvalue = eval(B, ep);
+    tvalue_inspect(B, tvalue);
+    printf(" ");
+  }
+  printf("\n");
+
+  TValue * tvalue = malloc(sizeof(TValue));
+  setnilvalue(tvalue);
+  return tvalue;
 }
