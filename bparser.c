@@ -146,6 +146,12 @@ static expr* left_paren(LexState *ls, expr *exp UNUSED) {
   return ep;
 }
 
+static expr * dot(LexState *ls, expr *exp UNUSED) {
+  printf("Hello I am dot\n");
+  expr * ep = malloc(sizeof(expr));
+  return ep;
+}
+
 static expr* variable(LexState *ls, expr *exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
 
@@ -280,6 +286,7 @@ symbol symbol_table[] = {
   { "}", BP_NONE, NULL, NULL },
   { "(", BP_NONE, left_paren, NULL },
   { ")", BP_NONE, NULL, NULL },
+  { ".", BP_NONE, NULL, dot },
   { "false", BP_NONE, boolean, NULL },
   { "for", BP_NONE, NULL, NULL },
   { "func", BP_NONE, NULL, NULL },
@@ -374,6 +381,13 @@ static expr * parse_break(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
 }
 
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {
+  // TODO: Add placeholder
+  if (ls->t.type == TK_DOT) {
+    beanX_next(ls);
+    printf("May be method calling\n");
+    return parse_statement(ls, rbp);
+  }
+
   if (ls->t.type == TK_BREAK) {
     return parse_break(ls, rbp);
   }
@@ -418,7 +432,6 @@ static void parse_program(LexState * ls) {
   expr * ex = parse_statement(ls, BP_LOWEST);
   skip_semicolon(ls);
   eval(ls->B, ex);
-
 }
 
 void bparser(LexState * ls) {
