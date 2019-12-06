@@ -427,8 +427,10 @@ Function * init_String(bean_State * B) {
   p -> args = NULL;
   p -> arity = 0;
   p -> attrs = init_hash(B);
+
   set_prototype_function(B, "equal", 5, primitive_String_equal, p->attrs);
   set_prototype_function(B, "concat", 6, primitive_String_concat, p->attrs);
+  set_prototype_function(B, "id", 2, primitive_String_id, p->attrs);
 
   Function * f = malloc(sizeof(Function));
   f -> p = p;

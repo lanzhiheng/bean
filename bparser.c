@@ -171,7 +171,7 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
       func_call->call.args = init_dynamic_expr(ls->B);
 
       beanX_next(ls);
-      if (ls->t.type == TK_RIGHT_PAREN) return func_call;
+      if (testnext(ls, TK_RIGHT_PAREN)) return func_call;
 
       do {
         add_element(ls->B, func_call->call.args, parse_statement(ls, BP_LOWEST));

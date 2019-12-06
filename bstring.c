@@ -110,6 +110,18 @@ TValue *  primitive_String_equal(bean_State * B, TValue * this, expr * expressio
   return v;
 }
 
+TValue *  primitive_String_id(bean_State * B, TValue * this, expr * expression) {
+  char id[255];
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  TValue * v = malloc(sizeof(TValue));
+  TString * ts = svalue(this);
+  sprintf(id, "%p", ts);
+  ts = beanS_newlstr(B, id, strlen(id));
+  setsvalue(v, ts);
+  return v;
+}
+
 TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expression) {
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
