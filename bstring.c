@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "bstring.h"
 
 static TString *createstrobj (bean_State * B, size_t l, int tag, unsigned int h) {
@@ -98,4 +99,40 @@ TString * beanS_newlstr (bean_State * B, const char *str, size_t l) {
 bool beanS_equal(TString * ts1, TString * ts2) {
   if (tslen(ts1) != tslen(ts2)) return false;
   return memcmp(getstr(ts1), getstr(ts2), tslen(ts2)) == 0;
+}
+
+TValue *  primitive_String_equal(bean_State * B, TValue * this, expr * expression) {
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  TValue * arg1 = eval(B, expression -> call.args -> es[0]);
+  TValue * v = malloc(sizeof(TValue));
+  setbvalue(v, beanS_equal(svalue(this), svalue(arg1)));
+  return v;
+}
+
+TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expression) {
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  TValue * arg1 = eval(B, expression -> call.args -> es[0]);
+  uint32_t argLen = tslen(svalue(arg1));
+  char * argp = getstr(svalue(arg1));
+
+  uint32_t thisLen = tslen(svalue(this));
+  char * thisp = getstr(svalue(this));
+
+  uint32_t total = thisLen + argLen;
+  TString * result = beanS_newlstr(B, "", total);
+  char * pointer = getstr(result);
+
+  uint32_t i = 0;
+  for (i = 0; i < thisLen; i ++) {
+    pointer[i] = thisp[i];
+  }
+
+  for (uint32_t j = 0; j < argLen; j ++) {
+    pointer[i++] = argp[j];
+  }
+  TValue * r = malloc(sizeof(TValue));
+  setsvalue(r, result);
+  return r;
 }

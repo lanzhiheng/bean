@@ -45,7 +45,7 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
   return value;
 }
 
-TValue * primitive_print(bean_State * B UNUSED, expr * expression) {
+TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * expression) {
   assert(expression -> type == EXPR_CALL);
 
   for (int i = 0; i < expression -> call.args -> count; i ++) {

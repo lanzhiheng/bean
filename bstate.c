@@ -19,6 +19,25 @@ char * rootDir = NULL;
       abort();                                  \
 })
 
+static TValue * get_callee_name(bean_State * B UNUSED, expr * expression) {
+  TString * callee = expression -> call.callee;
+  TValue * mname = malloc(sizeof(TValue));
+  setsvalue(mname, callee);
+  return mname;
+}
+
+static Function * check_container(bean_State * B, TValue * value) {
+  switch(value -> tt_) {
+    case(BEAN_TSTRING): {
+      return G(B) -> String;
+    }
+    default: {
+      printf("Need more code!!");
+      return NULL;
+    }
+  }
+}
+
 static Scope * find_variable_scope(bean_State * B, TValue * name) {
   TValue * res;
   Scope * scope = B->l_G->cScope;
@@ -81,10 +100,10 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
   } while(0)
 
 #define compare_statement(action) do {                      \
-    TValue * v1 = eval(B, expression -> infix.left);    \
-    TValue * v2 = eval(B, expression -> infix.right);   \
-    v -> value_.b = action(nvalue(v1), nvalue(v2));     \
-    v -> tt_ = BEAN_TBOOLEAN;                           \
+    TValue * v1 = eval(B, expression -> infix.left);        \
+    TValue * v2 = eval(B, expression -> infix.right);       \
+    v -> value_.b = action(nvalue(v1), nvalue(v2));         \
+    v -> tt_ = BEAN_TBOOLEAN;                               \
   } while(0)
 
   switch(op) {
@@ -127,6 +146,17 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       if (!scope) eval_error("Can't reference the variable before defined");
       hash_set(B, scope->variables, left, right);
       break;
+    }
+    case(TK_DOT): {
+      expr * left = expression -> infix.left;
+      TValue * this = eval(B, left);
+      expr * right = expression -> infix.right;
+      TValue * mname = get_callee_name(B, right);
+      Function * fun = check_container(B, this);
+      TValue * method = hash_get(B, fun->p->attrs, mname);
+      if (!method) eval_error("Can't not call the method which is undefined");
+      assert(ttistool(method));
+      return tlvalue(method) -> function(B, this, expression -> infix.right);
     }
     default:
       printf("need more code!");
@@ -206,7 +236,9 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
 
   if (checktag(func, BEAN_TTOOL)) {
     Tool * t = tlvalue(func);
-    ret = t -> function(B, expression);
+    TValue * v = malloc(sizeof(TValue));
+    setnilvalue(v);
+    ret = t -> function(B, v, expression);
    } else {
     Function * f = fcvalue(func);
     assert(expression->call.args -> count == f->p->arity);
@@ -373,11 +405,36 @@ void add_tools(bean_State * B) {
   setsvalue(name, ts);
 
   Tool * tool = malloc(sizeof(Tool));
-  tool -> arity = 1;
   tool -> function = primitive_print;
   TValue * func = malloc(sizeof(TValue));
   settlvalue(func, tool);
   hash_set(B, variables, name, func);
+}
+
+static void set_prototype_function(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h) {
+  TValue * name = malloc(sizeof(TValue));
+  setsvalue(name, beanS_newlstr(B, method, len));
+  TValue * func = malloc(sizeof(TValue));
+  Tool * t = malloc(sizeof(Tool));
+  t -> function = fn;
+  settlvalue(func, t);
+  hash_set(B, h, name, func);
+}
+
+Function * init_String(bean_State * B) {
+  Proto * p = malloc(sizeof(Proto));
+  p -> name = beanS_newlstr(B, "String", 6);
+  p -> args = NULL;
+  p -> arity = 0;
+  p -> attrs = init_hash(B);
+  set_prototype_function(B, "equal", 5, primitive_String_equal, p->attrs);
+  set_prototype_function(B, "concat", 6, primitive_String_concat, p->attrs);
+
+  Function * f = malloc(sizeof(Function));
+  f -> p = p;
+  f -> body = NULL;
+  f -> static_attrs = init_hash(B);
+  return f;
 }
 
 void global_init(bean_State * B) {
@@ -389,6 +446,7 @@ void global_init(bean_State * B) {
   G -> cScope = G -> globalScope;
   B -> l_G = G;
   add_tools(B);
+  G -> String = init_String(B);
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {

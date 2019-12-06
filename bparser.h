@@ -38,6 +38,7 @@ typedef enum {
   BP_FACTOR,
   BP_UNARY,
   BP_CALL,
+  BP_DOT,
   BP_HIGHTEST
 } bindpower;
 
