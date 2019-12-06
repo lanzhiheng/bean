@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "bean.h"
 #include "bobject.h"
+#include "barray.h"
 #include "bstring.h"
 
 bool tvalue_equal(TValue * v1, TValue * v2) {
@@ -38,6 +39,20 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
     case BEAN_TSTRING:
       printf("%s", getstr(svalue(value)));
       break;
+    case BEAN_TLIST: {
+      Array * arr = arrvalue(value);
+      // TODO: Can we do better here?
+      printf("[");
+      for (uint32_t i = 0; i < arr->count; i++) {
+        TValue * v = arr->entries[i];
+        if (i) printf(", ");
+        if (ttisstring(v)) printf("\"");
+        tvalue_inspect(B, v);
+        if (ttisstring(v)) printf("\"");
+      }
+      printf("]");
+      break;
+    }
     default:
       printf("invalid value");
       break;

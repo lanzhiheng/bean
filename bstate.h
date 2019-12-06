@@ -4,6 +4,7 @@
 #include "common.h"
 #include "bobject.h"
 #include "bhash.h"
+#include "barray.h"
 
 typedef struct stringtable {
   struct TString ** hash;
@@ -88,6 +89,7 @@ typedef enum {
   EXPR_RETURN,
   EXPR_LOOP,
   EXPR_BRANCH,
+  EXPR_ARRAY,
   EXPR_BREAK
 } EXPR_TYPE;
 
@@ -100,6 +102,7 @@ typedef struct expr {
     bu_byte bval;
     TString * sval;
     Function * fun;
+    dynamic_expr * array;
 
     struct {
       int op; // Store the TokenType
@@ -144,7 +147,6 @@ typedef struct expr {
 /* macros to convert a GCObject into a specific value */
 #define gco2ts(o)  \
         check_exp(novariant((o)->tt) == LUA_TSTRING, &((cast_u(o))->ts))
-
 
 #define add(a, b) (a + b)
 #define sub(a, b) (a - b)

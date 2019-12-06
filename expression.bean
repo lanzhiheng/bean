@@ -75,16 +75,22 @@
 // m = 222;
 // print(m);
 // print(add(100, 300), add(100, 300), add(100, add(100, 300)));
-print("hello");
+// print("hello");
 // var cc = gt?(333, 333);
 // print(cc, m, 333);
-var a = "hello"
-print(a.equal("lanzhiheng"))
-print(a.equal("hello"))
-print("ni".equal("ni"))
-print("lanzhihen".equal("lanzhiheng"))
-print("Hello".concat(" World"))
-print("Good".concat(" Night!"))
-print(a.concat(" Night!"))
+// var a = "hello"
+// print(a.equal("lanzhiheng"))
+// print(a.equal("hello"))
+// print("ni".equal("ni"))
+// print("lanzhihen".equal("lanzhiheng"))
+// print("Hello".concat(" World"))
+// print("Good".concat(" Night!"))
+// print(a.concat(" Night!"))
+// print(a.id())
+// print(a.id())
+var a = [1, 3, 4, "lanzhiheng"]
+print(a)
 print(a.id())
-print(a.id())
+var b = [22, 33, [33, 44, 5]]
+print(b)
+print(b.id())

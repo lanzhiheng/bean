@@ -376,6 +376,20 @@ static expr * parse_break(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
   return ep;
 }
 
+static expr * parse_array(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
+  beanX_next(ls);
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_ARRAY;
+  ep -> array = init_dynamic_expr(ls->B);
+
+  if (testnext(ls, TK_RIGHT_BRACKET)) return ep;
+  do {
+    add_element(ls->B, ep->array, parse_statement(ls, BP_LOWEST));
+  } while(testnext(ls, TK_COMMA));
+  testnext(ls, TK_RIGHT_BRACKET);
+  return ep;
+}
+
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {
   if (ls->t.type == TK_BREAK) {
     return parse_break(ls, rbp);
@@ -391,6 +405,10 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
 
   if (ls->t.type == TK_FUNCTION) { // Define an function
     return parse_definition(ls);
+  }
+
+  if (ls->t.type == TK_LEFT_BRACKET) {
+    return parse_array(ls, rbp);
   }
 
   if (ls->t.type == TK_VAR) { // Define an variable
