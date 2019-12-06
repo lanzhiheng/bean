@@ -280,6 +280,8 @@ symbol symbol_table[] = {
   { "}", BP_NONE, NULL, NULL },
   { "(", BP_NONE, left_paren, NULL },
   { ")", BP_NONE, NULL, NULL },
+  { "[", BP_NONE, NULL, NULL },
+  { "]", BP_NONE, NULL, NULL },
   { ".", BP_DOT, NULL, infix },
   { "false", BP_NONE, boolean, NULL },
   { "for", BP_NONE, NULL, NULL },
