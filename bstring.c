@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "bstring.h"
+#include "bparser.h"
 
 static TString *createstrobj (bean_State * B, size_t l, int tag, unsigned int h) {
   size_t totalsize = sizeofstring(l);
@@ -111,7 +112,7 @@ TValue *  primitive_String_equal(bean_State * B, TValue * this, expr * expressio
 }
 
 TValue *  primitive_String_id(bean_State * B, TValue * this, expr * expression) {
-  char id[255];
+  char id[MAX_LEN_ID];
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
   TValue * v = malloc(sizeof(TValue));

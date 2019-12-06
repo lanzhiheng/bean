@@ -31,6 +31,9 @@ static Function * check_container(bean_State * B, TValue * value) {
     case(BEAN_TSTRING): {
       return G(B) -> String;
     }
+    case(BEAN_TLIST): {
+      return G(B) -> Array;
+    }
     default: {
       printf("Need more code!!");
       return NULL;
@@ -287,6 +290,18 @@ static TValue * string_eval(bean_State * B UNUSED, struct expr * expression) {
   return value;
 }
 
+static TValue * array_eval(bean_State * B UNUSED, struct expr * expression) {
+  dynamic_expr * eps = expression->array;
+  Array * array = init_array(B);
+
+  for (int i = 0; i < eps->count; i++) {
+    array_push(B, array, eval(B, eps->es[i]));
+  }
+  TValue * value = malloc(sizeof(TValue));
+  setarrvalue(value, array);
+  return value;
+}
+
 eval_func fn[] = {
    int_eval,
    float_eval,
@@ -299,7 +314,8 @@ eval_func fn[] = {
    function_call_eval,
    return_eval,
    loop_eval,
-   branch_eval
+   branch_eval,
+   array_eval
 };
 
 
@@ -421,6 +437,22 @@ static void set_prototype_function(bean_State *B, const char * method, uint32_t 
   hash_set(B, h, name, func);
 }
 
+Function * init_Array(bean_State * B) {
+  Proto * p = malloc(sizeof(Proto));
+  p -> name = beanS_newlstr(B, "Array", 6);
+  p -> args = NULL;
+  p -> arity = 0;
+  p -> attrs = init_hash(B);
+
+  set_prototype_function(B, "id", 2, primitive_Array_id, p->attrs);
+
+  Function * f = malloc(sizeof(Function));
+  f -> p = p;
+  f -> body = NULL;
+  f -> static_attrs = init_hash(B);
+  return f;
+}
+
 Function * init_String(bean_State * B) {
   Proto * p = malloc(sizeof(Proto));
   p -> name = beanS_newlstr(B, "String", 6);
@@ -449,6 +481,7 @@ void global_init(bean_State * B) {
   B -> l_G = G;
   add_tools(B);
   G -> String = init_String(B);
+  G -> Array = init_Array(B);
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {

@@ -35,6 +35,7 @@ typedef union Value {
   TString * s;
   struct Function * fc;
   struct Tool * tl;
+  struct Array * ar;
   bu_byte b;
 } Value;
 
@@ -92,6 +93,10 @@ typedef struct TValue {
   { TValue *io = obj; val_(io).b=(x); settt_(io, BEAN_TBOOLEAN); }
 #define bvalue(o)       check_exp(ttisboolean(o), val_(o).b)
 
+#define ttisarray(o)           checktype((o), BEAN_TLIST)
+#define setarrvalue(obj,x)                                                \
+  { TValue *io = obj; val_(io).ar=(x); settt_(io, BEAN_TLIST); }
+
 /*
 ** {==================================================================
 ** Numbers
@@ -134,6 +139,8 @@ typedef struct TValue {
 
 #define fcvalue(o)       check_exp(ttisfunction(o), val_(o).fc)
 #define tlvalue(o)       check_exp(ttistool(o), val_(o).tl)
+#define arrvalue(o)       check_exp(ttisarray(o), val_(o).ar)
+
 
 bool tvalue_equal(TValue * v1, TValue * v2);
 TValue * tvalue_inspect(bean_State * B, TValue * value);

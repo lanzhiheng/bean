@@ -20,4 +20,6 @@ TValue * array_pop(bean_State * B, Array * arr);
 bool array_unshift(bean_State * B, Array * arr, TValue * value);
 TValue * array_shift(bean_State * B, Array * arr);
 
+
+TValue *  primitive_Array_id(bean_State * B, TValue * this, expr * expression);
 #endif
