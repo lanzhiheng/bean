@@ -2,6 +2,7 @@
 #include "mem.h"
 #include "bhash.h"
 #include "bstring.h"
+#include "bparser.h"
 #include "stdio.h"
 
 #define FACTOR 0.75
@@ -150,4 +151,16 @@ TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
   }
 
   return rValue;
+}
+
+TValue * primitive_Hash_id(bean_State * B, TValue * this, expr * expression) {
+  char id[MAX_LEN_ID];
+  assert(ttishash(this));
+  assert(expression -> type == EXPR_CALL);
+  TValue * v = malloc(sizeof(TValue));
+  Hash * hash = hhvalue(this);
+  sprintf(id, "%p", hash);
+  TString * ts = beanS_newlstr(B, id, strlen(id));
+  setsvalue(v, ts);
+  return v;
 }
