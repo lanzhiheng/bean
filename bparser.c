@@ -274,6 +274,7 @@ symbol symbol_table[] = {
   { "-", BP_TERM, NULL, infix },
   { "*", BP_FACTOR, NULL, infix },
   { "/", BP_FACTOR, NULL, infix },
+  { ":", BP_NONE, NULL, NULL },
   { ",", BP_NONE, NULL, NULL },
   { ";", BP_NONE, NULL, NULL },
   { "{", BP_NONE, NULL, NULL },
