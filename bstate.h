@@ -90,6 +90,7 @@ typedef enum {
   EXPR_LOOP,
   EXPR_BRANCH,
   EXPR_ARRAY,
+  EXPR_HASH,
   EXPR_BREAK
 } EXPR_TYPE;
 
@@ -103,6 +104,7 @@ typedef struct expr {
     TString * sval;
     Function * fun;
     dynamic_expr * array;
+    dynamic_expr * hash;
 
     struct {
       int op; // Store the TokenType
