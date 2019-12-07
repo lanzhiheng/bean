@@ -41,16 +41,37 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
       break;
     case BEAN_TLIST: {
       Array * arr = arrvalue(value);
-      // TODO: Can we do better here?
       printf("[");
       for (uint32_t i = 0; i < arr->count; i++) {
         TValue * v = arr->entries[i];
-        if (i) printf(", ");
         if (ttisstring(v)) printf("\"");
         tvalue_inspect(B, v);
         if (ttisstring(v)) printf("\"");
+        printf(", ");
       }
-      printf("]");
+      printf("\b\b]");
+      break;
+    }
+    case BEAN_THASH: {
+      Hash * hash = hhvalue(value);
+      printf("{");
+      for (uint32_t i = 0; i < hash->capacity; i++) {
+        if (!hash->entries[i]) continue;
+
+        Entry * e = hash->entries[i];
+        while (e) {
+          TValue * key = e -> key;
+          TValue * value = e -> value;
+          tvalue_inspect(B, key);
+          printf(": ");
+          if (ttisstring(value)) printf("\"");
+          tvalue_inspect(B, value);
+          if (ttisstring(value)) printf("\"");
+          e = e -> next;
+        }
+        printf(", ");
+      }
+      printf("\b\b}");
       break;
     }
     default:

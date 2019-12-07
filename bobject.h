@@ -36,6 +36,7 @@ typedef union Value {
   struct Function * fc;
   struct Tool * tl;
   struct Array * ar;
+  struct Hash * hh;
   bu_byte b;
 } Value;
 
@@ -97,6 +98,10 @@ typedef struct TValue {
 #define setarrvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).ar=(x); settt_(io, BEAN_TLIST); }
 
+#define ttishash(o)           checktype((o), BEAN_THASH)
+#define sethashvalue(obj,x)                                                \
+  { TValue *io = obj; val_(io).hh=(x); settt_(io, BEAN_THASH); }
+
 /*
 ** {==================================================================
 ** Numbers
@@ -140,6 +145,7 @@ typedef struct TValue {
 #define fcvalue(o)       check_exp(ttisfunction(o), val_(o).fc)
 #define tlvalue(o)       check_exp(ttistool(o), val_(o).tl)
 #define arrvalue(o)       check_exp(ttisarray(o), val_(o).ar)
+#define hhvalue(o)       check_exp(ttishash(o), val_(o).hh)
 
 
 bool tvalue_equal(TValue * v1, TValue * v2);

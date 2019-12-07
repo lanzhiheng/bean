@@ -302,6 +302,34 @@ static TValue * array_eval(bean_State * B UNUSED, struct expr * expression) {
   return value;
 }
 
+static TValue * hash_key_eval(bean_State * B UNUSED, struct expr * expression) {
+  switch(expression->type) {
+    case(EXPR_GVAR): {
+      TString * name = expression->gvar.name;
+      TValue * n = malloc(sizeof(TValue));
+      setsvalue(n, name);
+      return n;
+    }
+    default: {
+      return eval(B, expression);
+    }
+  }
+}
+
+static TValue * hash_eval(bean_State * B UNUSED, struct expr * expression) {
+  dynamic_expr * eps = expression->hash;
+  Hash * hash = init_hash(B);
+  assert(eps->count % 2 == 0);
+  for (int i = 0; i < eps->count; i+=2) {
+    TValue * key = hash_key_eval(B, eps->es[i]);
+    TValue * value = eval(B, eps->es[i + 1]);
+    hash_set(B, hash, key, value);
+  }
+  TValue * value = malloc(sizeof(TValue));
+  sethashvalue(value, hash);
+  return value;
+}
+
 eval_func fn[] = {
    int_eval,
    float_eval,
@@ -315,7 +343,8 @@ eval_func fn[] = {
    return_eval,
    loop_eval,
    branch_eval,
-   array_eval
+   array_eval,
+   hash_eval
 };
 
 
