@@ -34,6 +34,9 @@ static Function * check_container(bean_State * B, TValue * value) {
     case(BEAN_TLIST): {
       return G(B) -> Array;
     }
+    case(BEAN_THASH): {
+      return G(B) -> Hash;
+    }
     default: {
       printf("Need more code!!");
       return NULL;
@@ -466,15 +469,12 @@ static void set_prototype_function(bean_State *B, const char * method, uint32_t 
   hash_set(B, h, name, func);
 }
 
-Function * init_Array(bean_State * B) {
+Function * resource_initialize(bean_State * B, char * name, uint32_t len) {
   Proto * p = malloc(sizeof(Proto));
-  p -> name = beanS_newlstr(B, "Array", 6);
+  p -> name = beanS_newlstr(B, name, len);
   p -> args = NULL;
   p -> arity = 0;
   p -> attrs = init_hash(B);
-
-  set_prototype_function(B, "id", 2, primitive_Array_id, p->attrs);
-
   Function * f = malloc(sizeof(Function));
   f -> p = p;
   f -> body = NULL;
@@ -482,21 +482,23 @@ Function * init_Array(bean_State * B) {
   return f;
 }
 
+Function * init_Array(bean_State * B) {
+  Function * f = resource_initialize(B, "Array", 5);
+  set_prototype_function(B, "id", 2, primitive_Array_id, f->p->attrs);
+  return f;
+}
+
 Function * init_String(bean_State * B) {
-  Proto * p = malloc(sizeof(Proto));
-  p -> name = beanS_newlstr(B, "String", 6);
-  p -> args = NULL;
-  p -> arity = 0;
-  p -> attrs = init_hash(B);
+  Function * f = resource_initialize(B, "String", 6);
+  set_prototype_function(B, "equal", 5, primitive_String_equal, f->p->attrs);
+  set_prototype_function(B, "concat", 6, primitive_String_concat, f->p->attrs);
+  set_prototype_function(B, "id", 2, primitive_String_id, f->p->attrs);
+  return f;
+}
 
-  set_prototype_function(B, "equal", 5, primitive_String_equal, p->attrs);
-  set_prototype_function(B, "concat", 6, primitive_String_concat, p->attrs);
-  set_prototype_function(B, "id", 2, primitive_String_id, p->attrs);
-
-  Function * f = malloc(sizeof(Function));
-  f -> p = p;
-  f -> body = NULL;
-  f -> static_attrs = init_hash(B);
+Function * init_Hash(bean_State * B) {
+  Function * f = resource_initialize(B, "Hash", 4);
+  set_prototype_function(B, "id", 2, primitive_Hash_id, f->p->attrs);
   return f;
 }
 
@@ -511,6 +513,7 @@ void global_init(bean_State * B) {
   add_tools(B);
   G -> String = init_String(B);
   G -> Array = init_Array(B);
+  G -> Hash = init_Hash(B);
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {

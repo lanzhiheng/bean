@@ -102,4 +102,5 @@ var b = [2, 3, 4, 6]
 print(a)
 print(b)
 var c = {lan: 1, zhiheng: a}
+print(c.id())
 print(c)
