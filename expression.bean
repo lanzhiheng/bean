@@ -98,22 +98,23 @@
 // print({})
 
 var c = {lan: 1, zhiheng: 10}
-// c["lanzhiheng"] = 22
+c["lanzhiheng"] = 22
 
-// print(c)
-// print(c["zhiheng"])
-// c["lan"] = 100
-// c["lan333"] = "lanzhiheng"
-// c.lan()
-// c.lan = 333
-// c.jab = 123123
+c["zhiheng"]
 print(c)
+print(c["zhiheng"])
+c["lan"] = 100
+c["lan333"] = "lanzhiheng"
+c.lan()
+c.lan = 333
+c.jab = 123123
+print(c)
+print(c.lan)
 
-
-// var a = [1,2,3,4,5,6,7]
-// a[0] = 100
-// a[1] = 1
-// a[11] = "lanzhiheng"
-// a[2] = 2
-// a[0] = 3
-// print(a[10])
+var a = [1,2,3,4,5,6,7]
+a[0] = 100
+a[1] = 1
+a[11] = "lanzhiheng"
+a[2] = 2
+a[0] = 3
+print(a)

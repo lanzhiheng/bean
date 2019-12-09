@@ -142,17 +142,34 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
           TValue * object = eval(B, ep);
           TValue * source = eval(B, expression -> infix.right);
           assert(ttishash(object) || ttisarray(object));
-          if (ttishash(object)) {
-            assert(leftExpr -> infix.right->type == EXPR_STRING);
-            TString * ts = leftExpr -> infix.right -> sval;
-            TValue * key = malloc(sizeof(TValue));
-            setsvalue(key, ts);
-            hash_set(B, hhvalue(object), key, source);
-          } else if (ttisarray(object)) {
-            assert(leftExpr -> infix.right->type == EXPR_NUM);
-            bean_Integer i = leftExpr -> infix.right -> ival;
-            array_set(B, arrvalue(object), i, source);
+
+          switch(leftExpr -> infix.op) {
+            case(TK_DOT): {
+              assert(ttishash(object));
+              assert(leftExpr -> infix.right->type == EXPR_GVAR);
+              TString * ts = leftExpr -> infix.right -> gvar.name;
+              TValue * key = malloc(sizeof(TValue));
+              setsvalue(key, ts);
+              hash_set(B, hhvalue(object), key, source);
+              break;
+            }
+            case(TK_LEFT_BRACKET): {
+              assert(ttishash(object) || ttisarray(object));
+              if (ttishash(object)) {
+                assert(leftExpr -> infix.right->type == EXPR_STRING);
+                TString * ts = leftExpr -> infix.right -> sval;
+                TValue * key = malloc(sizeof(TValue));
+                setsvalue(key, ts);
+                hash_set(B, hhvalue(object), key, source);
+              } else if (ttisarray(object)) {
+                assert(leftExpr -> infix.right->type == EXPR_NUM);
+                bean_Integer i = leftExpr -> infix.right -> ival;
+                array_set(B, arrvalue(object), i, source);
+              }
+              break;
+            }
           }
+
           break;
         }
         default: {
