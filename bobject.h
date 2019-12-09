@@ -147,7 +147,7 @@ typedef struct TValue {
 #define arrvalue(o)       check_exp(ttisarray(o), val_(o).ar)
 #define hhvalue(o)       check_exp(ttishash(o), val_(o).hh)
 
-
+/* void setValue(TValue * target, TValue * source); */
 bool tvalue_equal(TValue * v1, TValue * v2);
 TValue * tvalue_inspect(bean_State * B, TValue * value);
 TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * expression);

@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include "bstring.h"
+#include "bobject.h"
 #include "bstate.h"
 #include "bparser.h"
 #include "blex.h"
@@ -19,7 +20,7 @@ char * rootDir = NULL;
       abort();                                  \
 })
 
-static TValue * get_callee_name(bean_State * B UNUSED, expr * expression) {
+static TValue * get_name_value(bean_State * B UNUSED, expr * expression) {
   TString * callee = expression -> call.callee;
   TValue * mname = malloc(sizeof(TValue));
   setsvalue(mname, callee);
@@ -144,25 +145,66 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       compare_statement(neq);
       break;
     case(TK_ASSIGN): {
-      TString * ts = expression -> infix.left->gvar.name;
-      TValue * left = malloc(sizeof(TValue));
-      setsvalue(left, ts);
-      TValue * right = eval(B, expression -> infix.right);
-      Scope * scope = find_variable_scope(B, left);
-      if (!scope) eval_error("Can't reference the variable before defined");
-      hash_set(B, scope->variables, left, right);
+      expr * leftExpr = expression -> infix.left;
+      switch(leftExpr->type) {
+        case(EXPR_GVAR): {
+          TValue * left = malloc(sizeof(TValue));
+          setsvalue(left, expression -> infix.left->gvar.name);
+          TValue * right = eval(B, expression -> infix.right);
+          Scope * scope = find_variable_scope(B, left);
+          if (!scope) eval_error("Can't reference the variable before defined");
+          hash_set(B, scope->variables, left, right);
+        }
+        case(EXPR_BINARY): {
+          expr * ep = leftExpr -> infix.left;
+          TValue * object = eval(B, ep);
+          TValue * source = eval(B, expression -> infix.right);
+          assert(ttishash(object) || ttisarray(object));
+          if (ttishash(object)) {
+            assert(leftExpr -> infix.right->type == EXPR_STRING);
+            TString * ts = leftExpr -> infix.right -> sval;
+            TValue * key = malloc(sizeof(TValue));
+            setsvalue(key, ts);
+            hash_set(B, hhvalue(object), key, source);
+          } else if (ttisarray(object)) {
+            assert(leftExpr -> infix.right->type == EXPR_NUM);
+            bean_Integer i = leftExpr -> infix.right -> ival;
+            array_set(B, arrvalue(object), i, source);
+          }
+          break;
+        }
+        default: {
+          printf("Not an assignable value");
+        }
+      }
       break;
     }
     case(TK_DOT): {
-      expr * left = expression -> infix.left;
-      TValue * this = eval(B, left);
+      TValue * object = eval(B, expression -> infix.left);
+      assert(ttishash(object));
       expr * right = expression -> infix.right;
-      TValue * mname = get_callee_name(B, right);
-      Function * fun = check_container(B, this);
-      TValue * method = hash_get(B, fun->p->attrs, mname);
-      if (!method) eval_error("Can't not call the method which is undefined");
-      assert(ttistool(method));
-      return tlvalue(method) -> function(B, this, expression -> infix.right);
+      TValue * name = get_name_value(B, right);
+      Hash * hash = hhvalue(object);
+      return hash_get(B, hash, name);
+    }
+    case(TK_LEFT_BRACKET): {
+      TValue * object = eval(B, expression -> infix.left);
+      expr * right = expression -> infix.right;
+      TValue * value = NULL;
+
+      assert(ttishash(object) || ttisarray(object));
+      if (ttishash(object)) {
+        assert(right->type == EXPR_STRING);
+        TString * ts = right -> sval;
+        TValue * key = malloc(sizeof(TValue));
+        setsvalue(key, ts);
+        value = hash_get(B, hhvalue(object), key);
+      } else if (ttisarray(object)) {
+        assert(right->type == EXPR_NUM);
+        bean_Integer i = right -> ival;
+        value = array_get(B, arrvalue(object), i);
+      }
+      return value;
     }
     default:
       printf("need more code!");

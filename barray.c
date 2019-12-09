@@ -46,15 +46,21 @@ bool array_set(bean_State * B, Array * arr, uint32_t index, TValue * value) {
     resize_array(B, arr, get_new_size(index + 1));
   }
   TValue * old = arr->entries[index];
-  arr->entries[index] = value;
 
   if (old == NULL) {
     if (index >= arr->count) {
-      arr -> count = index + 1;
+      uint32_t newCount = index + 1;
+      for (uint32_t i = arr->count; i < newCount; i++) {
+        TValue * v = malloc(sizeof(TValue));
+        setnilvalue(v);
+        arr->entries[i] = v;
+      }
+      arr -> count = newCount;
     } else {
       arr -> count++;
     }
   }
+  arr->entries[index] = value;
 
   return true;
 }

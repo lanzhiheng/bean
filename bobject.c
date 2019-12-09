@@ -21,6 +21,10 @@ bool tvalue_equal(TValue * v1, TValue * v2) {
 
 TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
   switch(value -> tt_) {
+    case BEAN_TNIL: {
+      printf("nil");
+      break;
+    }
     case BEAN_TBOOLEAN: {
       bool b = bvalue(value);
       if (b) {
@@ -47,6 +51,7 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
         if (ttisstring(v)) printf("\"");
         tvalue_inspect(B, v);
         if (ttisstring(v)) printf("\"");
+
         printf(", ");
       }
       printf("\b\b]");
@@ -96,3 +101,35 @@ TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * exp
   setnilvalue(tvalue);
   return tvalue;
 }
+
+/* void setValue(TValue * target, TValue * source) { */
+/*   switch(rawtt(source)) { */
+/*     case(BEAN_TNIL): */
+/*       setnilvalue(target); */
+/*       break; */
+/*     case(BEAN_TBOOLEAN): */
+/*       setbvalue(target, val_(source).b); */
+/*       break; */
+/*     case(BEAN_TTOOL): */
+/*       settlvalue(target, val_(source).tl); */
+/*       break; */
+/*     case(BEAN_TNUMINT): */
+/*       setivalue(target, val_(source).i); */
+/*       break; */
+/*     case(BEAN_TNUMFLT): */
+/*       setfltvalue(target, val_(source).n); */
+/*       break; */
+/*     case(BEAN_TSTRING): */
+/*       setsvalue(target ,val_(source).s); */
+/*       break; */
+/*     case(BEAN_THASH): */
+/*       sethashvalue(target, val_(source).hh); */
+/*       break; */
+/*     case(BEAN_TFUNCTION): */
+/*       setfcvalue(target, val_(source).fc); */
+/*       break; */
+/*     case(BEAN_TLIST): */
+/*       setarrvalue(target, val_(source).ar); */
+/*       break; */
+/*   } */
+/* } */

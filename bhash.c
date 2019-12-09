@@ -14,6 +14,11 @@ typedef union {
   double num;
 } Bits64;
 
+void beanH_error(bean_State * B UNUSED, const char * msg) {
+  printf("%s\n", msg);
+  abort();
+}
+
 Hash * init_hash(bean_State * B) {
   Hash * hash = beanM_malloc_(B, Hash);
   hash -> count = 0;

@@ -190,6 +190,17 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
       ep -> infix.op = TK_ASSIGN;
       ep -> infix.left = left;
       ep -> infix.right = parse_statement(ls, BP_LOWEST);
+    } else if (ls->t.type == TK_LEFT_BRACKET) {
+      expr * left = malloc(sizeof(expr));
+      left -> type = EXPR_GVAR;
+      left -> gvar.name = token.seminfo.ts;
+
+      beanX_next(ls);
+      ep -> type = EXPR_BINARY;
+      ep -> infix.op = TK_LEFT_BRACKET;
+      ep -> infix.left = left;
+      ep -> infix.right = parse_statement(ls, BP_DOT);
+      testnext(ls, TK_RIGHT_BRACKET);
     } else {
       ep -> type = EXPR_GVAR;
       ep -> gvar.name = token.seminfo.ts;
@@ -281,7 +292,7 @@ symbol symbol_table[] = {
   { "}", BP_NONE, NULL, NULL },
   { "(", BP_NONE, left_paren, NULL },
   { ")", BP_NONE, NULL, NULL },
-  { "[", BP_NONE, NULL, NULL },
+  { "[", BP_DOT, NULL, NULL },
   { "]", BP_NONE, NULL, NULL },
   { ".", BP_DOT, NULL, infix },
   { "false", BP_NONE, boolean, NULL },
