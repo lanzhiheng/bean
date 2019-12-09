@@ -27,24 +27,6 @@ static TValue * get_name_value(bean_State * B UNUSED, expr * expression) {
   return mname;
 }
 
-static Function * check_container(bean_State * B, TValue * value) {
-  switch(value -> tt_) {
-    case(BEAN_TSTRING): {
-      return G(B) -> String;
-    }
-    case(BEAN_TLIST): {
-      return G(B) -> Array;
-    }
-    case(BEAN_THASH): {
-      return G(B) -> Hash;
-    }
-    default: {
-      printf("Need more code!!");
-      return NULL;
-    }
-  }
-}
-
 static Scope * find_variable_scope(bean_State * B, TValue * name) {
   TValue * res;
   Scope * scope = B->l_G->cScope;
