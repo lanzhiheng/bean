@@ -271,7 +271,7 @@ static TValue * return_eval(bean_State * B, struct expr * expression) {
 }
 
 static TValue * function_call_eval (bean_State * B, struct expr * expression) {
-  TValue * ret;
+  TValue * ret = NULL;
   enter_scope(B);
   TValue * func = eval(B, expression->call.callee);
 
@@ -280,7 +280,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
     TValue * v = malloc(sizeof(TValue));
     setnilvalue(v);
     ret = t -> function(B, v, expression);
-   } else {
+  } else if (checktag(func, BEAN_TFUNCTION)) {
     Function * f = fcvalue(func);
     assert(expression->call.args -> count == f->p->arity);
     for (int i = 0; i < expression->call.args -> count; i++) {
@@ -293,6 +293,8 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
       ret = eval(B, ex);
       if (ex->type == EXPR_RETURN) break;
     }
+  } else {
+    eval_error("You are trying to call which is not a function.");
   }
 
   leave_scope(B);
