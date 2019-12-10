@@ -54,7 +54,11 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
 
         printf(", ");
       }
-      printf("\b\b]");
+      if (arr->count) {
+        printf("\b\b]");
+      } else {
+        printf("]");
+      }
       break;
     }
     case BEAN_THASH: {
@@ -76,7 +80,11 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
         }
         printf(", ");
       }
-      printf("\b\b}");
+      if (hash->count) {
+        printf("\b\b}");
+      } else {
+        printf("}");
+      }
       break;
     }
     default:
