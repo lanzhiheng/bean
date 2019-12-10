@@ -87,6 +87,16 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
       }
       break;
     }
+    case BEAN_TFUNCTION: {
+      Function * f = fcvalue(value);
+      TString * ts = f->p->name;
+      printf("[Function %s]", getstr(ts));
+      break;
+    }
+    case BEAN_TTOOL: {
+      printf("[Primitive function]");
+      break;
+    }
     default:
       printf("invalid value");
       break;
