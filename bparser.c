@@ -91,6 +91,7 @@ static bool testnext (LexState *ls, int c) {
 */
 static expr * parse_statement(LexState *ls, bindpower rbp);
 static expr * infix (LexState *ls, expr * left);
+static expr * function_call (LexState *ls, expr * left);
 static expr * string (LexState *ls, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   ep -> type = EXPR_STRING;
@@ -164,26 +165,8 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
       ep -> var.value = NULL;
     }
   } else {
-    if (ls->t.type == TK_LEFT_PAREN) { // func call
-      expr * func_call = malloc(sizeof(expr));
-      func_call->type = EXPR_CALL;
-      func_call->call.callee = token.seminfo.ts;
-      func_call->call.args = init_dynamic_expr(ls->B);
-
-      beanX_next(ls);
-      if (testnext(ls, TK_RIGHT_PAREN)) return func_call;
-
-      do {
-        add_element(ls->B, func_call->call.args, parse_statement(ls, BP_LOWEST));
-      } while(testnext(ls, TK_COMMA));
-
-      testnext(ls, TK_RIGHT_PAREN);
-
-      return func_call;
-    } else {
-      ep -> type = EXPR_GVAR;
-      ep -> gvar.name = token.seminfo.ts;
-    }
+    ep -> type = EXPR_GVAR;
+    ep -> gvar.name = token.seminfo.ts;
   }
   return ep;
 }
@@ -268,7 +251,7 @@ symbol symbol_table[] = {
   { ";", BP_NONE, NULL, NULL },
   { "{", BP_NONE, NULL, NULL },
   { "}", BP_NONE, NULL, NULL },
-  { "(", BP_NONE, left_paren, NULL },
+  { "(", BP_CALL, left_paren, function_call },
   { ")", BP_NONE, NULL, NULL },
   { "[", BP_DOT, NULL, infix },
   { "]", BP_NONE, NULL, NULL },
@@ -300,6 +283,22 @@ symbol symbol_table[] = {
   { "<name>", BP_NONE, variable, NULL },
   { "<string>", BP_NONE, string, NULL },
 };
+
+static expr * function_call (LexState *ls, expr * left) {
+  expr * func_call = malloc(sizeof(expr));
+  func_call -> type = EXPR_CALL;
+  func_call -> call.callee = left;
+  func_call->call.args = init_dynamic_expr(ls->B);
+
+  if (testnext(ls, TK_RIGHT_PAREN)) return func_call;
+
+  do {
+    add_element(ls->B, func_call->call.args, parse_statement(ls, BP_LOWEST));
+  } while(testnext(ls, TK_COMMA));
+
+  testnext(ls, TK_RIGHT_PAREN);
+  return func_call;
+}
 
 static expr * infix (LexState *ls, expr * left) {
   expr * temp = malloc(sizeof(expr));

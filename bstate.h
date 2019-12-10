@@ -126,7 +126,7 @@ typedef struct expr {
     } ret;
 
     struct {
-      TString * callee;
+      struct expr * callee;
       dynamic_expr * args;
     } call;
 

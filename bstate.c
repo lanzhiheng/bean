@@ -20,13 +20,6 @@ char * rootDir = NULL;
       abort();                                  \
 })
 
-static TValue * get_name_value(bean_State * B UNUSED, expr * expression) {
-  TString * callee = expression -> call.callee;
-  TValue * mname = malloc(sizeof(TValue));
-  setsvalue(mname, callee);
-  return mname;
-}
-
 static Scope * find_variable_scope(bean_State * B, TValue * name) {
   TValue * res;
   Scope * scope = B->l_G->cScope;
@@ -126,6 +119,10 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_NE):
       compare_statement(neq);
       break;
+    case(TK_LEFT_PAREN): {
+      printf("Function calling\n");
+      break;
+    }
     case(TK_ASSIGN): {
       expr * leftExpr = expression -> infix.left;
       switch(leftExpr->type) {
@@ -182,7 +179,8 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       TValue * object = eval(B, expression -> infix.left);
       assert(ttishash(object));
       expr * right = expression -> infix.right;
-      TValue * name = get_name_value(B, right);
+      TValue * name = malloc(sizeof(TValue));
+      setsvalue(name, right->gvar.name);
       Hash * hash = hhvalue(object);
       return hash_get(B, hash, name);
     }
@@ -274,12 +272,8 @@ static TValue * return_eval(bean_State * B, struct expr * expression) {
 
 static TValue * function_call_eval (bean_State * B, struct expr * expression) {
   TValue * ret;
-
-  TString * funcName = expression->call.callee;
-  TValue * name = malloc(sizeof(TValue));
-  setsvalue(name, funcName);
   enter_scope(B);
-  TValue * func = find_variable(B, name);
+  TValue * func = eval(B, expression->call.callee);
 
   if (checktag(func, BEAN_TTOOL)) {
     Tool * t = tlvalue(func);
