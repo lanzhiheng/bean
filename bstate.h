@@ -40,15 +40,17 @@ typedef struct Scope {
   Hash * variables;
 } Scope;
 
+typedef struct Prototype {
+  Hash * attributes;
+} Prototype;
+
 typedef struct global_State {
   unsigned int seed;  /* randomized seed for hashes */
   GCObject *allgc;  /* list of all collectable objects */
   stringtable strt;
   Scope * globalScope;
   Scope * cScope;
-  struct Function * String;
-  struct Function * Array;
-  struct Function * Hash;
+  Prototype * sproto;
 } global_State;
 
 typedef struct dynamic_expr {
@@ -61,7 +63,6 @@ typedef struct Proto {
   TString * name;
   TString ** args;
   bu_byte arity;
-  Hash * attrs;
 } Proto;
 
 typedef TValue* (*primitive_Fn) (bean_State * B, TValue * this, struct expr * expression);
@@ -73,7 +74,6 @@ typedef struct Tool {
 typedef struct Function {
   Proto * p;
   dynamic_expr * body;
-  Hash * static_attrs;
 } Function;
 
 typedef enum {

@@ -119,10 +119,6 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_NE):
       compare_statement(neq);
       break;
-    case(TK_LEFT_PAREN): {
-      printf("Function calling\n");
-      break;
-    }
     case(TK_ASSIGN): {
       expr * leftExpr = expression -> infix.left;
       switch(leftExpr->type) {
@@ -177,12 +173,21 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     }
     case(TK_DOT): {
       TValue * object = eval(B, expression -> infix.left);
-      assert(ttishash(object));
       expr * right = expression -> infix.right;
       TValue * name = malloc(sizeof(TValue));
       setsvalue(name, right->gvar.name);
-      Hash * hash = hhvalue(object);
-      return hash_get(B, hash, name);
+
+      if (ttishash(object)) {
+        Hash * hash = hhvalue(object);
+        return hash_get(B, hash, name);
+      } else {
+        switch(rawtt(object)) {
+          case(BEAN_TSTRING): {
+            Prototype * proto = G(B)->sproto;
+            return hash_get(B, proto->attributes, name);
+          }
+        }
+      }
     }
     case(TK_LEFT_BRACKET): {
       TValue * object = eval(B, expression -> infix.left);
@@ -277,8 +282,14 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
 
   if (checktag(func, BEAN_TTOOL)) {
     Tool * t = tlvalue(func);
-    TValue * v = malloc(sizeof(TValue));
-    setnilvalue(v);
+    TValue * v = NULL;
+    if (expression->call.callee->type == EXPR_BINARY) {
+      v = eval(B, expression->call.callee->infix.left);
+    } else {
+      v = malloc(sizeof(TValue));
+      setnilvalue(v);
+    }
+
     ret = t -> function(B, v, expression);
   } else if (checktag(func, BEAN_TFUNCTION)) {
     Function * f = fcvalue(func);
@@ -506,37 +517,14 @@ static void set_prototype_function(bean_State *B, const char * method, uint32_t 
   hash_set(B, h, name, func);
 }
 
-Function * resource_initialize(bean_State * B, char * name, uint32_t len) {
-  Proto * p = malloc(sizeof(Proto));
-  p -> name = beanS_newlstr(B, name, len);
-  p -> args = NULL;
-  p -> arity = 0;
-  p -> attrs = init_hash(B);
-  Function * f = malloc(sizeof(Function));
-  f -> p = p;
-  f -> body = NULL;
-  f -> static_attrs = init_hash(B);
-  return f;
-}
+Prototype * init_String(bean_State * B) {
+  Prototype * proto = malloc(sizeof(Prototype));
+  proto->attributes = init_hash(B);
 
-Function * init_Array(bean_State * B) {
-  Function * f = resource_initialize(B, "Array", 5);
-  set_prototype_function(B, "id", 2, primitive_Array_id, f->p->attrs);
-  return f;
-}
-
-Function * init_String(bean_State * B) {
-  Function * f = resource_initialize(B, "String", 6);
-  set_prototype_function(B, "equal", 5, primitive_String_equal, f->p->attrs);
-  set_prototype_function(B, "concat", 6, primitive_String_concat, f->p->attrs);
-  set_prototype_function(B, "id", 2, primitive_String_id, f->p->attrs);
-  return f;
-}
-
-Function * init_Hash(bean_State * B) {
-  Function * f = resource_initialize(B, "Hash", 4);
-  set_prototype_function(B, "id", 2, primitive_Hash_id, f->p->attrs);
-  return f;
+  set_prototype_function(B, "equal", 5, primitive_String_equal, proto->attributes);
+  set_prototype_function(B, "concat", 6, primitive_String_concat, proto->attributes);
+  set_prototype_function(B, "id", 2, primitive_String_id, proto->attributes);
+  return proto;
 }
 
 void global_init(bean_State * B) {
@@ -548,9 +536,7 @@ void global_init(bean_State * B) {
   G -> cScope = G -> globalScope;
   B -> l_G = G;
   add_tools(B);
-  G -> String = init_String(B);
-  G -> Array = init_Array(B);
-  G -> Hash = init_Hash(B);
+  G -> sproto = init_String(B);
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {
