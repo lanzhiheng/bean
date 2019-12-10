@@ -77,8 +77,8 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
           tvalue_inspect(B, value);
           if (ttisstring(value)) printf("\"");
           e = e -> next;
+          printf(", ");
         }
-        printf(", ");
       }
       if (hash->count) {
         printf("\b\b}");

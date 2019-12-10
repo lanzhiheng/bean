@@ -1,9 +1,5 @@
 // Hash testing
-print({})
-var c = {lan: 1, zhiheng: 10}
-c["lanzhiheng"] = 22
-print(c)
-print(c["zhiheng"])
+var c = {}
 c["lan"] = 100
 c["lan333"] = "lanzhiheng"
 c.lan = 333
@@ -33,7 +29,8 @@ print(c["say"](100, 300))
 print(c['say'](100, 300))
 print(c.say(100, 300))
 print(c.say)
-print(print)
+c['hello'] = 12882
+print(c)
 // var str = "lanzhiheng"
 
 // print(str[id])
