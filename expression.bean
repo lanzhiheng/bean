@@ -31,6 +31,8 @@ print(c.say(100, 300))
 print(c.say)
 c['hello'] = 12882
 print(c)
-// var str = "lanzhiheng"
+var str = "lanzhiheng"
 
-// print(str[id])
+print(str.id())
+print(str.concat(" nihao"))
+print(str.equal("lanzhg"))
