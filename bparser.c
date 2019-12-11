@@ -199,7 +199,7 @@ static Proto * parse_prototype(LexState *ls) {
     beanK_semerror(ls, "Expect '(' in prototype!");
   }
 
-  if (ls->t.type == TK_RIGHT_PAREN) {
+  if (testnext(ls, TK_RIGHT_PAREN)) {
     return p;
   }
 
