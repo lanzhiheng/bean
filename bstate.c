@@ -8,7 +8,7 @@
 #include "bparser.h"
 #include "blex.h"
 #include "mem.h"
-#define MIN_STRT_SIZE 8
+#define MIN_STRT_SIZE 64
 
 typedef TValue* (*eval_func) (bean_State * B, struct expr * expression);
 char * rootDir = NULL;
@@ -40,6 +40,22 @@ static TValue * find_variable(bean_State * B, TValue * name) {
     scope = scope -> previous;
   }
   return res;
+}
+
+static TValue * search_from_prototype_link(bean_State * B UNUSED, TValue * object, TValue * name) {
+  TValue * value = NULL;
+  if (ttishash(object)) { // Search in current hash
+    Hash * hash = hhvalue(object);
+    value = hash_get(B, hash, name);
+  }
+
+  // Search in current hash
+  TValue * proto = object -> prototype;
+  while (proto && !value) {
+    value = hash_get(B, hhvalue(proto), name);
+    proto = proto -> prototype;
+  }
+  return value ? value : G(B)->nil;
 }
 
 static TValue * nil_eval (bean_State * B UNUSED, struct expr * expression UNUSED) {
@@ -180,19 +196,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       expr * right = expression -> infix.right;
       TValue * name = malloc(sizeof(TValue));
       setsvalue(name, right->gvar.name);
-
-      TValue * value = NULL;
-      if (ttishash(object)) { // Search in current hash
-        Hash * hash = hhvalue(object);
-        value = hash_get(B, hash, name);
-      }
-
-      // Search in current hash
-      TValue * proto = object -> prototype;
-      while (proto && !value) {
-        value = hash_get(B, hhvalue(proto), name);
-        proto = proto -> prototype;
-      }
+      TValue * value = search_from_prototype_link(B, object, name);
       return value;
     }
     case(TK_LEFT_BRACKET): {
@@ -200,18 +204,16 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       expr * right = expression -> infix.right;
       TValue * value = NULL;
 
-      assert(ttishash(object) || ttisarray(object));
-      if (ttishash(object)) {
-        assert(right->type == EXPR_STRING);
-        TString * ts = right -> sval;
-        TValue * key = malloc(sizeof(TValue));
-        setsvalue(key, ts);
-        value = hash_get(B, hhvalue(object), key);
-      } else if (ttisarray(object)) {
-        assert(right->type == EXPR_NUM);
+      if (ttisarray(object) && right->type == EXPR_NUM) { // Array search by index
         bean_Integer i = right -> ival;
         value = array_get(B, arrvalue(object), i);
+      } else if (right->type == EXPR_STRING) { // Attributes search
+        TString * ts = right -> sval;
+        TValue * name = malloc(sizeof(TValue));
+        setsvalue(name, ts);
+        value = search_from_prototype_link(B, object, name);
       }
+
       return value;
     }
     default:

@@ -22,6 +22,8 @@ a[11] = "lanzhiheng"
 a[2] = 2
 a[0] = 3
 print(a)
+print(a[0], a[1], a[3])
+print(a["id"]())
 
 // Function testing
 c.say = func add(a, b) {
@@ -53,9 +55,10 @@ func a() {
   return "lanzhiheng"
 }
 
-var hash = { a: 1, b: 2, c: 3 }
+var hash = { a: 1, b: 2, c: 3, d: { g: a } }
 hash.lan = a
 print(hash)
 print(hash['lan'])
 print(hash.id())
 print(hash.lan())
+print(hash['id']())
