@@ -114,10 +114,7 @@ TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * exp
     printf(" ");
   }
   printf("\n");
-
-  TValue * tvalue = malloc(sizeof(TValue));
-  setnilvalue(tvalue);
-  return tvalue;
+  return G(B)->nil;
 }
 
 /* void setValue(TValue * target, TValue * source) { */

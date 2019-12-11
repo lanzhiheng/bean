@@ -40,17 +40,16 @@ typedef struct Scope {
   Hash * variables;
 } Scope;
 
-typedef struct Prototype {
-  Hash * attributes;
-} Prototype;
-
 typedef struct global_State {
   unsigned int seed;  /* randomized seed for hashes */
   GCObject *allgc;  /* list of all collectable objects */
   stringtable strt;
   Scope * globalScope;
   Scope * cScope;
-  Prototype * sproto;
+  TValue * nil;  // nil
+  TValue * sproto; // Prototype for String
+  TValue * aproto; // Prototype for Array
+  TValue * hproto; // Prototype for Hash
 } global_State;
 
 typedef struct dynamic_expr {

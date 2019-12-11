@@ -31,8 +31,25 @@ print(c.say(100, 300))
 print(c.say)
 c['hello'] = 12882
 print(c)
-var str = "lanzhiheng"
 
+
+var str = "lanzhiheng"
 print(str.id())
+// print(str['id']) // TODO: need to implement
 print(str.concat(" nihao"))
 print(str.equal("lanzhg"))
+
+var array = [1,2,3,4,5,6,7]
+print(array)
+print(array.id())
+
+func a() {
+  return "lanzhiheng"
+}
+
+var hash = { a: 1, b: 2, c: 3 }
+hash.lan = a
+print(hash)
+print(hash['lan'])
+print(hash.id())
+print(hash.lan())

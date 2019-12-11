@@ -51,9 +51,7 @@ bool array_set(bean_State * B, Array * arr, uint32_t index, TValue * value) {
     if (index >= arr->count) {
       uint32_t newCount = index + 1;
       for (uint32_t i = arr->count; i < newCount; i++) {
-        TValue * v = malloc(sizeof(TValue));
-        setnilvalue(v);
-        arr->entries[i] = v;
+        arr->entries[i] = G(B)->nil;
       }
       arr -> count = newCount;
     } else {
