@@ -1,6 +1,61 @@
-// hello
-/* I am comments */
+/* There is some tests for this language */
 
-func a() { 1 / 10 }
+// Nil testing
+var lan = nil
+print(lan)
 
-var a = 10
+// Hash testing
+var c = {}
+c["lan"] = 100
+c["lan333"] = "lanzhiheng"
+c.lan = 333
+c.jab = 123123
+print(c)
+print(c.lan)
+print([])
+
+// Array testing
+var a = [1,2,3,4,5,6,7]
+a[0] = 100
+a[1] = 1
+a[11] = "lanzhiheng"
+a[2] = 2
+a[0] = 3
+print(a)
+
+// Function testing
+c.say = func add(a, b) {
+  return a + b
+}
+print(c.say(40000, 3))
+
+print(add(10, 30))
+print(100 * (1000 - 1 + (100 + 0 - 99)))
+print(c["say"](100, 300))
+print(c['say'](100, 300))
+print(c.say(100, 300))
+print(c.say)
+c['hello'] = 12882
+print(c)
+
+
+var str = "lanzhiheng"
+print(str.id())
+// print(str['id']) // TODO: need to implement
+print(str.concat(" nihao"))
+print(str.equal("lanzhg"))
+
+var array = [1,2,3,4,5,6,7]
+print(array)
+print(array.id())
+
+func a() {
+  return "lanzhiheng"
+}
+
+var hash = { a: 1, b: 2, c: 3 }
+hash.lan = a
+print(hash)
+print(hash['lan'])
+print(hash.id())
+print(hash.lan())

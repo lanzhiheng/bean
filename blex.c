@@ -367,11 +367,11 @@ static int llex(LexState * ls, SemInfo * seminfo) {
         } else if (check_next1(ls, '*')){
           // long comment
           while(ls -> current != EOZ) {
-            int current = ls -> current;
+            int pre = ls -> current;
             next(ls);
 
-            if (current == '\n') inclinenumber(ls);
-            if (current == '*' && ls -> current == '/') break;
+            if (pre == '\n') inclinenumber(ls);
+            if (pre == '*' && check_next1(ls, '/')) break;
           }
         } else {
           return TK_DIV;
