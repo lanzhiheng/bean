@@ -76,6 +76,7 @@ typedef struct Function {
 } Function;
 
 typedef enum {
+  EXPR_NIL,
   EXPR_NUM,
   EXPR_FLOAT,
   EXPR_BOOLEAN,
