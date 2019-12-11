@@ -44,6 +44,7 @@ typedef union Value {
 
 typedef struct TValue {
   TValuefields;
+  struct TValue * prototype;
 } TValue;
 
 /*
@@ -96,11 +97,11 @@ typedef struct TValue {
 
 #define ttisarray(o)           checktype((o), BEAN_TLIST)
 #define setarrvalue(obj,x)                                                \
-  { TValue *io = obj; val_(io).ar=(x); settt_(io, BEAN_TLIST); }
+  { TValue *io = obj; val_(io).ar=(x); settt_(io, BEAN_TLIST); io->prototype=G(B)->aproto; }
 
 #define ttishash(o)           checktype((o), BEAN_THASH)
 #define sethashvalue(obj,x)                                                \
-  { TValue *io = obj; val_(io).hh=(x); settt_(io, BEAN_THASH); }
+  { TValue *io = obj; val_(io).hh=(x); settt_(io, BEAN_THASH); io->prototype=G(B)->hproto; }
 
 /*
 ** {==================================================================
@@ -134,7 +135,7 @@ typedef struct TValue {
 #define svalue(o)       check_exp(ttisstring(o), val_(o).s)
 
 #define setsvalue(obj,x)                                                \
-  { TValue *io = obj; val_(io).s=(x); settt_(io, BEAN_TSTRING); }
+  { TValue *io = obj; val_(io).s=(x); settt_(io, BEAN_TSTRING); io->prototype=G(B)->sproto; }
 
 #define setfcvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).fc=(x); settt_(io, BEAN_TFUNCTION); }

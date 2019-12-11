@@ -177,17 +177,19 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       TValue * name = malloc(sizeof(TValue));
       setsvalue(name, right->gvar.name);
 
-      if (ttishash(object)) {
+      TValue * value = NULL;
+      if (ttishash(object)) { // Search in current hash
         Hash * hash = hhvalue(object);
-        return hash_get(B, hash, name);
-      } else {
-        switch(rawtt(object)) {
-          case(BEAN_TSTRING): {
-            Prototype * proto = G(B)->sproto;
-            return hash_get(B, proto->attributes, name);
-          }
-        }
+        value = hash_get(B, hash, name);
       }
+
+      // Search in current hash
+      TValue * proto = object -> prototype;
+      while (proto && !value) {
+        value = hash_get(B, hhvalue(proto), name);
+        proto = proto -> prototype;
+      }
+      return value;
     }
     case(TK_LEFT_BRACKET): {
       TValue * object = eval(B, expression -> infix.left);
@@ -265,9 +267,7 @@ static TValue * loop_eval(bean_State * B, struct expr * expression) {
 
  breakoff:
   leave_scope(B);
-  TValue * nilValue = malloc(sizeof(TValue));
-  setnilvalue(nilValue);
-  return nilValue;
+  return G(B)->nil;
 }
 
 static TValue * return_eval(bean_State * B, struct expr * expression) {
@@ -286,8 +286,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
     if (expression->call.callee->type == EXPR_BINARY) {
       v = eval(B, expression->call.callee->infix.left);
     } else {
-      v = malloc(sizeof(TValue));
-      setnilvalue(v);
+      v = G(B)->nil;
     }
 
     ret = t -> function(B, v, expression);
@@ -329,9 +328,7 @@ static TValue * branch_eval(bean_State * B, struct expr * expression) {
   }
 
   leave_scope(B);
-  TValue * nilValue = malloc(sizeof(TValue));
-  setnilvalue(nilValue);
-  return nilValue;
+  return G(B)->nil;
 }
 
 static TValue * string_eval(bean_State * B UNUSED, struct expr * expression) {
@@ -517,13 +514,38 @@ static void set_prototype_function(bean_State *B, const char * method, uint32_t 
   hash_set(B, h, name, func);
 }
 
-Prototype * init_String(bean_State * B) {
-  Prototype * proto = malloc(sizeof(Prototype));
-  proto->attributes = init_hash(B);
+TValue * init_String(bean_State * B) {
+  TValue * proto = malloc(sizeof(TValue));
+  Hash * h = init_hash(B);
 
-  set_prototype_function(B, "equal", 5, primitive_String_equal, proto->attributes);
-  set_prototype_function(B, "concat", 6, primitive_String_concat, proto->attributes);
-  set_prototype_function(B, "id", 2, primitive_String_id, proto->attributes);
+  sethashvalue(proto, h);
+  set_prototype_function(B, "equal", 5, primitive_String_equal, hhvalue(proto));
+  set_prototype_function(B, "concat", 6, primitive_String_concat, hhvalue(proto));
+  set_prototype_function(B, "id", 2, primitive_String_id, hhvalue(proto));
+  return proto;
+}
+
+TValue * init_Array(bean_State * B) {
+  TValue * proto = malloc(sizeof(TValue));
+  Hash * h = init_hash(B);
+
+  sethashvalue(proto, h);
+  set_prototype_function(B, "id", 2, primitive_Array_id, hhvalue(proto));
+  return proto;
+}
+
+TValue * init_Nil(bean_State * B UNUSED) {
+  TValue * proto = malloc(sizeof(TValue));
+  setnilvalue(proto);
+  return proto;
+}
+
+TValue * init_Hash(bean_State * B) {
+  TValue * proto = malloc(sizeof(TValue));
+  Hash * h = init_hash(B);
+
+  sethashvalue(proto, h);
+  set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto));
   return proto;
 }
 
@@ -536,7 +558,14 @@ void global_init(bean_State * B) {
   G -> cScope = G -> globalScope;
   B -> l_G = G;
   add_tools(B);
+  G -> nil = init_Nil(B);
   G -> sproto = init_String(B);
+  G -> aproto = init_Array(B);
+  G -> hproto = init_Hash(B);
+
+  G -> sproto -> prototype = G -> hproto;
+  G -> aproto -> prototype = G -> hproto;
+  G -> hproto -> prototype = G -> nil;
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {
