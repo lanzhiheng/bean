@@ -90,7 +90,7 @@ typedef struct TValue {
 #define ttistrue(o)         (ttisboolean(o) && val_(o).b)
 
 #define setnilvalue(obj)                                                \
-  { TValue *io = obj; settt_(io, BEAN_TNIL); }
+  { TValue *io = obj; settt_(io, BEAN_TNIL); io->prototype=NULL; }
 #define setbvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).b=(x); settt_(io, BEAN_TBOOLEAN); }
 #define bvalue(o)       check_exp(ttisboolean(o), val_(o).b)

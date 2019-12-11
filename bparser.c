@@ -120,6 +120,13 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
   return ep;
 }
 
+static expr* nil(LexState *ls, expr * exp UNUSED) {
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_NIL;
+  beanX_next(ls);
+  return ep;
+}
+
 static expr* boolean(LexState *ls, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   ep -> type = EXPR_BOOLEAN;
@@ -262,7 +269,7 @@ symbol symbol_table[] = {
   { "if", BP_NONE, NULL, NULL },
   { "in", BP_CONDITION, NULL, NULL },
   { "var", BP_NONE, NULL, NULL },
-  { "nil", BP_NONE, NULL, NULL },
+  { "nil", BP_NONE, nil, NULL },
   { "not", BP_CONDITION, NULL, NULL },
   { "or", BP_LOGIC_OR, NULL, NULL },
   { "return", BP_NONE, return_exp, NULL },

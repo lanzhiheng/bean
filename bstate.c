@@ -42,6 +42,10 @@ static TValue * find_variable(bean_State * B, TValue * name) {
   return res;
 }
 
+static TValue * nil_eval (bean_State * B UNUSED, struct expr * expression UNUSED) {
+  return G(B)->nil;
+}
+
 static TValue * int_eval (bean_State * B UNUSED, struct expr * expression) {
   TValue * v = malloc(sizeof(TValue));
   v -> tt_ = BEAN_TNUMINT;
@@ -379,6 +383,7 @@ static TValue * hash_eval(bean_State * B UNUSED, struct expr * expression) {
 }
 
 eval_func fn[] = {
+   nil_eval,
    int_eval,
    float_eval,
    boolean_eval,

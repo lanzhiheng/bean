@@ -1,3 +1,7 @@
+// Nil testing
+var lan = nil
+print(lan)
+
 // Hash testing
 var c = {}
 c["lan"] = 100
