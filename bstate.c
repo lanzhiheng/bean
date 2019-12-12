@@ -10,7 +10,7 @@
 #include "mem.h"
 #define MIN_STRT_SIZE 64
 
-typedef TValue* (*eval_func) (bean_State * B, struct expr * expression);
+typedef TValue* (*eval_func) (bean_State * B, struct expr * expression, TValue * context);
 char * rootDir = NULL;
 
 #define io_error(message) printf("%s", message)
@@ -58,39 +58,38 @@ static TValue * search_from_prototype_link(bean_State * B UNUSED, TValue * objec
   return value ? value : G(B)->nil;
 }
 
-static TValue * nil_eval (bean_State * B UNUSED, struct expr * expression UNUSED) {
+static TValue * nil_eval (bean_State * B UNUSED, struct expr * expression UNUSED, TValue * context UNUSED) {
   return G(B)->nil;
 }
 
-static TValue * int_eval (bean_State * B UNUSED, struct expr * expression) {
+static TValue * int_eval (bean_State * B UNUSED, struct expr * expression, TValue * context UNUSED) {
   TValue * v = malloc(sizeof(TValue));
   v -> tt_ = BEAN_TNUMINT;
   v -> value_.i = expression -> ival;
   return v;
 }
 
-static TValue * float_eval (bean_State * B UNUSED, struct expr * expression) {
+static TValue * float_eval (bean_State * B UNUSED, struct expr * expression, TValue * context UNUSED) {
   TValue * v = malloc(sizeof(TValue));
   v -> tt_ = BEAN_TNUMFLT;
   v -> value_.n = expression -> nval;
   return v;
 }
 
-static TValue * boolean_eval (bean_State * B UNUSED, struct expr * expression) {
+static TValue * boolean_eval (bean_State * B UNUSED, struct expr * expression, TValue * context UNUSED) {
   TValue * v = malloc(sizeof(TValue));
   v -> tt_ = BEAN_TBOOLEAN;
   v -> value_.b = expression -> bval;
   return v;
 }
 
-static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
+static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression, TValue * context) {
   TokenType op = expression -> infix.op;
   TValue * v = malloc(sizeof(TValue));
 
-
-#define cal_statement(action) do {                      \
-    TValue * v1 = eval(B, expression -> infix.left);    \
-    TValue * v2 = eval(B, expression -> infix.right);   \
+#define cal_statement(action) do {                                      \
+    TValue * v1 = eval(B, expression -> infix.left, context);           \
+    TValue * v2 = eval(B, expression -> infix.right, context);          \
     bu_byte isfloat = ttisfloat(v1) || ttisfloat(v1);   \
     if (isfloat) {                                      \
       v -> value_.n = action(nvalue(v1), nvalue(v2));   \
@@ -102,8 +101,8 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
   } while(0)
 
 #define compare_statement(action) do {                      \
-    TValue * v1 = eval(B, expression -> infix.left);        \
-    TValue * v2 = eval(B, expression -> infix.right);       \
+    TValue * v1 = eval(B, expression -> infix.left, context);       \
+    TValue * v2 = eval(B, expression -> infix.right, context);              \
     v -> value_.b = action(nvalue(v1), nvalue(v2));         \
     v -> tt_ = BEAN_TBOOLEAN;                               \
   } while(0)
@@ -145,15 +144,15 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
         case(EXPR_GVAR): {
           TValue * left = malloc(sizeof(TValue));
           setsvalue(left, expression -> infix.left->gvar.name);
-          TValue * right = eval(B, expression -> infix.right);
+          TValue * right = eval(B, expression -> infix.right, context);
           Scope * scope = find_variable_scope(B, left);
           if (!scope) eval_error("Can't reference the variable before defined");
           hash_set(B, scope->variables, left, right);
         }
         case(EXPR_BINARY): {
           expr * ep = leftExpr -> infix.left;
-          TValue * object = eval(B, ep);
-          TValue * source = eval(B, expression -> infix.right);
+          TValue * object = eval(B, ep, context);
+          TValue * source = eval(B, expression -> infix.right, context);
           assert(ttishash(object) || ttisarray(object));
 
           switch(leftExpr -> infix.op) {
@@ -192,15 +191,19 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       break;
     }
     case(TK_DOT): {
-      TValue * object = eval(B, expression -> infix.left);
+      TValue * object = eval(B, expression -> infix.left, context);
       expr * right = expression -> infix.right;
       TValue * name = malloc(sizeof(TValue));
       setsvalue(name, right->gvar.name);
       TValue * value = search_from_prototype_link(B, object, name);
+
+      if (ttisfunction(value)) { // setting context for function
+        fcvalue(value)->context = object;
+      }
       return value;
     }
     case(TK_LEFT_BRACKET): {
-      TValue * object = eval(B, expression -> infix.left);
+      TValue * object = eval(B, expression -> infix.left, context);
       expr * right = expression -> infix.right;
       TValue * value = NULL;
 
@@ -225,7 +228,11 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
   return v;
 }
 
-static TValue * function_eval (bean_State * B UNUSED, struct expr * expression) {
+static TValue * this_eval (bean_State * B UNUSED, struct expr * expression UNUSED, TValue * context) {
+  return context;
+}
+
+static TValue * function_eval (bean_State * B UNUSED, struct expr * expression, TValue * context UNUSED) {
   TValue * func = malloc(sizeof(TValue));
   Function * f = expression -> fun;
   setfcvalue(func, f);
@@ -239,7 +246,7 @@ static TValue * function_eval (bean_State * B UNUSED, struct expr * expression) 
   return func;
 }
 
-static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expression) {
+static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expression, TValue * context UNUSED) {
   TString * variable = expression->gvar.name;
   TValue * name = malloc(sizeof(TValue));
   setsvalue(name, variable);
@@ -248,12 +255,12 @@ static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expressi
   return value;
 }
 
-static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expression) {
+static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expression, TValue * context) {
   TString * vname = expression->var.name;
   TValue * name = malloc(sizeof(TValue));
   setsvalue(name, vname);
 
-  TValue * value = eval(B, expression->var.value);
+  TValue * value = eval(B, expression->var.value, context);
   if (ttisfunction(value)) {
     TString * funName = fcvalue(value)->p->name;
     if (!funName) { // anonymous function
@@ -265,19 +272,19 @@ static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expre
   return value;
 }
 
-static TValue * loop_eval(bean_State * B, struct expr * expression) {
+static TValue * loop_eval(bean_State * B, struct expr * expression, TValue * context) {
   expr * condition = expression->loop.condition;
   dynamic_expr * body = expression->loop.body;
 
   enter_scope(B);
-  while (tvalue(eval(B, condition))) {
+  while (tvalue(eval(B, condition, context))) {
     for (int i = 0; i < body->count; i++) {
       expr * ep = body->es[i];
 
       if (ep -> type == EXPR_BREAK) {
         goto breakoff; // Only one jump point, Use goto statement can be more clear and easy
       } else {
-        eval(B, ep);
+        eval(B, ep, context);
       }
     }
   }
@@ -287,21 +294,21 @@ static TValue * loop_eval(bean_State * B, struct expr * expression) {
   return G(B)->nil;
 }
 
-static TValue * return_eval(bean_State * B, struct expr * expression) {
+static TValue * return_eval(bean_State * B, struct expr * expression, TValue * context) {
   expr * retValue = expression->ret.ret_val;
-  return eval(B, retValue);
+  return eval(B, retValue, context);
 }
 
-static TValue * function_call_eval (bean_State * B, struct expr * expression) {
+static TValue * function_call_eval (bean_State * B, struct expr * expression, TValue * context) {
   TValue * ret = NULL;
   enter_scope(B);
-  TValue * func = eval(B, expression->call.callee);
+  TValue * func = eval(B, expression->call.callee, context);
 
   if (checktag(func, BEAN_TTOOL)) {
     Tool * t = tlvalue(func);
     TValue * v = NULL;
     if (expression->call.callee->type == EXPR_BINARY) {
-      v = eval(B, expression->call.callee->infix.left);
+      v = eval(B, expression->call.callee->infix.left, context);
     } else {
       v = G(B)->nil;
     }
@@ -309,15 +316,18 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
     ret = t -> function(B, v, expression);
   } else if (checktag(func, BEAN_TFUNCTION)) {
     Function * f = fcvalue(func);
+
+    // Use binding context
+    TValue * thisContext = f->context ? f->context : context;
     assert(expression->call.args -> count == f->p->arity);
     for (int i = 0; i < expression->call.args -> count; i++) {
       TValue * key = malloc(sizeof(TValue));
       setsvalue(key, f->p->args[i]);
-      SCSV(B, key, eval(B, expression->call.args->es[i]));
+      SCSV(B, key, eval(B, expression->call.args->es[i], context));
     }
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      ret = eval(B, ex);
+      ret = eval(B, ex, thisContext);
       if (ex->type == EXPR_RETURN) break;
     }
   } else {
@@ -328,12 +338,12 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
   return ret;
 }
 
-static TValue * branch_eval(bean_State * B, struct expr * expression) {
+static TValue * branch_eval(bean_State * B, struct expr * expression, TValue * context) {
   expr * condition = expression->branch.condition;
   dynamic_expr * body;
   enter_scope(B);
 
-  if (tvalue(eval(B, condition))) {
+  if (tvalue(eval(B, condition, context))) {
     body = expression->branch.if_body;
   } else {
     body = expression->branch.else_body;
@@ -341,26 +351,26 @@ static TValue * branch_eval(bean_State * B, struct expr * expression) {
 
   for (int i = 0; i < body->count; i++) {
     expr * ep = body->es[i];
-    eval(B, ep);
+    eval(B, ep, context);
   }
 
   leave_scope(B);
   return G(B)->nil;
 }
 
-static TValue * string_eval(bean_State * B UNUSED, struct expr * expression) {
+static TValue * string_eval(bean_State * B UNUSED, struct expr * expression, TValue * context) {
   TString * str = expression->sval;
   TValue * value = malloc(sizeof(TValue));
   setsvalue(value, str);
   return value;
 }
 
-static TValue * array_eval(bean_State * B UNUSED, struct expr * expression) {
+static TValue * array_eval(bean_State * B UNUSED, struct expr * expression, TValue * context) {
   dynamic_expr * eps = expression->array;
   Array * array = init_array(B);
 
   for (int i = 0; i < eps->count; i++) {
-    array_push(B, array, eval(B, eps->es[i]));
+    array_push(B, array, eval(B, eps->es[i], context));
   }
   TValue * value = malloc(sizeof(TValue));
   setarrvalue(value, array);
@@ -376,18 +386,18 @@ static TValue * hash_key_eval(bean_State * B UNUSED, struct expr * expression) {
       return n;
     }
     default: {
-      return eval(B, expression);
+      eval_error("Invalid key");
     }
   }
 }
 
-static TValue * hash_eval(bean_State * B UNUSED, struct expr * expression) {
+static TValue * hash_eval(bean_State * B UNUSED, struct expr * expression, TValue * context) {
   dynamic_expr * eps = expression->hash;
   Hash * hash = init_hash(B);
   assert(eps->count % 2 == 0);
   for (int i = 0; i < eps->count; i+=2) {
     TValue * key = hash_key_eval(B, eps->es[i]);
-    TValue * value = eval(B, eps->es[i + 1]);
+    TValue * value = eval(B, eps->es[i + 1], context);
     if (ttisfunction(value) && !fcvalue(value)->p->name) {
       fcvalue(value)->p->name = svalue(key);
     }
@@ -407,6 +417,7 @@ eval_func fn[] = {
    binary_eval,
    string_eval,
    function_eval,
+   this_eval,
    variable_define_eval,
    variable_get_eval,
    function_call_eval,
@@ -590,7 +601,7 @@ void global_init(bean_State * B) {
   G -> hproto -> prototype = G -> nil;
 }
 
-TValue * eval(bean_State * B, struct expr * expression) {
+TValue * eval(bean_State * B, struct expr * expression, TValue * context) {
   EXPR_TYPE t = expression -> type;
-  return fn[t](B, expression);
+  return fn[t](B, expression, context);
 }
