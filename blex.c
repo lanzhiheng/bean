@@ -8,7 +8,7 @@ const char *const beanX_tokens [] = {
     "+", "-", "*", "/",
     ":", ",", ";",
     "{", "}", "(", ")", "[", "]", ".",
-    "false", "for", "fn", "if",
+    "false", "for", "fn", "if", "this",
     "in", "var", "nil", "not", "or",
     "return", "true",  "while",
     "==", "=", ">=", ">", "<=", "<", "~=",
