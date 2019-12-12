@@ -191,13 +191,23 @@ static expr* return_exp(LexState *ls, expr * exp UNUSED) {
 }
 
 static Proto * parse_prototype(LexState *ls) {
+  Token preToken = ls->pre;
   Proto * p = malloc(sizeof(Proto));
+  beanX_next(ls);
+
+  TString * name = NULL;
+
+  bool assign = preToken.type == TK_COLON || preToken.type == TK_ASSIGN;
 
   if (!testnext(ls, TK_NAME)) {
-    beanK_semerror(ls, "Expect function name in prototype!");
+    if (!assign) {
+      beanK_semerror(ls, "Expect function name in prototype!");
+    }
+  } else {
+    name = ls->t.seminfo.ts;
   }
 
-  TString *name = ls->t.seminfo.ts;
+  p->assign = assign;
   p -> name = name;
   p -> args = malloc(sizeof(TString) * MAX_ARGS);
   p -> arity = 0;
@@ -226,7 +236,6 @@ static Proto * parse_prototype(LexState *ls) {
 }
 
 static expr * parse_definition(LexState *ls) {
-  beanX_next(ls);
   Function * f = malloc(sizeof(Function));
   f -> p = parse_prototype(ls);
   f -> body = init_dynamic_expr(ls->B);

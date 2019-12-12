@@ -224,13 +224,16 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
 }
 
 static TValue * function_eval (bean_State * B UNUSED, struct expr * expression) {
-  Hash * h = G(B) -> cScope -> variables;
   TValue * func = malloc(sizeof(TValue));
-  TValue * name = malloc(sizeof(TValue));
   Function * f = expression -> fun;
-  setsvalue(name, f->p->name);
   setfcvalue(func, f);
-  hash_set(B, h, name, func);
+
+  if (f->p->name && !f->p->assign) { // Named function and not assigning
+    TValue * name = malloc(sizeof(TValue));
+    setsvalue(name, f->p->name);
+    SCSV(B, name, func);
+  }
+
   return func;
 }
 
@@ -244,10 +247,18 @@ static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expressi
 }
 
 static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expression) {
-  TString * variable = expression->var.name;
+  TString * vname = expression->var.name;
   TValue * name = malloc(sizeof(TValue));
-  setsvalue(name, variable);
+  setsvalue(name, vname);
+
   TValue * value = eval(B, expression->var.value);
+  if (ttisfunction(value)) {
+    TString * funName = fcvalue(value)->p->name;
+    if (!funName) { // anonymous function
+      fcvalue(value)->p->name = vname;
+    }
+  }
+
   SCSV(B, name, value);
   return value;
 }
@@ -375,6 +386,10 @@ static TValue * hash_eval(bean_State * B UNUSED, struct expr * expression) {
   for (int i = 0; i < eps->count; i+=2) {
     TValue * key = hash_key_eval(B, eps->es[i]);
     TValue * value = eval(B, eps->es[i + 1]);
+    if (ttisfunction(value) && !fcvalue(value)->p->name) {
+      fcvalue(value)->p->name = svalue(key);
+    }
+
     hash_set(B, hash, key, value);
   }
   TValue * value = malloc(sizeof(TValue));

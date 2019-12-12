@@ -1,0 +1,15 @@
+// var a = "lanzhiheng"
+var name = 100;
+
+var a = {
+  lan: func () {
+    return "lan"
+  }
+}
+
+var c = func name() {} // Not effect the variable name
+
+// print(a.lan())
+print(a.lan)
+print(c)
+print(name)
