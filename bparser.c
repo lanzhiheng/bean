@@ -146,6 +146,13 @@ static expr* boolean(LexState *ls, expr * exp UNUSED) {
   return ep;
 }
 
+static expr* this(LexState *ls, expr *exp UNUSED) {
+  testnext(ls, TK_THIS);
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_THIS;
+  return ep;
+}
+
 static expr* left_paren(LexState *ls, expr *exp UNUSED) {
   testnext(ls, TK_LEFT_PAREN);
   expr * ep = malloc(sizeof(expr));
@@ -276,7 +283,7 @@ symbol symbol_table[] = {
   { "for", BP_NONE, NULL, NULL },
   { "fn", BP_NONE, NULL, NULL },
   { "if", BP_NONE, NULL, NULL },
-  { "this", BP_NONE, NULL, NULL },
+  { "this", BP_NONE, this, NULL },
   { "in", BP_CONDITION, NULL, NULL },
   { "var", BP_NONE, NULL, NULL },
   { "nil", BP_NONE, nil, NULL },
@@ -466,7 +473,7 @@ static void parse_program(LexState * ls) {
   skip_semicolon(ls);
   expr * ex = parse_statement(ls, BP_LOWEST);
   skip_semicolon(ls);
-  eval(ls->B, ex);
+  eval(ls->B, ex, G(ls->B)->nil);
 }
 
 void bparser(LexState * ls) {

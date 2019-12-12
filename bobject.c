@@ -109,7 +109,7 @@ TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * exp
 
   for (int i = 0; i < expression -> call.args -> count; i ++) {
     expr * ep = expression -> call.args -> es[i];
-    TValue * tvalue = eval(B, ep);
+    TValue * tvalue = eval(B, ep, G(B)->nil);
     tvalue_inspect(B, tvalue);
     printf(" ");
   }

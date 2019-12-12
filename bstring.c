@@ -105,7 +105,7 @@ bool beanS_equal(TString * ts1, TString * ts2) {
 TValue *  primitive_String_equal(bean_State * B, TValue * this, expr * expression) {
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
-  TValue * arg1 = eval(B, expression -> call.args -> es[0]);
+  TValue * arg1 = eval(B, expression -> call.args -> es[0], G(B)->nil);
   TValue * v = malloc(sizeof(TValue));
   setbvalue(v, beanS_equal(svalue(this), svalue(arg1)));
   return v;
@@ -126,7 +126,7 @@ TValue *  primitive_String_id(bean_State * B, TValue * this, expr * expression) 
 TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expression) {
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
-  TValue * arg1 = eval(B, expression -> call.args -> es[0]);
+  TValue * arg1 = eval(B, expression -> call.args -> es[0], G(B)->nil);
   uint32_t argLen = tslen(svalue(arg1));
   char * argp = getstr(svalue(arg1));
 

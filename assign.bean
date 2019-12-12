@@ -9,7 +9,30 @@ var a = {
 
 var c = fn name() {} // Not effect the variable name
 
+var str = "lanzhiheng"
+
 // print(a.lan())
 print(a.lan)
+print(a['lan'])
 print(c)
 print(name)
+print(str['id'])
+
+fn thisFn() {
+  return this.b
+}
+
+var thisObj = {
+  retThis: fn() {
+    return this
+  }
+}
+
+var temp = {
+  a: 1,
+  b: 2
+}
+temp['thisFn'] = thisFn
+print(thisFn())
+print(thisObj.retThis())
+print(temp.thisFn())
