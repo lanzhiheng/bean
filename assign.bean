@@ -18,7 +18,11 @@ print(c)
 print(name)
 print(str['id'])
 
-fn thisFn() {
+fn thisA() {
+  return this.a
+}
+
+fn thisB() {
   return this.b
 }
 
@@ -32,7 +36,9 @@ var temp = {
   a: 1,
   b: 2
 }
-temp['thisFn'] = thisFn
-print(thisFn())
+temp['getA'] = thisA
+temp['getB'] = thisB
+
 print(thisObj.retThis())
-print(temp.thisFn())
+print(temp.getA())
+print(temp.getB())
