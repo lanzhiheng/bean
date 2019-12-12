@@ -2,12 +2,12 @@
 var name = 100;
 
 var a = {
-  lan: func () {
+  lan: fn() {
     return "lan"
   }
 }
 
-var c = func name() {} // Not effect the variable name
+var c = fn name() {} // Not effect the variable name
 
 // print(a.lan())
 print(a.lan)
