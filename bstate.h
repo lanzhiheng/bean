@@ -16,6 +16,7 @@ typedef struct stringtable {
 #define CS(B)    (B->l_G->cScope)
 #define GCSV(B, n)   (hash_get(B, CS(B)->variables, n))
 #define SCSV(B, n, v)   (hash_set(B, CS(B)->variables, n, v))
+#define DCSV(B, n)   (hash_remove(B, CS(B)->variables, n))
 /*
 ** Union of all collectable objects (only for conversions)
 */
@@ -62,6 +63,7 @@ typedef struct Proto {
   TString * name;
   TString ** args;
   bu_byte arity;
+  bu_byte assign;
 } Proto;
 
 typedef TValue* (*primitive_Fn) (bean_State * B, TValue * this, struct expr * expression);
