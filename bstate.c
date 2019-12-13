@@ -556,7 +556,6 @@ TValue * init_String(bean_State * B) {
   sethashvalue(proto, h);
   set_prototype_function(B, "equal", 5, primitive_String_equal, hhvalue(proto));
   set_prototype_function(B, "concat", 6, primitive_String_concat, hhvalue(proto));
-  set_prototype_function(B, "id", 2, primitive_String_id, hhvalue(proto));
   return proto;
 }
 
@@ -565,7 +564,6 @@ TValue * init_Array(bean_State * B) {
   Hash * h = init_hash(B);
 
   sethashvalue(proto, h);
-  set_prototype_function(B, "id", 2, primitive_Array_id, hhvalue(proto));
   return proto;
 }
 
