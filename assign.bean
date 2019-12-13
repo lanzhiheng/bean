@@ -43,9 +43,9 @@ var temp = {
 temp['getA'] = thisA
 temp['getB'] = thisB
 temp.printA = printA
-// print(thisObj.retThis())
-// print(temp.getA())
-// print(temp.getB())
-// print(self)
+print(thisObj.retThis())
+print(temp.getA())
+print(temp.getB())
+print(self)
 
 temp.printA()

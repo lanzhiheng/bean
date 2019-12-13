@@ -28,5 +28,4 @@ bool beanS_equal(TString * ts1, TString * ts2);
 
 TValue *  primitive_String_equal(bean_State * B, TValue * this, expr * expression, TValue * context);
 TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expression, TValue * context);
-TValue *  primitive_String_id(bean_State * B, TValue * this, expr * expression, TValue * context);
 #endif

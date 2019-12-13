@@ -158,14 +158,34 @@ TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
   return rValue;
 }
 
-TValue * primitive_Hash_id(bean_State * B, TValue * this, expr * expression, TValue * context) {
+TValue * primitive_Hash_id(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
   char id[MAX_LEN_ID];
-  assert(ttishash(this));
   assert(expression -> type == EXPR_CALL);
   TValue * v = malloc(sizeof(TValue));
-  Hash * hash = hhvalue(this);
-  sprintf(id, "%p", hash);
-  TString * ts = beanS_newlstr(B, id, strlen(id));
+  TString * ts = NULL;
+
+  switch(this->tt_) {
+    case(BEAN_TSTRING): {
+      TString * ss = svalue(this);
+      sprintf(id, "%p", ss);
+      break;
+    }
+    case(BEAN_THASH): {
+      Hash * hash = hhvalue(this);
+      sprintf(id, "%p", hash);
+      break;
+    }
+    case(BEAN_TLIST): {
+      Array * arr = arrvalue(this);
+      sprintf(id, "%p", arr);
+      break;
+    }
+    default: {
+      sprintf(id, "%p", NULL);
+    }
+  }
+
+  ts = beanS_newlstr(B, id, strlen(id));
   setsvalue(v, ts);
   return v;
 }

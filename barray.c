@@ -119,15 +119,3 @@ bool array_unshift(bean_State * B, Array * arr, TValue * value) {
   arr->count++;
   return true;
 }
-
-TValue *  primitive_Array_id(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
-  char id[MAX_LEN_ID];
-  assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  TValue * v = malloc(sizeof(TValue));
-  Array * arr = arrvalue(this);
-  sprintf(id, "%p", arr);
-  TString * ts = beanS_newlstr(B, id, strlen(id));
-  setsvalue(v, ts);
-  return v;
-}
