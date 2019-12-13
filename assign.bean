@@ -19,16 +19,16 @@ print(name)
 print(str['id'])
 
 fn thisA() {
-  return this.a
+  return self.a
 }
 
 fn thisB() {
-  return this.b
+  return self.b
 }
 
 var thisObj = {
   retThis: fn() {
-    return this
+    return self
   }
 }
 
@@ -42,3 +42,4 @@ temp['getB'] = thisB
 print(thisObj.retThis())
 print(temp.getA())
 print(temp.getB())
+print(self)

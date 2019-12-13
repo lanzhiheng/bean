@@ -146,10 +146,10 @@ static expr* boolean(LexState *ls, expr * exp UNUSED) {
   return ep;
 }
 
-static expr* this(LexState *ls, expr *exp UNUSED) {
-  testnext(ls, TK_THIS);
+static expr* self(LexState *ls, expr *exp UNUSED) {
+  testnext(ls, TK_SELF);
   expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_THIS;
+  ep -> type = EXPR_SELF;
   return ep;
 }
 
@@ -283,7 +283,7 @@ symbol symbol_table[] = {
   { "for", BP_NONE, NULL, NULL },
   { "fn", BP_NONE, NULL, NULL },
   { "if", BP_NONE, NULL, NULL },
-  { "this", BP_NONE, this, NULL },
+  { "self", BP_NONE, self, NULL },
   { "in", BP_CONDITION, NULL, NULL },
   { "var", BP_NONE, NULL, NULL },
   { "nil", BP_NONE, nil, NULL },

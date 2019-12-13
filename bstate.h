@@ -86,7 +86,7 @@ typedef enum {
   EXPR_BINARY,
   EXPR_STRING,
   EXPR_FUN,
-  EXPR_THIS,
+  EXPR_SELF,
   EXPR_DVAR,
   EXPR_GVAR,
   EXPR_CALL,

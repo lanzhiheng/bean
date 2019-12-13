@@ -228,7 +228,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression, TV
   return v;
 }
 
-static TValue * this_eval (bean_State * B UNUSED, struct expr * expression UNUSED, TValue * context) {
+static TValue * self_eval (bean_State * B UNUSED, struct expr * expression UNUSED, TValue * context) {
   return context;
 }
 
@@ -318,7 +318,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
     Function * f = fcvalue(func);
 
     // Use binding context
-    TValue * thisContext = f->context ? f->context : context;
+    TValue * selfContext = f->context ? f->context : context;
     assert(expression->call.args -> count == f->p->arity);
     for (int i = 0; i < expression->call.args -> count; i++) {
       TValue * key = malloc(sizeof(TValue));
@@ -327,7 +327,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
     }
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      ret = eval(B, ex, thisContext);
+      ret = eval(B, ex, selfContext);
       if (ex->type == EXPR_RETURN) break;
     }
   } else {
@@ -358,7 +358,7 @@ static TValue * branch_eval(bean_State * B, struct expr * expression, TValue * c
   return G(B)->nil;
 }
 
-static TValue * string_eval(bean_State * B UNUSED, struct expr * expression, TValue * context) {
+static TValue * string_eval(bean_State * B UNUSED, struct expr * expression, TValue * context UNUSED) {
   TString * str = expression->sval;
   TValue * value = malloc(sizeof(TValue));
   setsvalue(value, str);
@@ -417,7 +417,7 @@ eval_func fn[] = {
    binary_eval,
    string_eval,
    function_eval,
-   this_eval,
+   self_eval,
    variable_define_eval,
    variable_get_eval,
    function_call_eval,
