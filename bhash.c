@@ -158,7 +158,7 @@ TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
   return rValue;
 }
 
-TValue * primitive_Hash_id(bean_State * B, TValue * this, expr * expression) {
+TValue * primitive_Hash_id(bean_State * B, TValue * this, expr * expression, TValue * context) {
   char id[MAX_LEN_ID];
   assert(ttishash(this));
   assert(expression -> type == EXPR_CALL);

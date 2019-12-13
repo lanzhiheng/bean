@@ -26,6 +26,10 @@ fn thisB() {
   return self.b
 }
 
+fn printA() {
+  print(self.b)
+}
+
 var thisObj = {
   retThis: fn() {
     return self
@@ -38,8 +42,10 @@ var temp = {
 }
 temp['getA'] = thisA
 temp['getB'] = thisB
+temp.printA = printA
+// print(thisObj.retThis())
+// print(temp.getA())
+// print(temp.getB())
+// print(self)
 
-print(thisObj.retThis())
-print(temp.getA())
-print(temp.getB())
-print(self)
+temp.printA()

@@ -26,6 +26,6 @@ bool hash_set(bean_State * B, Hash * hash, TValue * key, TValue * value);
 TValue * hash_get(bean_State * B, Hash * hash, TValue * key);
 TValue * hash_remove(bean_State * B, Hash * hash, TValue * key);
 
-TValue *  primitive_Hash_id(bean_State * B, TValue * this, expr * expression);
+TValue *  primitive_Hash_id(bean_State * B, TValue * this, expr * expression, TValue * context);
 
 #endif

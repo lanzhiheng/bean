@@ -306,6 +306,8 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
 
   if (checktag(func, BEAN_TTOOL)) {
     Tool * t = tlvalue(func);
+    // Use binding context
+    TValue * selfContext = t->context ? t->context : context;
     TValue * v = NULL;
     if (expression->call.callee->type == EXPR_BINARY) {
       v = eval(B, expression->call.callee->infix.left, context);
@@ -313,7 +315,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
       v = G(B)->nil;
     }
 
-    ret = t -> function(B, v, expression);
+    ret = t -> function(B, v, expression, selfContext);
   } else if (checktag(func, BEAN_TFUNCTION)) {
     Function * f = fcvalue(func);
 
