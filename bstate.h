@@ -66,10 +66,11 @@ typedef struct Proto {
   bu_byte assign;
 } Proto;
 
-typedef TValue* (*primitive_Fn) (bean_State * B, TValue * this, struct expr * expression);
+typedef TValue* (*primitive_Fn) (bean_State * B, TValue * this, struct expr * expression, TValue * context);
 
 typedef struct Tool {
   primitive_Fn function;
+  TValue * context;
 } Tool;
 
 typedef struct Function {

@@ -104,12 +104,12 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
   return value;
 }
 
-TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * expression) {
+TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * expression, TValue * context) {
   assert(expression -> type == EXPR_CALL);
 
   for (int i = 0; i < expression -> call.args -> count; i ++) {
     expr * ep = expression -> call.args -> es[i];
-    TValue * tvalue = eval(B, ep, G(B)->nil);
+    TValue * tvalue = eval(B, ep, context);
     tvalue_inspect(B, tvalue);
     printf(" ");
   }

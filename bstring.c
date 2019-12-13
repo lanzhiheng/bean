@@ -102,7 +102,7 @@ bool beanS_equal(TString * ts1, TString * ts2) {
   return memcmp(getstr(ts1), getstr(ts2), tslen(ts2)) == 0;
 }
 
-TValue *  primitive_String_equal(bean_State * B, TValue * this, expr * expression) {
+TValue *  primitive_String_equal(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
   TValue * arg1 = eval(B, expression -> call.args -> es[0], G(B)->nil);
@@ -111,7 +111,7 @@ TValue *  primitive_String_equal(bean_State * B, TValue * this, expr * expressio
   return v;
 }
 
-TValue *  primitive_String_id(bean_State * B, TValue * this, expr * expression) {
+TValue *  primitive_String_id(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
   char id[MAX_LEN_ID];
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
@@ -123,7 +123,7 @@ TValue *  primitive_String_id(bean_State * B, TValue * this, expr * expression) 
   return v;
 }
 
-TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expression) {
+TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
   TValue * arg1 = eval(B, expression -> call.args -> es[0], G(B)->nil);
