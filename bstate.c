@@ -199,6 +199,8 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression, TV
 
       if (ttisfunction(value)) { // setting context for function
         fcvalue(value)->context = object;
+      } else if (ttistool(value)) {
+        tlvalue(value)->context = object;
       }
       return value;
     }
