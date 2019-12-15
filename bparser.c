@@ -1,6 +1,7 @@
 #include <limits.h>
 #include <assert.h>
 #include "bstring.h"
+#include "berror.h"
 #include "bhash.h"
 #include "bparser.h"
 
@@ -45,25 +46,6 @@ static void add_element(bean_State * B, dynamic_expr * target, struct expr * exp
    can use pointer equality for string equality */
 #define eqstr(a,b)	((a) == (b))
 
-/* semantic error */
-void beanK_semerror (LexState *ls, const char *msg) {
-  ls->t.type = 0;  /* remove "near <token>" from final message */ // TODO: Why
-  beanX_syntaxerror(ls, msg);
-}
-
-/* static void error_expected (LexState *ls, int token) { */
-/*   beanX_syntaxerror(ls, */
-/*       beanO_pushfstring(ls->B, "%s expected", beanX_token2str(ls, token))); */
-/* } */
-
-/*
-** Check that next token is 'c'.
-*/
-/* static void check (LexState *ls, int c) { */
-/*   if (ls->t.type != c) */
-/*     error_expected(ls, c); */
-/* } */
-
 /*
 ** Test whether next token is 'c'; if so, skip it.
 */
@@ -82,9 +64,6 @@ static bool testnext (LexState *ls, int c) {
 /*   check(ls, c); */
 /*   beanX_next(ls); */
 /* } */
-
-
-#define check_condition(ls, c, msg) { if(!c) beanX_syntaxerror(ls, msg); }
 
 /*
 ** grep "ORDER OPR" if you change these enums  (ORDER OP)
@@ -114,7 +93,7 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
       break;
     }
     default:
-      beanK_semerror(ls, "Not the valid number.");
+      semantic_error(ls, "Not the valid number.");
   }
   beanX_next(ls);
   return ep;
@@ -140,7 +119,7 @@ static expr* boolean(LexState *ls, expr * exp UNUSED) {
       break;
     }
     default:
-      beanK_semerror(ls, "Not the valid boolean value.");
+      semantic_error(ls, "Not the valid boolean value.");
   }
   beanX_next(ls);
   return ep;
@@ -191,7 +170,7 @@ static expr* return_exp(LexState *ls, expr * exp UNUSED) {
   ep -> type = EXPR_RETURN;
 
   // TODO: support to return the null value
-  if (ls -> t.type == TK_RIGHT_BRACE) beanK_semerror(ls, "You have to set the return value after the return statement\n");
+  if (ls -> t.type == TK_RIGHT_BRACE) semantic_error(ls, "You have to set the return value after the return statement\n");
 
   ep -> ret.ret_val = parse_statement(ls, BP_LOWEST);
   return ep;
@@ -208,7 +187,7 @@ static Proto * parse_prototype(LexState *ls) {
 
   if (!testnext(ls, TK_NAME)) {
     if (!assign) {
-      beanK_semerror(ls, "Expect function name in prototype!");
+      semantic_error(ls, "Expect function name in prototype!");
     }
   } else {
     name = ls->t.seminfo.ts;
@@ -220,7 +199,7 @@ static Proto * parse_prototype(LexState *ls) {
   p -> arity = 0;
 
   if (!testnext(ls, TK_LEFT_PAREN)) {
-    beanK_semerror(ls, "Expect '(' in prototype!");
+    semantic_error(ls, "Expect '(' in prototype!");
   }
 
   if (testnext(ls, TK_RIGHT_PAREN)) {
@@ -231,12 +210,12 @@ static Proto * parse_prototype(LexState *ls) {
     if (testnext(ls, TK_NAME)) {
       p->args[p->arity++] = ls->t.seminfo.ts;
     } else {
-      beanK_semerror(ls, "Expect token name in args list!");
+      semantic_error(ls, "Expect token name in args list!");
     }
   } while(testnext(ls, TK_COMMA));
 
   if (!testnext(ls, TK_RIGHT_PAREN)) {
-    beanK_semerror(ls, "Expect '(' in prototype!");
+    semantic_error(ls, "Expect '(' in prototype!");
   }
 
   return p;
@@ -450,7 +429,7 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
     beanX_next(ls);
 
     if (ls->t.type != TK_NAME) {
-      beanK_semerror(ls, "Must have a variable name.");
+      semantic_error(ls, "Must have a variable name.");
     }
   }
 

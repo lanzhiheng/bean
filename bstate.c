@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include "bstring.h"
+#include "berror.h"
 #include "bobject.h"
 #include "bstate.h"
 #include "bparser.h"
@@ -12,13 +13,6 @@
 
 typedef TValue* (*eval_func) (bean_State * B, struct expr * expression, TValue * context);
 char * rootDir = NULL;
-
-#define io_error(message) printf("%s", message)
-#define mem_error(message) printf("%s", message)
-#define eval_error(message) ({                  \
-      printf("%s\n", message);                    \
-      abort();                                  \
-})
 
 static Scope * find_variable_scope(bean_State * B, TValue * name) {
   TValue * res;
@@ -146,7 +140,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression, TV
           setsvalue(left, expression -> infix.left->gvar.name);
           TValue * right = eval(B, expression -> infix.right, context);
           Scope * scope = find_variable_scope(B, left);
-          if (!scope) eval_error("Can't reference the variable before defined");
+          if (!scope) eval_error(B, "%s", "Can't reference the variable before defined");
           hash_set(B, scope->variables, left, right);
         }
         case(EXPR_BINARY): {
@@ -253,7 +247,7 @@ static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expressi
   TValue * name = malloc(sizeof(TValue));
   setsvalue(name, variable);
   TValue * value = find_variable(B, name);
-  if (!value) eval_error("Can't reference the variable before defined");
+  if (!value) eval_error(B, "%s", "Can't reference the variable before defined");
   return value;
 }
 
@@ -335,7 +329,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
       if (ex->type == EXPR_RETURN) break;
     }
   } else {
-    eval_error("You are trying to call which is not a function.");
+    eval_error(B, "%s", "You are trying to call which is not a function.");
   }
 
   leave_scope(B);
@@ -390,7 +384,8 @@ static TValue * hash_key_eval(bean_State * B UNUSED, struct expr * expression) {
       return n;
     }
     default: {
-      eval_error("Invalid key");
+      eval_error(B, "%s", "Invalid key");
+      return G(B)->nil;
     }
   }
 }
@@ -445,19 +440,10 @@ static stringtable stringtable_init(bean_State * B UNUSED) {
   return tb;
 }
 
-const char *beanO_pushfstring (bean_State *B UNUSED, const char *fmt, ...) {
-  char * msg = malloc(MAX_STRING_BUFFER * sizeof(char));
-  va_list argp;
-  va_start(argp, fmt);
-  vsnprintf(msg, MAX_STRING_BUFFER, fmt, argp); // Write the string to buffer
-  va_end(argp);
-  return msg;
-}
-
-static char * read_source_file(const char * path) {
+static char * read_source_file(bean_State * B, const char * path) {
   FILE * file = fopen(path, "r");
 
-  if (file == NULL) io_error("Can not open file");
+    if (file == NULL) io_error(B, "%s", "Can not open file");
 
   struct stat fileStat;
   stat(path, &fileStat);
@@ -466,12 +452,12 @@ static char * read_source_file(const char * path) {
   printf("File size is: %lu.\n", fileSize);
   char * fileContent = (char *)malloc(fileSize + 1);
   if (fileContent == NULL) {
-    mem_error("Could't allocate memory for reading file");
+    mem_error(B, "%s", "Could't allocate memory for reading file");
   }
 
   size_t numRead = fread(fileContent, sizeof(char), fileSize, file);
 
-  if (numRead < fileSize) io_error("Could't read file");
+  if (numRead < fileSize) io_error(B, "%s", "Could't read file");
 
   fileContent[fileSize] = '\0';
   fclose(file);
@@ -522,7 +508,7 @@ void run_file(const char * path) {
 
   TString * e = beanS_newlstr(B, filename, strlen(filename));
   printf("Source file name is %s.\n", getstr(e));
-  char* source = read_source_file(path);
+  char* source = read_source_file(B, path);
   beanX_setinput(B, ls, source, e, *source);
   bparser(ls);
 }
