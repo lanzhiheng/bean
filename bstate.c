@@ -527,16 +527,23 @@ void run_file(const char * path) {
   bparser(ls);
 }
 
+static Tool * initialize_tool_by_fn(primitive_Fn fn) {
+  Tool * t = malloc(sizeof(Tool));
+  t -> function = fn;
+  t -> context = NULL;
+  return t;
+}
+
 // Add some default tool functions
-void add_tools(bean_State * B) {
+static void add_tools(bean_State * B) {
   Hash * variables = B -> l_G -> globalScope -> variables;
   TValue * name = malloc(sizeof(TValue));
   TString * ts = beanS_newlstr(B, "print", 5);
   setsvalue(name, ts);
 
-  Tool * tool = malloc(sizeof(Tool));
-  tool -> function = primitive_print;
   TValue * func = malloc(sizeof(TValue));
+  Tool * tool = initialize_tool_by_fn(primitive_print);
+
   settlvalue(func, tool);
   hash_set(B, variables, name, func);
 }
@@ -545,8 +552,7 @@ static void set_prototype_function(bean_State *B, const char * method, uint32_t 
   TValue * name = malloc(sizeof(TValue));
   setsvalue(name, beanS_newlstr(B, method, len));
   TValue * func = malloc(sizeof(TValue));
-  Tool * t = malloc(sizeof(Tool));
-  t -> function = fn;
+  Tool * t = initialize_tool_by_fn(fn);
   settlvalue(func, t);
   hash_set(B, h, name, func);
 }

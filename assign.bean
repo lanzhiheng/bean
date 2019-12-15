@@ -47,5 +47,4 @@ print(thisObj.retThis())
 print(temp.getA())
 print(temp.getB())
 print(self)
-
 temp.printA()
