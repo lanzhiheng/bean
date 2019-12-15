@@ -1,5 +1,5 @@
 #include "mem.h"
-#include "bdebug.h"
+#include "berror.h"
 
 /*
 ** Minimum size for arrays during parsing, to avoid overhead of
@@ -33,7 +33,7 @@ void * beanM_grow_(bean_State * B, void * block, int n, int *psize, int size_ele
   }
 
   if (size >= limit / 2) {
-    if (size > limit) beanG_runerror(B, "too many %s (limit is %d)", what, limit);
+    if (size > limit) mem_error(B, "too many %s (limit is %d)", what, limit);
     size = limit;  /* still have at least one free place */
   } else {
     size *= 2;

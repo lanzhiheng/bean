@@ -4,7 +4,6 @@
 #include "common.h"
 #include "bobject.h"
 #include "bzio.h"
-#include "bdebug.h"
 
 #include <ctype.h>
 
@@ -83,5 +82,4 @@ void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *s
 void beanX_next (LexState *ls);
 const char *beanX_token2str (LexState *ls, int token);
 const char *txtToken (LexState *ls, int token);
-void beanX_syntaxerror (LexState *ls, const char *msg);
 #endif

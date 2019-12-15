@@ -1,6 +1,7 @@
 #include "mem.h"
 #include "barray.h"
 #include "bstring.h"
+#include "berror.h"
 #include "bparser.h"
 #include <stdio.h>
 #include <assert.h>
@@ -10,11 +11,6 @@
 uint32_t get_new_size(uint32_t expectSize) {
   int factor = (expectSize - 1) / ARRAY_MIN_CAPACITY + 1;
   return factor * ARRAY_MIN_CAPACITY;
-}
-
-void beanA_error(bean_State * B UNUSED, const char * msg) {
-  printf("%s\n", msg);
-  abort();
 }
 
 Array * init_array(bean_State * B) {
@@ -65,7 +61,7 @@ bool array_set(bean_State * B, Array * arr, uint32_t index, TValue * value) {
 
 TValue * array_get(bean_State * B, Array * arr, uint32_t index) {
   if (index >= arr -> count) {
-    beanA_error(B, "index overflow of array");
+    runtime_error(B, "%s", "index overflow of array.");
   }
 
   TValue * old = arr->entries[index];
@@ -83,7 +79,7 @@ bool array_push(bean_State * B, Array * arr, TValue * value) {
 
 TValue * array_pop(bean_State * B, Array * arr) {
   if (arr->count <= 0) {
-    beanA_error(B, "Nothing to be pop");
+    runtime_error(B, "%s", "Nothing to be pop.");
   }
   TValue * value = arr->entries[--arr->count];
   return value;
@@ -91,7 +87,7 @@ TValue * array_pop(bean_State * B, Array * arr) {
 
 TValue * array_shift(bean_State * B, Array * arr) {
   if (arr->count <= 0) {
-    beanA_error(B, "Nothing to be shift");
+    runtime_error(B, "%s", "Nothing to be shift.");
   }
 
   TValue * value = arr->entries[0];
