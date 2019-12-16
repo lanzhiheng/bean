@@ -300,7 +300,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
   enter_scope(B);
   TValue * func = eval(B, expression->call.callee, context);
 
-  if (checktag(func, BEAN_TTOOL)) {
+  if (ttistool(func)) {
     Tool * t = tlvalue(func);
     // Use binding context
     TValue * selfContext = t->context ? t->context : context;
@@ -312,7 +312,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
     }
 
     ret = t -> function(B, v, expression, selfContext);
-  } else if (checktag(func, BEAN_TFUNCTION)) {
+  } else if (ttisfunction(func)) {
     Function * f = fcvalue(func);
 
     // Use binding context
