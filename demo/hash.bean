@@ -1,0 +1,21 @@
+var hash = {}
+var string = ""
+var array = []
+
+print(string.proto().proto().proto())
+print(array.proto().proto())
+print(hash.proto())
+
+// test clone
+
+var new1 = hash.clone()
+new1.name = 'new1'
+var new2 = new1.clone()
+new2.name = 'new2'
+
+print(new2)
+print(new2.proto())
+print(new2.proto().proto())
+
+// Raise error.
+// nil.id

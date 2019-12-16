@@ -9,8 +9,6 @@
 #define beanM_limitN(n, t) \
   ((cast_sizet(n) <= MAX_SIZET/sizeof(t)) ? (n) : cast_uint((MAX_SIZET/sizeof(t))))
 
-#define MEM_ERROR(B, message) printf(message)
-
 #define beanM_reallocvchar(B, ptr, oldsize, newsize, t) \
   (cast(t *, beanM_realloc_(B, ptr, cast_sizet(oldsize) * sizeof(t),    \
                             cast_sizet(newsize) * sizeof(t))))
