@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "mem.h"
 #include "bhash.h"
+#include "berror.h"
 #include "bstring.h"
 #include "bparser.h"
 #include "stdio.h"
@@ -151,6 +152,22 @@ TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
   }
 
   return rValue;
+}
+
+TValue * primitive_Hash_clone(bean_State * B, TValue * this, expr * expression UNUSED, TValue * context UNUSED) {
+  TValue * instance = malloc(sizeof(TValue));
+  Hash * h = init_hash(B);
+
+  if (!ttishash(this)) {
+    runtime_error(B, "%s", "Just the hash can be clone!");
+  }
+  sethashvalue(instance, h);
+  instance -> prototype = this;// reset the prototype
+  return instance;
+}
+
+TValue * primitive_Hash_proto(bean_State * B UNUSED, TValue * this, expr * expression UNUSED, TValue * context UNUSED) {
+  return this->prototype;
 }
 
 TValue * primitive_Hash_id(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {

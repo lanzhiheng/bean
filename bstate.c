@@ -49,7 +49,9 @@ static TValue * search_from_prototype_link(bean_State * B UNUSED, TValue * objec
     value = hash_get(B, hhvalue(proto), name);
     proto = proto -> prototype;
   }
-  return value ? value : G(B)->nil;
+  if (!proto) runtime_error(B, "%s", "Can not access attributes by nil.\n");
+
+  return value;
 }
 
 static TValue * nil_eval (bean_State * B UNUSED, struct expr * expression UNUSED, TValue * context UNUSED) {
@@ -564,15 +566,18 @@ TValue * init_Array(bean_State * B) {
 TValue * init_Nil(bean_State * B UNUSED) {
   TValue * proto = malloc(sizeof(TValue));
   setnilvalue(proto);
+  proto -> prototype = NULL;
   return proto;
 }
 
 TValue * init_Hash(bean_State * B) {
   TValue * proto = malloc(sizeof(TValue));
   Hash * h = init_hash(B);
-
   sethashvalue(proto, h);
   set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto));
+  set_prototype_function(B, "proto", 5, primitive_Hash_proto, hhvalue(proto));
+  set_prototype_function(B, "clone", 5, primitive_Hash_clone, hhvalue(proto));
+
   return proto;
 }
 

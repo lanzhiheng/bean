@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "bstring.h"
+#include "berror.h"
 #include "bparser.h"
 
 static TString *createstrobj (bean_State * B, size_t l, int tag, unsigned int h) {
@@ -43,7 +44,7 @@ static void beanS_resize (bean_State *B, int nsize) {
     newvect = beanM_reallocvchar(B, tb -> hash, osize, nsize, TString *);
 
     if (newvect == NULL) { // reallocate failed
-      MEM_ERROR(B, MEMERRMSG);
+      mem_error(B, "%s", MEMERRMSG);
     } else {
       tb -> hash = newvect;
       tb -> size = nsize;
@@ -56,7 +57,7 @@ static void growstrtab (bean_State *B, stringtable *tb) {
   if (tb -> size <= MAXSTRTB) {
     beanS_resize(B, tb->size * 2);
   } else {
-    MEM_ERROR(B, MEMERRMSG);
+    mem_error(B, "%s", MEMERRMSG);
   }
 }
 
