@@ -170,7 +170,7 @@ static expr* return_exp(LexState *ls, expr * exp UNUSED) {
   ep -> type = EXPR_RETURN;
 
   // TODO: support to return the null value
-  if (ls -> t.type == TK_RIGHT_BRACE) semantic_error(ls, "You have to set the return value after the return statement\n");
+  if (ls -> t.type == TK_RIGHT_BRACE) semantic_error(ls, "You have to set the return value after the return statement");
 
   ep -> ret.ret_val = parse_statement(ls, BP_LOWEST);
   return ep;

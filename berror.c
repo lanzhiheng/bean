@@ -62,7 +62,7 @@ void semantic_error (LexState *ls, const char *msg) {
     va_start(argp, fmt);                                                \
     vsnprintf(msg, MAX_STRING_BUFFER, fmt, argp);                 \
     va_end(argp);                                                 \
-    printf("%s %s:%d %s\n", errorType, getstr(ls->source), ls->linenumber, msg);   \
+    printf("%s: %s\n  from %s:%d\n", errorType, msg, getstr(ls->source), ls->linenumber); \
     abort();                                    \
   } while(0)
 
