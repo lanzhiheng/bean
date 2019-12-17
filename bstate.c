@@ -49,7 +49,7 @@ static TValue * search_from_prototype_link(bean_State * B UNUSED, TValue * objec
     value = hash_get(B, hhvalue(proto), name);
     proto = proto -> prototype;
   }
-  if (!proto) runtime_error(B, "%s", "Can not access attributes by nil.\n");
+  if (!proto) runtime_error(B, "%s", "Can not access attributes by nil.");
 
   return value;
 }
@@ -142,7 +142,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression, TV
           setsvalue(left, expression -> infix.left->gvar.name);
           TValue * right = eval(B, expression -> infix.right, context);
           Scope * scope = find_variable_scope(B, left);
-          if (!scope) eval_error(B, "%s", "Can't reference the variable before defined");
+          if (!scope) eval_error(B, "%s", "Can't reference the variable before defined.");
           hash_set(B, scope->variables, left, right);
         }
         case(EXPR_BINARY): {
@@ -249,7 +249,7 @@ static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expressi
   TValue * name = malloc(sizeof(TValue));
   setsvalue(name, variable);
   TValue * value = find_variable(B, name);
-  if (!value) eval_error(B, "%s", "Can't reference the variable before defined");
+  if (!value) eval_error(B, "%s", "Can't reference the variable before defined.");
   return value;
 }
 
@@ -386,7 +386,7 @@ static TValue * hash_key_eval(bean_State * B UNUSED, struct expr * expression) {
       return n;
     }
     default: {
-      eval_error(B, "%s", "Invalid key");
+      eval_error(B, "%s", "Invalid key.");
       return G(B)->nil;
     }
   }
@@ -445,7 +445,7 @@ static stringtable stringtable_init(bean_State * B UNUSED) {
 static char * read_source_file(bean_State * B, const char * path) {
   FILE * file = fopen(path, "r");
 
-    if (file == NULL) io_error(B, "%s", "Can not open file");
+    if (file == NULL) io_error(B, "%s", "Can not open file.");
 
   struct stat fileStat;
   stat(path, &fileStat);
@@ -454,7 +454,7 @@ static char * read_source_file(bean_State * B, const char * path) {
   printf("File size is: %lu.\n", fileSize);
   char * fileContent = (char *)malloc(fileSize + 1);
   if (fileContent == NULL) {
-    mem_error(B, "%s", "Could't allocate memory for reading file");
+    mem_error(B, "%s", "Could't allocate memory for reading file.");
   }
 
   size_t numRead = fread(fileContent, sizeof(char), fileSize, file);
@@ -474,7 +474,7 @@ static struct Scope * create_scope(bean_State * B, struct Scope * previous) {
 }
 
 static bean_State * bean_State_init() {
-  bean_State * B = malloc(sizeof(B));
+  bean_State * B = malloc(sizeof(bean_State));
   B -> allocateBytes = 0;
   global_init(B);
   beanX_init(B);
