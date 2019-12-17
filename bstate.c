@@ -551,6 +551,7 @@ TValue * init_String(bean_State * B) {
   sethashvalue(proto, h);
   set_prototype_function(B, "equal", 5, primitive_String_equal, hhvalue(proto));
   set_prototype_function(B, "concat", 6, primitive_String_concat, hhvalue(proto));
+  set_prototype_function(B, "trim", 4, primitive_String_trim, hhvalue(proto));
   return proto;
 }
 
