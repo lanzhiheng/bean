@@ -138,3 +138,25 @@ TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expressi
   setsvalue(r, result);
   return r;
 }
+
+TValue *  primitive_String_trim(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  uint32_t start = 0, end = tslen(svalue(this)) - 1;
+  char * charp = getstr(svalue(this));
+  while (isspace(charp[start])) start++;
+  while (isspace(charp[end])) end--;
+
+  uint32_t total = end - start + 1;
+
+  TString * result = beanS_newlstr(B, "", total);
+  char * pointer = getstr(result);
+
+  for (uint32_t i = start; i <= end; i ++) {
+    *pointer = charp[i];
+    pointer++;
+  }
+  TValue * r = malloc(sizeof(TValue));
+  setsvalue(r, result);
+  return r;
+}

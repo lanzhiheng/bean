@@ -1,0 +1,8 @@
+var str = "Hello, "
+print(str.concat("World."))
+print(str.equal("Hello, "))
+print(str.equal("Hello"))
+
+
+var strWithWhiteSpace = "\t\t\t\thello\n\n\n    "
+print(strWithWhiteSpace.trim())
