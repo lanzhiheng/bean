@@ -34,6 +34,7 @@ union GCUnion {
 typedef struct bean_State {
   size_t allocateBytes;
   struct global_State *l_G;
+  struct LexState * ls;
 } bean_State;
 
 typedef struct Scope {

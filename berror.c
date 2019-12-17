@@ -56,27 +56,28 @@ void semantic_error (LexState *ls, const char *msg) {
 
 #define COMMON_ERROR(errorType)                                         \
   do {                                                                  \
-    char * msg = malloc(MAX_STRING_BUFFER * sizeof(char));                \
+    LexState * ls = B->ls;                                              \
+    char * msg = malloc(MAX_STRING_BUFFER * sizeof(char));              \
     va_list argp;                                                       \
     va_start(argp, fmt);                                                \
     vsnprintf(msg, MAX_STRING_BUFFER, fmt, argp);                 \
     va_end(argp);                                                 \
-    printf("%s: %s", errorType, msg);            \
+    printf("%s %s:%d %s\n", errorType, getstr(ls->source), ls->linenumber, msg);   \
     abort();                                    \
   } while(0)
 
-void runtime_error (bean_State *B UNUSED, const char *fmt, ...) {
+void runtime_error (bean_State *B, const char *fmt, ...) {
   COMMON_ERROR("RuntimeError");
 }
 
-void io_error (bean_State *B UNUSED, const char *fmt, ...) {
+void io_error (bean_State *B, const char *fmt, ...) {
   COMMON_ERROR("IOError");
 }
 
-void mem_error (bean_State *B UNUSED, const char *fmt, ...) {
-  COMMON_ERROR("MemError");
+void mem_error (bean_State *B, const char *fmt, ...) {
+  COMMON_ERROR("MemoryError");
 }
 
-void eval_error (bean_State *B UNUSED, const char *fmt, ...) {
-  COMMON_ERROR("MemError");
+void eval_error (bean_State *B, const char *fmt, ...) {
+  COMMON_ERROR("EvalError");
 }

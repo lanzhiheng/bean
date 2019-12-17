@@ -506,12 +506,11 @@ void run_file(const char * path) {
 
   LexState * ls = malloc(sizeof(LexState));
   bean_State * B = bean_State_init();
-  ls->B = B;
-
   TString * e = beanS_newlstr(B, filename, strlen(filename));
   printf("Source file name is %s.\n", getstr(e));
   char* source = read_source_file(B, path);
   beanX_setinput(B, ls, source, e, *source);
+  B -> ls = ls;
   bparser(ls);
 }
 
