@@ -6,3 +6,12 @@ print(str.equal("Hello"))
 
 var strWithWhiteSpace = "\t\t\t\thello\n\n\n    "
 print(strWithWhiteSpace.trim())
+
+var ustr = "hello你好"
+print(ustr.upcase())
+
+var dstr = "HELLO你好"
+print(dstr.downcase())
+
+var cstr = "hello你好"
+print(cstr.capitalize())
