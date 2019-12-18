@@ -79,6 +79,25 @@ static TValue * boolean_eval (bean_State * B UNUSED, struct expr * expression, T
   return v;
 }
 
+static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression, TValue * context) {
+  TValue * value = eval(B, expression->unary.val, context);
+
+  switch(expression->unary.op) {
+    case(TK_SUB):
+      if (ttisinteger(value)) {
+        setivalue(value, -ivalue(value));
+      } else if (ttisfloat(value)) {
+        setfltvalue(value, -fltvalue(value));
+      }
+      break;
+    case(TK_ADD):
+      break;
+    default:
+      eval_error(B, "%s", "Unary expression must follow a number");
+  }
+  return value;
+}
+
 static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression, TValue * context) {
   TokenType op = expression -> infix.op;
   TValue * v = malloc(sizeof(TValue));
@@ -415,6 +434,7 @@ eval_func fn[] = {
    int_eval,
    float_eval,
    boolean_eval,
+   unary_eval,
    binary_eval,
    string_eval,
    function_eval,

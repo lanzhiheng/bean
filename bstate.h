@@ -85,6 +85,7 @@ typedef enum {
   EXPR_NUM,
   EXPR_FLOAT,
   EXPR_BOOLEAN,
+  EXPR_UNARY,
   EXPR_BINARY,
   EXPR_STRING,
   EXPR_FUN,
@@ -111,6 +112,11 @@ typedef struct expr {
     Function * fun;
     dynamic_expr * array;
     dynamic_expr * hash;
+
+    struct {
+      int op;
+      struct expr * val;
+    } unary;
 
     struct {
       int op; // Store the TokenType
