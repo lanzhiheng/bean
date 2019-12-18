@@ -15,3 +15,10 @@ print(dstr.downcase())
 
 var cstr = "hello你好"
 print(cstr.capitalize())
+
+var slicestr = "lanzhiheng"
+print(slicestr.slice(0, 5))
+print(slicestr.slice(5, 6))
+print(slicestr.slice(6, -1))
+print(slicestr.slice(10000, 1000000))
+print(slicestr.slice(1, 10))
