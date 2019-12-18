@@ -238,14 +238,23 @@ static expr * parse_definition(LexState *ls) {
   return ex;
 }
 
+static expr * unary(LexState *ls, expr * exp UNUSED) {
+  expr * temp = malloc(sizeof(expr));
+  temp -> type = EXPR_UNARY;
+  temp -> unary.op = ls->t.type;
+  beanX_next(ls);
+  temp -> unary.val = parse_statement(ls, BP_LOWEST);
+  return temp;
+}
+
 symbol symbol_table[] = {
   /* arithmetic operators */
   { "and", BP_LOGIC_AND, NULL, NULL },
   { "break", BP_NONE, NULL, NULL },
   { "else", BP_NONE, NULL, NULL },
   { "elseif", BP_NONE, NULL, NULL },
-  { "+", BP_TERM, NULL, infix },
-  { "-", BP_TERM, NULL, infix },
+  { "+", BP_TERM, unary, infix },
+  { "-", BP_TERM, unary, infix },
   { "*", BP_FACTOR, NULL, infix },
   { "/", BP_FACTOR, NULL, infix },
   { ":", BP_NONE, NULL, NULL },

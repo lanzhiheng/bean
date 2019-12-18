@@ -38,7 +38,7 @@ TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
       printf("%Lf", fltvalue(value));
       break;
     case BEAN_TNUMINT:
-      printf("%lu", ivalue(value));
+      printf("%ld", ivalue(value));
       break;
     case BEAN_TSTRING:
       printf("%s", getstr(svalue(value)));
