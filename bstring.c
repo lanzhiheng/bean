@@ -139,26 +139,29 @@ TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expressi
   return r;
 }
 
-TValue *  primitive_String_trim(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
-  assert(ttisstring(this));
-  assert(expression -> type == EXPR_CALL);
-  uint32_t start = 0, end = tslen(svalue(this)) - 1;
-  char * charp = getstr(svalue(this));
-  while (isspace(charp[start])) start++;
-  while (isspace(charp[end])) end--;
-
-  uint32_t total = end - start + 1;
-
+static TValue * slice(bean_State * B, TString * origin, uint32_t start, uint32_t end) {
+  char * charp = getstr(origin);
+  uint32_t total = end - start;
   TString * result = beanS_newlstr(B, "", total);
   char * pointer = getstr(result);
-
-  for (uint32_t i = start; i <= end; i ++) {
+  for (uint32_t i = start; i < end; i ++) {
     *pointer = charp[i];
     pointer++;
   }
   TValue * r = malloc(sizeof(TValue));
   setsvalue(r, result);
   return r;
+}
+
+TValue * primitive_String_trim(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  uint32_t start = 0, end = tslen(svalue(this)) - 1;
+  TString * origin = svalue(this);
+  char * charp = getstr(origin);
+  while (isspace(charp[start])) start++;
+  while (isspace(charp[end])) end--;
+  return slice(B, origin, start, end + 1);
 }
 
 static TValue * case_transform(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED, char begin, char diff) {
@@ -180,19 +183,68 @@ static TValue * case_transform(bean_State * B, TValue * this, expr * expression,
   return r;
 }
 
-TValue *  primitive_String_downcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+TValue * primitive_String_downcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
   return case_transform(B, this, expression, context, 'A', 'a' - 'A');
 }
 
-TValue *  primitive_String_upcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+TValue * primitive_String_upcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
   return case_transform(B, this, expression, context, 'a', 'A' - 'a');
 }
 
-TValue *  primitive_String_capitalize(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+TValue * primitive_String_capitalize(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
   TValue * value = case_transform(B, this, expression, context, 'A', 0);
   TString * ts = svalue(value);
   char * c = getstr(ts);
   char diff = 'A' - 'a';
   if (c[0] >= 'a' && c[0] <= 'z') c[0] += diff;
   return value;
+}
+
+// TODO: 子串搜索算法
+/* TValue * primitive_String_indexOf(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) { */
+
+/* } */
+
+/* TValue * primitive_String_includes(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) { */
+
+/* } */
+
+// TODO: 子串搜索算法
+
+TValue * primitive_String_split(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+
+}
+
+TValue * primitive_String_slice(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count == 2);
+  if (expression -> call.args -> count != 2) {
+    eval_error(B, "%s", "You must pass two arguments to call the slice method.");
+  }
+
+  expr * first = expression -> call.args -> es[0];
+  expr * second = expression -> call.args -> es[1];
+  TValue * sVal = eval(B, first, context);
+  TValue * eVal = eval(B, second, context);
+
+  if (!ttisinteger(sVal)) {
+    eval_error(B, "%s", "The first arguments must be integer");
+  }
+
+  if (!ttisinteger(eVal)) {
+    eval_error(B, "%s", "The second arguments must be integer");
+  }
+
+  int start = nvalue(sVal);
+  int end = nvalue(eVal);
+  int len = tslen(svalue(this));
+
+  if (start >= len) start = len;
+  if (end >= len) end = len;
+
+  if (start < 0) start = start + len;
+  if (end < 0) end = end + len + 1;
+  assert(start <= end);
+  return slice(B, svalue(this), start, end);
 }
