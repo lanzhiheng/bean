@@ -552,6 +552,9 @@ TValue * init_String(bean_State * B) {
   set_prototype_function(B, "equal", 5, primitive_String_equal, hhvalue(proto));
   set_prototype_function(B, "concat", 6, primitive_String_concat, hhvalue(proto));
   set_prototype_function(B, "trim", 4, primitive_String_trim, hhvalue(proto));
+  set_prototype_function(B, "upcase", 6, primitive_String_upcase, hhvalue(proto));
+  set_prototype_function(B, "downcase", 8, primitive_String_downcase, hhvalue(proto));
+  set_prototype_function(B, "capitalize", 10, primitive_String_capitalize, hhvalue(proto));
   return proto;
 }
 

@@ -29,4 +29,7 @@ bool beanS_equal(TString * ts1, TString * ts2);
 TValue *  primitive_String_equal(bean_State * B, TValue * this, expr * expression, TValue * context);
 TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expression, TValue * context);
 TValue *  primitive_String_trim(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
+TValue *  primitive_String_upcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
+TValue *  primitive_String_downcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
+TValue *  primitive_String_capitalize(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 #endif

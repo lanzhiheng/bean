@@ -160,3 +160,39 @@ TValue *  primitive_String_trim(bean_State * B, TValue * this, expr * expression
   setsvalue(r, result);
   return r;
 }
+
+static TValue * case_transform(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED, char begin, char diff) {
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  uint32_t total = tslen(svalue(this));
+
+  TString * result = beanS_newlstr(B, "", total);
+  char * origin = getstr(svalue(this));
+  char * pointer = getstr(result);
+
+  for (uint32_t i = 0; i < total; i++) {
+    char c = origin[i];
+    pointer[i] = c >= begin && c <= begin + 25 ? c + diff : c;
+  }
+
+  TValue * r = malloc(sizeof(TValue));
+  setsvalue(r, result);
+  return r;
+}
+
+TValue *  primitive_String_downcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  return case_transform(B, this, expression, context, 'A', 'a' - 'A');
+}
+
+TValue *  primitive_String_upcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  return case_transform(B, this, expression, context, 'a', 'A' - 'a');
+}
+
+TValue *  primitive_String_capitalize(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  TValue * value = case_transform(B, this, expression, context, 'A', 0);
+  TString * ts = svalue(value);
+  char * c = getstr(ts);
+  char diff = 'A' - 'a';
+  if (c[0] >= 'a' && c[0] <= 'z') c[0] += diff;
+  return value;
+}
