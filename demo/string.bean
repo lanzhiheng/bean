@@ -22,3 +22,9 @@ print(slicestr.slice(5, 6))
 print(slicestr.slice(6, -1))
 print(slicestr.slice(10000, 1000000))
 print(slicestr.slice(1, 10))
+
+var indexstr = "lanzhiheng"
+print(indexstr.indexOf("zhi"))
+print(indexstr.indexOf("lam"))
+print(indexstr.includes("zhi"))
+print(indexstr.includes("lam"))
