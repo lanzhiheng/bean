@@ -21,3 +21,19 @@ print(shiftArray)
 var unshiftArray = ["lanzhiheng", "zhiheng", "lan"]
 print(unshiftArray.unshift("1233"))
 print(unshiftArray)
+
+var findArray = [1, 2, 3, "lanzhiheng"]
+print(findArray.find(fn(a) {
+  a == 2
+}))
+
+print(findArray.find(fn(a) {
+  a == "lanzhiheng"
+}))
+
+// Have some issue
+var findArrayStr = ["lanzhiheng", "string"]
+print(findArrayStr.find(fn cb(a) {
+  a.equal("lan")
+  // print(cb)
+}))
