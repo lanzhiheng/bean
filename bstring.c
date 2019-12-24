@@ -200,17 +200,15 @@ TValue * primitive_String_capitalize(bean_State * B, TValue * this, expr * expre
   return value;
 }
 
-static int brute_force_search(TString * text, TString * pattern){
-  uint32_t m = tslen(pattern);
-  uint32_t n = tslen(text);
-  char * tstr = getstr(text);
-  char * pstr = getstr(pattern);
+static int brute_force_search(char * text, char * pattern, uint32_t n, uint32_t m){
   int ret = -1;
+
+  if (!m) return 0; // search empty string
 
   uint32_t i, j;
   for(i = 0; i < n; i++) {
     for(j = 0; j < m && i + j < n; j++) {
-      if(tstr[i + j] != pstr[j]) break;
+      if(text[i + j] != pattern[j]) break;
     }
     if(j == m) {
       ret = i;
@@ -226,7 +224,9 @@ TValue * primitive_String_indexOf(bean_State * B, TValue * this, expr * expressi
   assert(expression -> call.args -> count == 1);
   TValue * pattern = eval(B, expression -> call.args -> es[0], context);
   assert(ttisstring(pattern));
-  int iVal = brute_force_search(svalue(this), svalue(pattern));
+  TString * t = svalue(this);
+  TString * p = svalue(pattern);
+  int iVal = brute_force_search(getstr(t), getstr(p), tslen(t), tslen(p));
   TValue * index = malloc(sizeof(TValue));
   setivalue(index, iVal);
   return index;
@@ -238,17 +238,53 @@ TValue * primitive_String_includes(bean_State * B, TValue * this, expr * express
   assert(expression -> call.args -> count == 1);
   TValue * pattern = eval(B, expression -> call.args -> es[0], context);
   assert(ttisstring(pattern));
-  int iVal = brute_force_search(svalue(this), svalue(pattern));
+  TString * t = svalue(this);
+  TString * p = svalue(pattern);
+  int iVal = brute_force_search(getstr(t), getstr(p), tslen(t), tslen(p));
   TValue * value = malloc(sizeof(TValue));
   setbvalue(value, iVal == -1 ? false : true);
   return value;
 }
 
-TValue * primitive_String_split(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+TValue * primitive_String_split(bean_State * B UNUSED, TValue * this, expr * expression, TValue * context UNUSED) {
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
   assert(expression -> call.args -> count < 2);
-  /* Value * delimiter = eval(B, expression -> call.args -> es[0], context); */
+  TValue * value = malloc(sizeof(TValue));
+  Array * arr = init_array(B);
+  TString * ts = svalue(this);
+  int len = tslen(ts);
+  char * res = getstr(ts);
+  TValue * delimiter;
+
+  if (expression -> call.args -> count) {
+    delimiter = eval(B, expression -> call.args -> es[0], context);
+    char * ds = getstr(svalue(delimiter));
+    uint32_t dslen = tslen(svalue(delimiter));
+
+    while (len > 0) {
+      int iVal = brute_force_search(res, ds, len, dslen);
+      if (iVal == -1) iVal = len; // For the end
+
+      if (dslen == 0) iVal++; // TODO: support utf-8
+
+      if (iVal > 0) {
+        TValue * newObj = malloc(sizeof(TValue));
+        TString * newStr = beanS_newlstr(B, res, iVal);
+        setsvalue(newObj, newStr);
+        array_push(B, arr, newObj);
+      }
+      res = res + iVal + dslen;
+      len = len - dslen - iVal;
+    }
+  } else {
+    TValue * str = malloc(sizeof(TValue));
+    setsvalue(str, ts);
+    array_push(B, arr, str);
+  }
+
+  setarrvalue(value, arr);
+  return value;
 }
 
 TValue * primitive_String_slice(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
