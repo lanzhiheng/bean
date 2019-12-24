@@ -19,5 +19,9 @@ bool array_push(bean_State * B, Array * arr, TValue * value);
 TValue * array_pop(bean_State * B, Array * arr);
 bool array_unshift(bean_State * B, Array * arr, TValue * value);
 TValue * array_shift(bean_State * B, Array * arr);
-
+TValue * primitive_Array_join(bean_State * B, TValue * this, expr * expression, TValue * context);
+TValue * primitive_Array_shift(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
+TValue * primitive_Array_unshift(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
+TValue * primitive_Array_pop(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
+TValue * primitive_Array_push(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 #endif

@@ -1,0 +1,23 @@
+// Basic handle
+
+var array = ["lanzhiheng", "zhiheng", "lan"]
+
+print(array.join("-"))
+print(array.join(",    "))
+print(array.join())
+
+var popArray = ["lanzhiheng", "zhiheng", "lan"]
+print(popArray.pop())
+print(popArray)
+
+var pushArray = ["lanzhiheng", "zhiheng", "lan"]
+print(pushArray.push("1234"))
+print(pushArray)
+
+var shiftArray = ["lanzhiheng", "zhiheng", "lan"]
+print(shiftArray.shift())
+print(shiftArray)
+
+var unshiftArray = ["lanzhiheng", "zhiheng", "lan"]
+print(unshiftArray.unshift("1233"))
+print(unshiftArray)

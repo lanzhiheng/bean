@@ -232,7 +232,7 @@ TValue * primitive_String_indexOf(bean_State * B, TValue * this, expr * expressi
   return index;
 }
 
-TValue * primitive_String_includes(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+TValue * primitive_String_includes(bean_State * B, TValue * this, expr * expression, TValue * context) {
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
   assert(expression -> call.args -> count == 1);
