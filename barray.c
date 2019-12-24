@@ -115,3 +115,105 @@ bool array_unshift(bean_State * B, Array * arr, TValue * value) {
   arr->count++;
   return true;
 }
+
+TValue * primitive_Array_shift(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  assert(ttisarray(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count == 0);
+  Array * array = arrvalue(this);
+  TValue * value = array_shift(B, array);
+  return value;
+}
+
+TValue * primitive_Array_pop(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  assert(ttisarray(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count == 0);
+  Array * array = arrvalue(this);
+  TValue * value = array_pop(B, array);
+  return value;
+}
+
+
+TValue * primitive_Array_push(bean_State * B, TValue * this, expr * expression, TValue * context) {
+  assert(ttisarray(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count < 2);
+
+  Array * array = arrvalue(this);
+  if (expression -> call.args -> count) {
+    TValue * element = eval(B, expression -> call.args -> es[0], context);
+    array_push(B, array, element);
+  }
+
+  TValue * value = malloc(sizeof(TValue));
+  uint32_t count = array->count;
+  setivalue(value, count);
+  return value;
+}
+
+
+TValue * primitive_Array_unshift(bean_State * B, TValue * this, expr * expression, TValue * context) {
+  assert(ttisarray(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count < 2);
+
+  Array * array = arrvalue(this);
+  if (expression -> call.args -> count) {
+    TValue * element = eval(B, expression -> call.args -> es[0], context);
+    array_unshift(B, array, element);
+  }
+
+  TValue * value = malloc(sizeof(TValue));
+  uint32_t count = array->count;
+  setivalue(value, count);
+  return value;
+}
+
+TValue * primitive_Array_join(bean_State * B, TValue * this, expr * expression, TValue * context) {
+  assert(ttisarray(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count < 2);
+
+  Array * array = arrvalue(this);
+  uint32_t total = 0;
+  TString * dts;
+
+  if (expression -> call.args -> count) {
+    TValue * delimiter = eval(B, expression -> call.args -> es[0], context);
+    assert(ttisstring(delimiter));
+    dts = svalue(delimiter);
+  } else {
+    dts = beanS_newlstr(B, ",", 1);
+  }
+
+  for (uint32_t i = 0; i < array->count; i++) {
+    TValue * str = array->entries[i];
+    TString * ts = svalue(str);
+    total += tslen(ts);
+    total += tslen(dts);
+  }
+
+  total = total - tslen(dts);
+  char * resStr = malloc(sizeof(char) * total + 1);
+
+  uint32_t index = 0;
+  for (uint32_t i = 0; i < array->count; i++) {
+    TValue * str = array->entries[i];
+    TString * ts = svalue(str); // TODO: support to join not string value
+    char * cStr = getstr(ts);
+
+    for (uint32_t j = 0; j < tslen(ts); j++) {
+      resStr[index++] = cStr[j];
+    }
+
+    char * dStr = getstr(dts);
+    for (uint32_t k = 0; k < tslen(dts); k++) {
+      resStr[index++] = dStr[k];
+    }
+  }
+  resStr[index] = 0;
+  TValue * value = malloc(sizeof(TValue));
+  setsvalue(value, beanS_newlstr(B, resStr, total));
+  return value;
+}

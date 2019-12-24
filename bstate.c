@@ -587,6 +587,11 @@ TValue * init_Array(bean_State * B) {
   Hash * h = init_hash(B);
 
   sethashvalue(proto, h);
+  set_prototype_function(B, "join", 4, primitive_Array_join, hhvalue(proto));
+  set_prototype_function(B, "push", 4, primitive_Array_push, hhvalue(proto));
+  set_prototype_function(B, "pop", 3, primitive_Array_pop, hhvalue(proto));
+  set_prototype_function(B, "shift", 5, primitive_Array_shift, hhvalue(proto));
+  set_prototype_function(B, "unshift", 7, primitive_Array_unshift, hhvalue(proto));
   return proto;
 }
 
