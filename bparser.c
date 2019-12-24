@@ -184,16 +184,17 @@ static Proto * parse_prototype(LexState *ls) {
   TString * name = NULL;
 
   bool assign = preToken.type == TK_COLON || preToken.type == TK_ASSIGN;
+  bool immediate = preToken.type == TK_LEFT_PAREN;
 
   if (!testnext(ls, TK_NAME)) {
-    if (!assign) {
+    if (!assign && !immediate) {
       semantic_error(ls, "Expect function name in prototype!");
     }
   } else {
     name = ls->t.seminfo.ts;
   }
 
-  p->assign = assign;
+  p -> assign = assign;
   p -> name = name;
   p -> args = malloc(sizeof(TString) * MAX_ARGS);
   p -> arity = 0;

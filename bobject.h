@@ -52,8 +52,8 @@ typedef struct TValue {
 **
 */
 
-#define fvalue(o) (ttisfalse(o) || ttisnil(o))
-#define tvalue(o) !fvalue(o)
+#define falsyvalue(o) (ttisfalse(o) || ttisnil(o))
+#define truthvalue(o) !falsyvalue(o)
 
 
 /*

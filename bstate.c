@@ -294,7 +294,7 @@ static TValue * loop_eval(bean_State * B, struct expr * expression, TValue * con
   dynamic_expr * body = expression->loop.body;
 
   enter_scope(B);
-  while (tvalue(eval(B, condition, context))) {
+  while (truthvalue(eval(B, condition, context))) {
     for (int i = 0; i < body->count; i++) {
       expr * ep = body->es[i];
 
@@ -362,7 +362,7 @@ static TValue * branch_eval(bean_State * B, struct expr * expression, TValue * c
   dynamic_expr * body;
   enter_scope(B);
 
-  if (tvalue(eval(B, condition, context))) {
+  if (truthvalue(eval(B, condition, context))) {
     body = expression->branch.if_body;
   } else {
     body = expression->branch.else_body;
@@ -592,6 +592,7 @@ TValue * init_Array(bean_State * B) {
   set_prototype_function(B, "pop", 3, primitive_Array_pop, hhvalue(proto));
   set_prototype_function(B, "shift", 5, primitive_Array_shift, hhvalue(proto));
   set_prototype_function(B, "unshift", 7, primitive_Array_unshift, hhvalue(proto));
+  set_prototype_function(B, "find", 4, primitive_Array_find, hhvalue(proto));
   return proto;
 }
 

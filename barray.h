@@ -24,4 +24,5 @@ TValue * primitive_Array_shift(bean_State * B, TValue * this, expr * expression,
 TValue * primitive_Array_unshift(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 TValue * primitive_Array_pop(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 TValue * primitive_Array_push(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
+TValue * primitive_Array_find(bean_State * B, TValue * this, expr * expression, TValue * context);
 #endif

@@ -1,10 +1,11 @@
+#include <stdio.h>
+#include <assert.h>
 #include "mem.h"
 #include "barray.h"
+#include "bstate.h"
 #include "bstring.h"
 #include "berror.h"
 #include "bparser.h"
-#include <stdio.h>
-#include <assert.h>
 
 #define ARRAY_MIN_CAPACITY 16
 
@@ -216,4 +217,44 @@ TValue * primitive_Array_join(bean_State * B, TValue * this, expr * expression, 
   TValue * value = malloc(sizeof(TValue));
   setsvalue(value, beanS_newlstr(B, resStr, total));
   return value;
+}
+
+TValue * primitive_Array_map(bean_State * B, TValue * this, expr * expression, TValue * context);
+
+TValue * primitive_Array_reduce(bean_State * B, TValue * this, expr * expression, TValue * context);
+
+TValue * primitive_Array_find(bean_State * B, TValue * this, expr * expression, TValue * context) {
+  assert(ttisarray(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count == 1);
+
+  TValue * callback = eval(B, expression -> call.args -> es[0], context);
+  assert(ttisfunction(callback));
+  assert(fcvalue(callback)->p->arity == 1);
+
+  Array * arr = arrvalue(this);
+  TValue * val = G(B)->nil;
+  Function * f = fcvalue(callback);
+  TValue * key = malloc(sizeof(TValue));
+  setsvalue(key, f->p->args[0]);
+
+  TValue * ret = NULL;
+  for (uint32_t i = 0; i < arr->count; i++) {
+    enter_scope(B);
+
+    SCSV(B, key, arr->entries[i]);
+
+    for (int j = 0; j < f->body->count; j++) {
+      expr * ex = f->body->es[j];
+      ret = eval(B, ex, this);
+      if (ex->type == EXPR_RETURN) break;
+    }
+    leave_scope(B);
+
+    if (truthvalue(ret)) {
+      val = arr->entries[i];
+      break;
+    }
+  }
+  return val;
 }
