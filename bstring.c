@@ -200,19 +200,55 @@ TValue * primitive_String_capitalize(bean_State * B, TValue * this, expr * expre
   return value;
 }
 
-// TODO: 子串搜索算法
-/* TValue * primitive_String_indexOf(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) { */
+static int brute_force_search(TString * text, TString * pattern){
+  uint32_t m = tslen(pattern);
+  uint32_t n = tslen(text);
+  char * tstr = getstr(text);
+  char * pstr = getstr(pattern);
+  int ret = -1;
 
-/* } */
+  uint32_t i, j;
+  for(i = 0; i < n; i++) {
+    for(j = 0; j < m && i + j < n; j++) {
+      if(tstr[i + j] != pstr[j]) break;
+    }
+    if(j == m) {
+      ret = i;
+    }
+  }
 
-/* TValue * primitive_String_includes(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) { */
+  return ret;
+}
 
-/* } */
+TValue * primitive_String_indexOf(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count == 1);
+  TValue * pattern = eval(B, expression -> call.args -> es[0], context);
+  assert(ttisstring(pattern));
+  int iVal = brute_force_search(svalue(this), svalue(pattern));
+  TValue * index = malloc(sizeof(TValue));
+  setivalue(index, iVal);
+  return index;
+}
 
-// TODO: 子串搜索算法
+TValue * primitive_String_includes(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count == 1);
+  TValue * pattern = eval(B, expression -> call.args -> es[0], context);
+  assert(ttisstring(pattern));
+  int iVal = brute_force_search(svalue(this), svalue(pattern));
+  TValue * value = malloc(sizeof(TValue));
+  setbvalue(value, iVal == -1 ? false : true);
+  return value;
+}
 
 TValue * primitive_String_split(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
-
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  assert(expression -> call.args -> count < 2);
+  /* Value * delimiter = eval(B, expression -> call.args -> es[0], context); */
 }
 
 TValue * primitive_String_slice(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {

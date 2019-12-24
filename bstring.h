@@ -33,4 +33,6 @@ TValue *  primitive_String_upcase(bean_State * B, TValue * this, expr * expressi
 TValue *  primitive_String_downcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 TValue *  primitive_String_capitalize(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 TValue *  primitive_String_slice(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
+TValue *  primitive_String_indexOf(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
+TValue * primitive_String_includes(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 #endif

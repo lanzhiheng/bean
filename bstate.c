@@ -576,6 +576,8 @@ TValue * init_String(bean_State * B) {
   set_prototype_function(B, "downcase", 8, primitive_String_downcase, hhvalue(proto));
   set_prototype_function(B, "capitalize", 10, primitive_String_capitalize, hhvalue(proto));
   set_prototype_function(B, "slice", 5, primitive_String_slice, hhvalue(proto));
+  set_prototype_function(B, "indexOf", 7, primitive_String_indexOf, hhvalue(proto));
+  set_prototype_function(B, "includes", 8, primitive_String_includes, hhvalue(proto));
   return proto;
 }
 
