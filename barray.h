@@ -25,4 +25,7 @@ TValue * primitive_Array_unshift(bean_State * B, TValue * this, expr * expressio
 TValue * primitive_Array_pop(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 TValue * primitive_Array_push(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 TValue * primitive_Array_find(bean_State * B, TValue * this, expr * expression, TValue * context);
+TValue * primitive_Array_map(bean_State * B, TValue * this, expr * expression, TValue * context);
+TValue * primitive_Array_reduce(bean_State * B, TValue * this, expr * expression, TValue * context);
+TValue * primitive_Array_reverse(bean_State * B UNUSED, TValue * this, expr * expression, TValue * context UNUSED);
 #endif
