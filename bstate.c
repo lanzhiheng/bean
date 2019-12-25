@@ -593,6 +593,9 @@ TValue * init_Array(bean_State * B) {
   set_prototype_function(B, "shift", 5, primitive_Array_shift, hhvalue(proto));
   set_prototype_function(B, "unshift", 7, primitive_Array_unshift, hhvalue(proto));
   set_prototype_function(B, "find", 4, primitive_Array_find, hhvalue(proto));
+  set_prototype_function(B, "map", 3, primitive_Array_map, hhvalue(proto));
+  set_prototype_function(B, "reduce", 6, primitive_Array_reduce, hhvalue(proto));
+  set_prototype_function(B, "reverse", 7, primitive_Array_reverse, hhvalue(proto));
   return proto;
 }
 

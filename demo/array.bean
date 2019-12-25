@@ -37,3 +37,36 @@ print(findArrayStr.find(fn cb(a) {
   a.equal("lan")
   // print(cb)
 }))
+
+
+var mapArray = [1, 2, 3, 4]
+print(mapArray.map(fn(a) {
+ a * 300
+}))
+
+print(mapArray.map(fn(a) {
+ a * 9
+}))
+
+var reduceArray = [1, 2, 3, 4]
+print(reduceArray.reduce(fn(a, b) {
+  return a + b
+}, 0))
+
+print(reduceArray.reduce(fn(a, b) {
+  return a * b
+}, 1))
+
+
+var reduceStrArray = ["lanzhiheng", "zhiheng"]
+print(reduceStrArray.reduce(fn(a,b) {
+  return b.concat(a)
+}, ""))
+
+// reduceStrArray.a = 1
+print(reduceStrArray.proto())
+
+var reverseArray = [1, 2, 3, 4, "string"]
+print(reverseArray.reverse())
+var reverseArray = []
+print(reverseArray.reverse())
