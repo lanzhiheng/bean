@@ -70,3 +70,8 @@ var reverseArray = [1, 2, 3, 4, "string"]
 print(reverseArray.reverse())
 var reverseArray = []
 print(reverseArray.reverse())
+
+// join different type
+var joinDiff = [1,2,3,4,5,"lanzhiheng"]
+print(joinDiff)
+print(joinDiff.join(","))

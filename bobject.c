@@ -19,89 +19,176 @@ bool tvalue_equal(TValue * v1, TValue * v2) {
   }
 }
 
-TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
+static char * hash_inspect(bean_State * B, Hash * hash) {
+  uint32_t total = 0;
+  char * colon = ": ";
+  char * comma = ", ";
+  uint32_t colon_Len = strlen(colon);
+  uint32_t comma_Len = strlen(comma);
+
+  if (!hash->count) return "{}";
+
+  for (uint32_t i = 0; i < hash->capacity; i++) {
+    if (!hash->entries[i]) continue;
+
+    Entry * e = hash->entries[i];
+    while (e) {
+      TValue * key = tvalue_inspect(B, e->key);
+      TValue * value = tvalue_inspect_pure(B, e->value);
+      total += tslen(svalue(key)) + tslen(svalue(value)) + colon_Len + comma_Len;
+      e = e -> next;
+    }
+  }
+  total = total - comma_Len;
+
+  char * resStr = malloc(sizeof(char) * total + 2 + 1);
+
+  uint32_t index = 0;
+  resStr[index++] = '{';
+  for (uint32_t i = 0; i < hash->capacity; i++) {
+    if (!hash->entries[i]) continue;
+
+    Entry * e = hash->entries[i];
+    while (e) {
+      TValue * key = tvalue_inspect(B, e->key);
+      TValue * value = tvalue_inspect_pure(B, e->value);
+      char * key_Str = getstr(svalue(key));
+      char * value_Str = getstr(svalue(value));
+
+      for (uint32_t j = 0; j < strlen(key_Str); j++) {
+        resStr[index++] = key_Str[j];
+      }
+
+      for (uint32_t k = 0; k < colon_Len; k++) {
+        resStr[index++] = colon[k];
+      }
+
+      for (uint32_t l = 0; l < strlen(value_Str); l++) {
+        resStr[index++] = value_Str[l];
+      }
+
+      for (uint32_t m = 0; m < comma_Len; m++) {
+        resStr[index++] = comma[m];
+      }
+
+      e = e -> next;
+    }
+  }
+
+  index -= comma_Len;
+  resStr[index++] = '}';
+  resStr[index] = 0;
+  return resStr;
+}
+
+static char * array_inspect(bean_State * B, Array * array) {
+  uint32_t total = 0;
+  char * delimiter = ", ";
+  uint32_t del_Len = strlen(delimiter);
+
+  if (!array->count) return "[]";
+
+  for (uint32_t i = 0; i < array->count; i++) {
+    TValue * elm = array->entries[i];
+    TString * ts = svalue(tvalue_inspect_pure(B, elm));
+    total += tslen(ts);
+    total += del_Len;
+  }
+
+  total = total - del_Len;
+
+  char * resStr = malloc(sizeof(char) * total + 2 + 1);
+  uint32_t index = 0;
+
+  resStr[index++] = '[';
+  for (uint32_t i = 0; i < array->count; i++) {
+    TValue * elm = array->entries[i];
+    TString * ts = svalue(tvalue_inspect_pure(B, elm));
+    char * cStr = getstr(ts);
+
+    for (uint32_t j = 0; j < tslen(ts); j++) {
+      resStr[index++] = cStr[j];
+    }
+
+    for (uint32_t k = 0; k < del_Len; k++) {
+      resStr[index++] = delimiter[k];
+    }
+  }
+  index = index - del_Len;
+  resStr[index++] = ']';
+  resStr[index] = 0;
+  return resStr;
+}
+
+static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
+  TValue * inspect = malloc(sizeof(TValue));
+  char * string;
+
   switch(value -> tt_) {
     case BEAN_TNIL: {
-      printf("nil");
+      string = "nil";
       break;
     }
     case BEAN_TBOOLEAN: {
       bool b = bvalue(value);
-      if (b) {
-        printf("true");
-      } else {
-        printf("false");
-      }
+      string = b ? "true" : "false";
       break;
     }
     case BEAN_TNUMFLT:
-      printf("%Lf", fltvalue(value));
+      string = malloc(sizeof(char) * 100);
+      sprintf(string, "%Lf", fltvalue(value));
       break;
     case BEAN_TNUMINT:
-      printf("%ld", ivalue(value));
+      string = malloc(sizeof(char) * 100);
+      sprintf(string, "%ld", ivalue(value));
       break;
-    case BEAN_TSTRING:
-      printf("%s", getstr(svalue(value)));
-      break;
-    case BEAN_TLIST: {
-      Array * arr = arrvalue(value);
-      printf("[");
-      for (uint32_t i = 0; i < arr->count; i++) {
-        TValue * v = arr->entries[i];
-        if (ttisstring(v)) printf("\"");
-        tvalue_inspect(B, v);
-        if (ttisstring(v)) printf("\"");
-
-        printf(", ");
-      }
-      if (arr->count) {
-        printf("\b\b]");
+    case BEAN_TSTRING: {
+      TString * ts = svalue(value);
+      uint32_t len = tslen(ts);
+      if (pure) {
+        string = malloc(sizeof(char) * len + 2 + 1);
+        sprintf(string, "\"%s\"", getstr(ts));
       } else {
-        printf("]");
+        string = malloc(sizeof(char) * len + 1);
+        sprintf(string, "%s", getstr(ts));
       }
       break;
     }
+    case BEAN_TLIST: {
+      string = array_inspect(B, arrvalue(value));
+      break;
+    }
     case BEAN_THASH: {
-      Hash * hash = hhvalue(value);
-      printf("{");
-      for (uint32_t i = 0; i < hash->capacity; i++) {
-        if (!hash->entries[i]) continue;
-
-        Entry * e = hash->entries[i];
-        while (e) {
-          TValue * key = e -> key;
-          TValue * value = e -> value;
-          tvalue_inspect(B, key);
-          printf(": ");
-          if (ttisstring(value)) printf("\"");
-          tvalue_inspect(B, value);
-          if (ttisstring(value)) printf("\"");
-          e = e -> next;
-          printf(", ");
-        }
-      }
-      if (hash->count) {
-        printf("\b\b}");
-      } else {
-        printf("}");
-      }
+      string = hash_inspect(B, hhvalue(value));
       break;
     }
     case BEAN_TFUNCTION: {
       Function * f = fcvalue(value);
       TString * ts = f->p->name;
-      printf("[Function %s]", getstr(ts));
+      uint32_t len = tslen(ts);
+      string = malloc(sizeof(char) * len + 1 + 11);
+      sprintf(string, "[Function %s]", getstr(ts));
       break;
     }
     case BEAN_TTOOL: {
-      printf("[Primitive function]");
+      string = "[Primitive function]";
       break;
     }
     default:
-      printf("invalid value");
+      string = "invalid value";
       break;
   }
-  return value;
+  TString * ts = beanS_newlstr(B, string, strlen(string));
+  setsvalue(inspect, ts);
+  return inspect;
+}
+
+TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
+  return inspect(B, value, false);
+}
+
+TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value) {
+  return inspect(B, value, true);
 }
 
 TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * expression, TValue * context) {
@@ -110,8 +197,8 @@ TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * exp
   for (int i = 0; i < expression -> call.args -> count; i ++) {
     expr * ep = expression -> call.args -> es[i];
     TValue * tvalue = eval(B, ep, context);
-    tvalue_inspect(B, tvalue);
-    printf(" ");
+    TValue * string = tvalue_inspect(B, tvalue);
+    printf("%s", getstr(svalue(string)));
   }
   printf("\n");
   return G(B)->nil;
