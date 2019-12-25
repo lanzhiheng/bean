@@ -30,6 +30,6 @@ typedef struct Mbuffer {
   ((buff) -> buffer = beanM_realloc_(B, (buff) -> buffer, (buff)->buffsize, size), \
    (buff) -> buffsize = size)
 
-#define beanZ_freebuffer(B, buff)	luaZ_resizebuffer(B, buff, 0)
+#define beanZ_freebuffer(B, buff)	beanZ_resizebuffer(B, buff, 0)
 
 #endif
