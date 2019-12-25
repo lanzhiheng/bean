@@ -150,6 +150,7 @@ typedef struct TValue {
 
 /* void setValue(TValue * target, TValue * source); */
 bool tvalue_equal(TValue * v1, TValue * v2);
-TValue * tvalue_inspect(bean_State * B, TValue * value);
+TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value);
+TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value);
 TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * expression, TValue * context);
 #endif

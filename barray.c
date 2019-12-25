@@ -189,8 +189,8 @@ TValue * primitive_Array_join(bean_State * B, TValue * this, expr * expression, 
   }
 
   for (uint32_t i = 0; i < array->count; i++) {
-    TValue * str = array->entries[i];
-    TString * ts = svalue(str);
+    TValue * elm = array->entries[i];
+    TString * ts = svalue(tvalue_inspect(B, elm));
     total += tslen(ts);
     total += tslen(dts);
   }
@@ -200,8 +200,8 @@ TValue * primitive_Array_join(bean_State * B, TValue * this, expr * expression, 
 
   uint32_t index = 0;
   for (uint32_t i = 0; i < array->count; i++) {
-    TValue * str = array->entries[i];
-    TString * ts = svalue(str); // TODO: support to join not string value
+    TValue * elm = array->entries[i];
+    TString * ts = svalue(tvalue_inspect(B, elm));
     char * cStr = getstr(ts);
 
     for (uint32_t j = 0; j < tslen(ts); j++) {
