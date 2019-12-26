@@ -226,7 +226,6 @@ TValue * primitive_Array_map(bean_State * B, TValue * this, expr * expression, T
 
   TValue * callback = eval(B, expression -> call.args -> es[0], context);
   assert(ttisfunction(callback));
-  assert(fcvalue(callback)->p->arity == 1);
 
   Array * arr = arrvalue(this);
   Array * newarr = init_array(B);
@@ -240,6 +239,12 @@ TValue * primitive_Array_map(bean_State * B, TValue * this, expr * expression, T
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
+
+    for (int m = 1; m < f->p->arity; m++) { // All extra is nil
+      TValue * extra = malloc(sizeof(TValue));
+      setsvalue(extra, f->p->args[m]);
+      SCSV(B, extra, G(B)->nil);
+    }
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
@@ -280,7 +285,6 @@ TValue * primitive_Array_reduce(bean_State * B, TValue * this, expr * expression
 
   TValue * callback = eval(B, expression -> call.args -> es[0], context);
   assert(ttisfunction(callback));
-  assert(fcvalue(callback)->p->arity == 2);
 
   Array * arr = arrvalue(this);
   TValue * val = eval(B, expression -> call.args -> es[1], context);
@@ -296,6 +300,12 @@ TValue * primitive_Array_reduce(bean_State * B, TValue * this, expr * expression
 
     SCSV(B, elem, arr->entries[i]);
     SCSV(B, acc, val);
+
+    for (int m = 2; m < f->p->arity; m++) { // All extra is nil
+      TValue * extra = malloc(sizeof(TValue));
+      setsvalue(extra, f->p->args[m]);
+      SCSV(B, extra, G(B)->nil);
+    }
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
@@ -316,7 +326,7 @@ TValue * primitive_Array_find(bean_State * B, TValue * this, expr * expression, 
 
   TValue * callback = eval(B, expression -> call.args -> es[0], context);
   assert(ttisfunction(callback));
-  assert(fcvalue(callback)->p->arity == 1);
+  assert(fcvalue(callback)->p->arity >= 1);
 
   Array * arr = arrvalue(this);
   TValue * val = G(B)->nil;
@@ -330,6 +340,12 @@ TValue * primitive_Array_find(bean_State * B, TValue * this, expr * expression, 
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
+
+    for (int m = 1; m < f->p->arity; m++) { // All extra is nil
+      TValue * extra = malloc(sizeof(TValue));
+      setsvalue(extra, f->p->args[m]);
+      SCSV(B, extra, G(B)->nil);
+    }
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
