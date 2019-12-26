@@ -1,0 +1,7 @@
+fn simple(a, b) {
+  print(a, b)
+}
+
+simple(1, 2)
+simple(1)
+simple(1, 2, 3)

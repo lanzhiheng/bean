@@ -44,11 +44,12 @@ print(mapArray.map(fn(a) {
  a * 300
 }))
 
-print(mapArray.map(fn(a) {
- a * 9
+print(mapArray.map(fn(a, b) { // all is nil
+ b
 }))
 
 var reduceArray = [1, 2, 3, 4]
+
 print(reduceArray.reduce(fn(a, b) {
   return a + b
 }, 0))
@@ -56,7 +57,6 @@ print(reduceArray.reduce(fn(a, b) {
 print(reduceArray.reduce(fn(a, b) {
   return a * b
 }, 1))
-
 
 var reduceStrArray = ["lanzhiheng", "zhiheng"]
 print(reduceStrArray.reduce(fn(a,b) {

@@ -341,12 +341,20 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
 
     // Use binding context
     TValue * selfContext = f->context ? f->context : context;
-    assert(expression->call.args -> count == f->p->arity);
-    for (int i = 0; i < expression->call.args -> count; i++) {
+
+    for (int i = 0; i < f->p->arity; i++) {
       TValue * key = malloc(sizeof(TValue));
       setsvalue(key, f->p->args[i]);
-      SCSV(B, key, eval(B, expression->call.args->es[i], context));
+
+      expr * param = expression->call.args->es[i];
+
+      if (param) {
+        SCSV(B, key, eval(B, expression->call.args->es[i], context));
+      } else {
+        SCSV(B, key, G(B)->nil);
+      }
     }
+
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       ret = eval(B, ex, selfContext);
