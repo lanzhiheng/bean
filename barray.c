@@ -236,6 +236,7 @@ TValue * primitive_Array_map(bean_State * B, TValue * this, expr * expression, T
   setsvalue(key, f->p->args[0]);
 
   for (uint32_t i = 0; i < arr->count; i++) {
+    push(false);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
@@ -243,11 +244,12 @@ TValue * primitive_Array_map(bean_State * B, TValue * this, expr * expression, T
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       ret = eval(B, ex, this);
-      if (ex->type == EXPR_RETURN) break;
+      if (peek()) break;
     }
-    leave_scope(B);
-
     array_push(B, newarr, ret);
+
+    leave_scope(B);
+    pop();
   }
 
   TValue * value = malloc(sizeof(TValue));
@@ -289,6 +291,7 @@ TValue * primitive_Array_reduce(bean_State * B, TValue * this, expr * expression
   setsvalue(acc, f->p->args[1]);
 
   for (uint32_t i = 0; i < arr->count; i++) {
+    push(false);
     enter_scope(B);
 
     SCSV(B, elem, arr->entries[i]);
@@ -297,9 +300,10 @@ TValue * primitive_Array_reduce(bean_State * B, TValue * this, expr * expression
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       val = eval(B, ex, this);
-      if (ex->type == EXPR_RETURN) break;
+      if (peek()) break;
     }
     leave_scope(B);
+    pop();
   }
 
   return val;
@@ -322,6 +326,7 @@ TValue * primitive_Array_find(bean_State * B, TValue * this, expr * expression, 
 
   TValue * ret = NULL;
   for (uint32_t i = 0; i < arr->count; i++) {
+    push(false);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
@@ -329,14 +334,16 @@ TValue * primitive_Array_find(bean_State * B, TValue * this, expr * expression, 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       ret = eval(B, ex, this);
-      if (ex->type == EXPR_RETURN) break;
+      if (peek()) break;
     }
-    leave_scope(B);
+
 
     if (truthvalue(ret)) {
       val = arr->entries[i];
       break;
     }
+    leave_scope(B);
+    pop();
   }
   return val;
 }

@@ -1,6 +1,7 @@
 #ifndef _BEAN_STATE_H
 #define _BEAN_STATE_H
 
+#include "stack.h"
 #include "common.h"
 #include "bobject.h"
 #include "bhash.h"

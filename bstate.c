@@ -312,6 +312,7 @@ static TValue * loop_eval(bean_State * B, struct expr * expression, TValue * con
 }
 
 static TValue * return_eval(bean_State * B, struct expr * expression, TValue * context) {
+  set(true);
   expr * retValue = expression->ret.ret_val;
   return eval(B, retValue, context);
 }
@@ -319,6 +320,7 @@ static TValue * return_eval(bean_State * B, struct expr * expression, TValue * c
 static TValue * function_call_eval (bean_State * B, struct expr * expression, TValue * context) {
   TValue * ret = NULL;
   enter_scope(B);
+
   TValue * func = eval(B, expression->call.callee, context);
 
   if (ttistool(func)) {
@@ -335,6 +337,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
     ret = t -> function(B, v, expression, selfContext);
   } else if (ttisfunction(func)) {
     Function * f = fcvalue(func);
+    push(false);
 
     // Use binding context
     TValue * selfContext = f->context ? f->context : context;
@@ -347,8 +350,9 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       ret = eval(B, ex, selfContext);
-      if (ex->type == EXPR_RETURN) break;
+      if (peek()) break;
     }
+    pop();
   } else {
     eval_error(B, "%s", "You are trying to call which is not a function.");
   }
@@ -368,13 +372,19 @@ static TValue * branch_eval(bean_State * B, struct expr * expression, TValue * c
     body = expression->branch.else_body;
   }
 
-  for (int i = 0; i < body->count; i++) {
-    expr * ep = body->es[i];
-    eval(B, ep, context);
+  TValue * retVal;
+
+  if (body) {
+    for (int i = 0; i < body->count; i++) {
+      expr * ep = body->es[i];
+      retVal = eval(B, ep, context);
+    }
+  } else {
+    retVal = G(B) -> nil;
   }
 
   leave_scope(B);
-  return G(B)->nil;
+  return retVal;
 }
 
 static TValue * string_eval(bean_State * B UNUSED, struct expr * expression, TValue * context UNUSED) {
