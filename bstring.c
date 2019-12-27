@@ -2,6 +2,7 @@
 #include "bstring.h"
 #include "berror.h"
 #include "bparser.h"
+#include "utf8.h"
 
 static TString *createstrobj (bean_State * B, size_t l, int tag, unsigned int h) {
   size_t totalsize = sizeofstring(l);
@@ -222,7 +223,8 @@ TValue * primitive_String_length(bean_State * B UNUSED, TValue * this, expr * ex
   assert(ttisstring(this));
   TString * ts = svalue(this);
   TValue * length = malloc(sizeof(TValue));
-  setivalue(length, tslen(ts));
+  char * string = getstr(ts);
+  setivalue(length, u8_strlen(string));
   return length;
 }
 
