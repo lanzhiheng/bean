@@ -456,17 +456,17 @@ static void skip_semicolon(LexState * ls) { // Skip all the semicolon
   while (ls -> t.type == TK_SEMI) beanX_next(ls);
 }
 
-static void parse_program(LexState * ls) {
+static void parse_program(LexState * ls, TValue ** value) {
   skip_semicolon(ls);
   expr * ex = parse_statement(ls, BP_LOWEST);
   skip_semicolon(ls);
-  eval(ls->B, ex, G(ls->B)->nil);
+  *value = eval(ls->B, ex, G(ls->B)->nil);
 }
 
-void bparser(LexState * ls) {
+void bparser(LexState * ls, TValue ** value) {
   beanX_next(ls);
 
   while (ls -> current != EOZ) {
-    parse_program(ls);
+    parse_program(ls, value);
   }
 }

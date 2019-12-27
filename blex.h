@@ -78,7 +78,7 @@ typedef struct LexState {
 } LexState;
 
 void beanX_init (bean_State *B);
-void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source, int firstchar);
+void beanX_setinput (bean_State *B, char * inputStream, TString *source, int firstchar);
 void beanX_next (LexState *ls);
 const char *beanX_token2str (LexState *ls, int token);
 const char *txtToken (LexState *ls, int token);

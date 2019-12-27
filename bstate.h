@@ -178,6 +178,7 @@ typedef struct expr {
 void global_init(bean_State * B);
 TValue * eval(bean_State * B, expr * expression, TValue * context);
 void run_file(const char * path);
+void run();
 void enter_scope(bean_State * B);
 void leave_scope(bean_State * B);
 #endif
