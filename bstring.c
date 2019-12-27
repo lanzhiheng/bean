@@ -299,7 +299,7 @@ TValue * primitive_String_split(bean_State * B UNUSED, TValue * this, expr * exp
       int iVal = brute_force_search(res, ds, len, dslen);
       if (iVal == -1) iVal = len; // For the end
 
-      if (dslen == 0) iVal++; // TODO: support utf-8
+      if (dslen == 0) u8_nextchar(res, &iVal);
 
       if (iVal > 0) {
         TValue * newObj = malloc(sizeof(TValue));
