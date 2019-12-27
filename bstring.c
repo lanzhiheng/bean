@@ -201,18 +201,30 @@ TValue * primitive_String_capitalize(bean_State * B, TValue * this, expr * expre
   return value;
 }
 
-static int brute_force_search(char * text, char * pattern, uint32_t n, uint32_t m){
+static int brute_force_search(char * text, char * pattern, int n, int m){
   int ret = -1;
 
   if (!m) return 0; // search empty string
 
-  uint32_t i, j;
-  for(i = 0; i < n; i++) {
-    for(j = 0; j < m && i + j < n; j++) {
-      if(text[i + j] != pattern[j]) break;
+  int i, j, count;
+
+  for (i = 0, count = 0; i < n; u8_nextchar(text, &i), count++) {
+    int k = i; // as a pointer
+
+    for (j = 0; j < m && i + j < n; u8_nextchar(pattern, &j)) {
+      int l = j; // as a pointer
+
+      uint32_t charcode1 = u8_nextchar(pattern, &l);
+      uint32_t charcode2 = u8_nextchar(text, &k);
+
+      if (charcode1 != charcode2) {
+        break;
+      }
     }
-    if(j == m) {
-      ret = i;
+
+    if (j == m) {
+      ret = count;
+      break;
     }
   }
 
