@@ -219,6 +219,17 @@ static int brute_force_search(char * text, char * pattern, uint32_t n, uint32_t 
   return ret;
 }
 
+TValue * primitive_String_codePoint(bean_State * B UNUSED, TValue * this, expr * expression UNUSED, TValue * context UNUSED) {
+  assert(ttisstring(this));
+  TString * ts = svalue(this);
+  TValue * codepoint = malloc(sizeof(TValue));
+  char * string = getstr(ts);
+  int i = 0;
+  uint32_t m = u8_nextchar(string, &i);
+  setivalue(codepoint, m);
+  return codepoint;
+}
+
 TValue * primitive_String_length(bean_State * B UNUSED, TValue * this, expr * expression UNUSED, TValue * context UNUSED) {
   assert(ttisstring(this));
   TString * ts = svalue(this);

@@ -644,6 +644,7 @@ TValue * init_String(bean_State * B) {
   set_prototype_function(B, "includes", 8, primitive_String_includes, hhvalue(proto));
   set_prototype_getter(B, "length", 6, primitive_String_length, hhvalue(proto));
   set_prototype_function(B, "split", 5, primitive_String_split, hhvalue(proto));
+  set_prototype_function(B, "codePoint", 9, primitive_String_codePoint, hhvalue(proto));
   return proto;
 }
 

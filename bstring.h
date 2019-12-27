@@ -37,4 +37,5 @@ TValue *  primitive_String_indexOf(bean_State * B, TValue * this, expr * express
 TValue * primitive_String_includes(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED);
 TValue * primitive_String_split(bean_State * B UNUSED, TValue * this, expr * expression, TValue * context UNUSED);
 TValue * primitive_String_length(bean_State * B UNUSED, TValue * this, expr * expression UNUSED, TValue * context UNUSED);
+TValue * primitive_String_codePoint(bean_State * B UNUSED, TValue * this, expr * expression UNUSED, TValue * context UNUSED);
 #endif
