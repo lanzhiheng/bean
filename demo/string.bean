@@ -3,7 +3,6 @@ print(str.concat("World."))
 print(str.equal("Hello, "))
 print(str.equal("Hello"))
 
-
 var strWithWhiteSpace = "\t\t\t\thello\n\n\n    "
 print(strWithWhiteSpace.trim())
 
@@ -32,3 +31,9 @@ print(indexstr.indexOf(""))
 print(indexstr.split())
 print(indexstr.split(""))
 print(indexstr.split("zhih"))
+
+var strLen1 = "lanzhiheng"
+print(strLen1.length)
+
+var strLen2 = "你好"
+print(strLen2.length)

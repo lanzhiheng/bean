@@ -218,6 +218,14 @@ static int brute_force_search(char * text, char * pattern, uint32_t n, uint32_t 
   return ret;
 }
 
+TValue * primitive_String_length(bean_State * B UNUSED, TValue * this, expr * expression UNUSED, TValue * context UNUSED) {
+  assert(ttisstring(this));
+  TString * ts = svalue(this);
+  TValue * length = malloc(sizeof(TValue));
+  setivalue(length, tslen(ts));
+  return length;
+}
+
 TValue * primitive_String_indexOf(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
   assert(ttisstring(this));
   assert(expression -> type == EXPR_CALL);
