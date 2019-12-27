@@ -518,10 +518,13 @@ static struct Scope * create_scope(bean_State * B, struct Scope * previous) {
 }
 
 static bean_State * bean_State_init() {
+  LexState * ls = malloc(sizeof(LexState));
   bean_State * B = malloc(sizeof(bean_State));
   B -> allocateBytes = 0;
   global_init(B);
   beanX_init(B);
+  B -> ls = ls;
+  ls -> B = B;
   return B;
 }
 
@@ -548,14 +551,41 @@ void run_file(const char * path) {
     filename = lastSlash + 1;
   }
 
-  LexState * ls = malloc(sizeof(LexState));
   bean_State * B = bean_State_init();
   TString * e = beanS_newlstr(B, filename, strlen(filename));
   printf("Source file name is %s.\n", getstr(e));
   char* source = read_source_file(B, path);
-  beanX_setinput(B, ls, source, e, *source);
-  B -> ls = ls;
-  bparser(ls);
+  beanX_setinput(B, source, e, *source);
+
+  TValue * value = malloc(sizeof(TValue));
+  bparser(B->ls, &value);
+}
+
+void run() {
+  char * source;
+  size_t buffersize = 200;
+  size_t len;
+  source = (char *)malloc(buffersize * sizeof(char));
+
+  if( source == NULL) {
+    perror("Unable to allocate buffer");
+    exit(1);
+  }
+
+  bean_State * B = bean_State_init();
+  TString * e = beanS_newlstr(B, "REPL", 4);
+
+  while(true) {
+    printf("> ");
+    len = getline(&source, &buffersize, stdin);
+    if (len == 1 && source[0] == '\n') continue;
+    beanX_setinput(B, source, e, *source);
+    TValue * value = malloc(sizeof(TValue));
+    bparser(B->ls, &value);
+    TValue * string = tvalue_inspect_pure(B, value);
+    TString * ts = svalue(string);
+    printf("=> %s\n", getstr(ts));
+  }
 }
 
 static Tool * initialize_tool_by_fn(primitive_Fn fn, bool getter) {

@@ -59,7 +59,8 @@ const char *beanX_token2str (LexState *ls, int token) {
     return s;
 }
 
-void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *source, int firstchar) {
+void beanX_setinput (bean_State *B, char * inputStream, TString *source, int firstchar) {
+  LexState * ls = B->ls;
   ls -> current = firstchar;
   ls -> linenumber = 1;
   ls -> lastline = 1;
@@ -67,7 +68,6 @@ void beanX_setinput (bean_State *B, LexState *ls, char * inputStream, TString *s
   ls -> pre.type = 0;
   ls -> source = source;
   ls -> fs = NULL;
-  ls -> B = B;
   ls -> inputStream = inputStream;
   ls -> envn = beanS_newliteral(B, BEAN_ENV);
   ls -> buff = malloc(sizeof(Mbuffer));

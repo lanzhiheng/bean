@@ -8,7 +8,7 @@ int main(int argc, char ** argv) {
 #else
 int main(int argc, char ** argv) {
   if (argc == 1) {
-    ;
+    run();
   } else {
     run_file(argv[1]);
   }
