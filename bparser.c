@@ -34,8 +34,6 @@ static void add_element(bean_State * B, dynamic_expr * target, struct expr * exp
    than 250, due to the bytecode format) */
 #define MAXVARS		200
 
-#define hasmultret(kind)		((kind) == VCALL || (kind) == VVARARG)
-
 /*
 ** maximum number of upvalues in a closure (both C and Lua). (Value
 ** must fit in a VM register.)

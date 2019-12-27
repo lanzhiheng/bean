@@ -73,6 +73,7 @@ typedef TValue* (*primitive_Fn) (bean_State * B, TValue * this, struct expr * ex
 typedef struct Tool {
   primitive_Fn function;
   TValue * context;
+  bool getter;
 } Tool;
 
 typedef struct Function {
