@@ -48,5 +48,6 @@ void push(int data) {
     stack[top] = data;
   } else {
     printf("Could not insert data, Stack is full.\n");
+    abort();
   }
 }

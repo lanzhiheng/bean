@@ -2,9 +2,9 @@ var hash = {}
 var string = ""
 var array = []
 
-print(string.proto().proto().proto())
-print(array.proto().proto())
-print(hash.proto())
+print(string.__proto__.__proto__.__proto__)
+print(array.__proto__.__proto__)
+print(hash.__proto__)
 
 // test clone
 
@@ -14,8 +14,8 @@ var new2 = new1.clone()
 new2.name = 'new2'
 
 print(new2)
-print(new2.proto())
-print(new2.proto().proto())
+print(new2.__proto__)
+print(new2.__proto__.__proto__)
 
 // Raise error.
 // nil.id

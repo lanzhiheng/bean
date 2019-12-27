@@ -64,7 +64,7 @@ print(reduceStrArray.reduce(fn(a,b) {
 }, ""))
 
 // reduceStrArray.a = 1
-print(reduceStrArray.proto())
+print(reduceStrArray.__proto__)
 
 var reverseArray = [1, 2, 3, 4, "string"]
 print(reverseArray.reverse())
