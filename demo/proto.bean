@@ -1,0 +1,12 @@
+var array = []
+
+print(array.__proto__)
+print(array.__proto__.__proto__)
+print(array.__proto__.__proto__.__proto__)
+
+var string = ""
+print(string.__proto__)
+
+
+var hash = {}
+print(string.__proto__)

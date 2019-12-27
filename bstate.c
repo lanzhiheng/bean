@@ -215,7 +215,13 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression, TV
       if (ttisfunction(value)) { // setting context for function
         fcvalue(value)->context = object;
       } else if (ttistool(value)) {
-        tlvalue(value)->context = object;
+        Tool * tl = tlvalue(value);
+        tl->context = object;
+
+        if (tl->getter) {
+          expr * ep = malloc(sizeof(expr));
+          value = tl->function(B, object, ep, context);
+        }
       }
       return value;
     }
@@ -552,10 +558,11 @@ void run_file(const char * path) {
   bparser(ls);
 }
 
-static Tool * initialize_tool_by_fn(primitive_Fn fn) {
+static Tool * initialize_tool_by_fn(primitive_Fn fn, bool getter) {
   Tool * t = malloc(sizeof(Tool));
   t -> function = fn;
   t -> context = NULL;
+  t -> getter = getter;
   return t;
 }
 
@@ -567,20 +574,29 @@ static void add_tools(bean_State * B) {
   setsvalue(name, ts);
 
   TValue * func = malloc(sizeof(TValue));
-  Tool * tool = initialize_tool_by_fn(primitive_print);
+  Tool * tool = initialize_tool_by_fn(primitive_print, false);
 
   settlvalue(func, tool);
   hash_set(B, variables, name, func);
 }
 
-static void set_prototype_function(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h) {
+static void set_prototype(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h, bool getter) {
   TValue * name = malloc(sizeof(TValue));
   setsvalue(name, beanS_newlstr(B, method, len));
   TValue * func = malloc(sizeof(TValue));
-  Tool * t = initialize_tool_by_fn(fn);
+  Tool * t = initialize_tool_by_fn(fn, getter);
   settlvalue(func, t);
   hash_set(B, h, name, func);
 }
+
+static void set_prototype_function(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h) {
+  set_prototype(B, method, len, fn, h, false);
+}
+
+static void set_prototype_getter(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h) {
+  set_prototype(B, method, len, fn, h, true);
+}
+
 
 TValue * init_String(bean_State * B) {
   TValue * proto = malloc(sizeof(TValue));
@@ -629,8 +645,8 @@ TValue * init_Hash(bean_State * B) {
   Hash * h = init_hash(B);
   sethashvalue(proto, h);
   set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto));
-  set_prototype_function(B, "proto", 5, primitive_Hash_proto, hhvalue(proto));
   set_prototype_function(B, "clone", 5, primitive_Hash_clone, hhvalue(proto));
+  set_prototype_getter(B, "__proto__", 9, primitive_Hash_proto, hhvalue(proto));
 
   return proto;
 }

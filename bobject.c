@@ -171,7 +171,8 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
       break;
     }
     case BEAN_TTOOL: {
-      string = "[Primitive function]";
+      Tool * t = tlvalue(value);
+      string = t->getter ? "[Primitive getter]" : "[Primitive function]";
       break;
     }
     default:
