@@ -39,3 +39,8 @@ print(strLen1.length)
 
 var strLen2 = "你好"
 print(strLen2.length)
+
+var strCodePoint1 = "你好"
+print(strCodePoint1.codePoint())
+var strCodePoint2 = "好"
+print(strCodePoint2.codePoint())
