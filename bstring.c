@@ -62,6 +62,87 @@ static void growstrtab (bean_State *B, stringtable *tb) {
   }
 }
 
+static int brute_force_search_utf8(char * text, char * pattern, int n, int m){
+  int ret = -1;
+
+  if (!m) return 0; // search empty string
+
+  int i, j, count;
+
+  for (i = 0, count = 0; i < n; u8_nextchar(text, &i), count++) {
+    int k = i; // as a pointer
+
+    for (j = 0; j < m && i + j < n; u8_nextchar(pattern, &j)) {
+      int l = j; // as a pointer
+
+      uint32_t charcode1 = u8_nextchar(pattern, &l);
+      uint32_t charcode2 = u8_nextchar(text, &k);
+
+      if (charcode1 != charcode2) {
+        break;
+      }
+    }
+
+    if (j == m) {
+      ret = count;
+      break;
+    }
+  }
+
+  return ret;
+}
+
+static int brute_force_search(char * text, char * pattern, uint32_t n, uint32_t m){
+  int ret = -1;
+
+  if (!m) return 0; // search empty string
+
+  uint32_t i, j;
+  for(i = 0; i < n; i++) {
+    for(j = 0; j < m && i + j < n; j++) {
+      if(text[i + j] != pattern[j]) break;
+    }
+    if(j == m) {
+      ret = i;
+    }
+  }
+
+  return ret;
+}
+
+static TValue * slice(bean_State * B, TString * origin, uint32_t start, uint32_t end) {
+  char * charp = getstr(origin);
+  uint32_t total = end - start;
+  TString * result = beanS_newlstr(B, "", total);
+  char * pointer = getstr(result);
+  for (uint32_t i = start; i < end; i ++) {
+    *pointer = charp[i];
+    pointer++;
+  }
+  TValue * r = malloc(sizeof(TValue));
+  setsvalue(r, result);
+  return r;
+}
+
+static TValue * case_transform(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED, char begin, char diff) {
+  assert(ttisstring(this));
+  assert(expression -> type == EXPR_CALL);
+  uint32_t total = tslen(svalue(this));
+
+  TString * result = beanS_newlstr(B, "", total);
+  char * origin = getstr(svalue(this));
+  char * pointer = getstr(result);
+
+  for (uint32_t i = 0; i < total; i++) {
+    char c = origin[i];
+    pointer[i] = c >= begin && c <= begin + 25 ? c + diff : c;
+  }
+
+  TValue * r = malloc(sizeof(TValue));
+  setsvalue(r, result);
+  return r;
+}
+
 unsigned int beanS_hash (const char *str, size_t l, unsigned int seed) {
   unsigned int h = seed ^ cast_uint(l);
   size_t step = (l >> HASHLIMIT) + 1;
@@ -140,19 +221,7 @@ TValue *  primitive_String_concat(bean_State * B, TValue * this, expr * expressi
   return r;
 }
 
-static TValue * slice(bean_State * B, TString * origin, uint32_t start, uint32_t end) {
-  char * charp = getstr(origin);
-  uint32_t total = end - start;
-  TString * result = beanS_newlstr(B, "", total);
-  char * pointer = getstr(result);
-  for (uint32_t i = start; i < end; i ++) {
-    *pointer = charp[i];
-    pointer++;
-  }
-  TValue * r = malloc(sizeof(TValue));
-  setsvalue(r, result);
-  return r;
-}
+
 
 TValue * primitive_String_trim(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
   assert(ttisstring(this));
@@ -163,25 +232,6 @@ TValue * primitive_String_trim(bean_State * B, TValue * this, expr * expression,
   while (isspace(charp[start])) start++;
   while (isspace(charp[end])) end--;
   return slice(B, origin, start, end + 1);
-}
-
-static TValue * case_transform(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED, char begin, char diff) {
-  assert(ttisstring(this));
-  assert(expression -> type == EXPR_CALL);
-  uint32_t total = tslen(svalue(this));
-
-  TString * result = beanS_newlstr(B, "", total);
-  char * origin = getstr(svalue(this));
-  char * pointer = getstr(result);
-
-  for (uint32_t i = 0; i < total; i++) {
-    char c = origin[i];
-    pointer[i] = c >= begin && c <= begin + 25 ? c + diff : c;
-  }
-
-  TValue * r = malloc(sizeof(TValue));
-  setsvalue(r, result);
-  return r;
 }
 
 TValue * primitive_String_downcase(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
@@ -199,36 +249,6 @@ TValue * primitive_String_capitalize(bean_State * B, TValue * this, expr * expre
   char diff = 'A' - 'a';
   if (c[0] >= 'a' && c[0] <= 'z') c[0] += diff;
   return value;
-}
-
-static int brute_force_search(char * text, char * pattern, int n, int m){
-  int ret = -1;
-
-  if (!m) return 0; // search empty string
-
-  int i, j, count;
-
-  for (i = 0, count = 0; i < n; u8_nextchar(text, &i), count++) {
-    int k = i; // as a pointer
-
-    for (j = 0; j < m && i + j < n; u8_nextchar(pattern, &j)) {
-      int l = j; // as a pointer
-
-      uint32_t charcode1 = u8_nextchar(pattern, &l);
-      uint32_t charcode2 = u8_nextchar(text, &k);
-
-      if (charcode1 != charcode2) {
-        break;
-      }
-    }
-
-    if (j == m) {
-      ret = count;
-      break;
-    }
-  }
-
-  return ret;
 }
 
 TValue * primitive_String_codePoint(bean_State * B UNUSED, TValue * this, expr * expression UNUSED, TValue * context UNUSED) {
@@ -259,7 +279,7 @@ TValue * primitive_String_indexOf(bean_State * B, TValue * this, expr * expressi
   assert(ttisstring(pattern));
   TString * t = svalue(this);
   TString * p = svalue(pattern);
-  int iVal = brute_force_search(getstr(t), getstr(p), tslen(t), tslen(p));
+  int iVal = brute_force_search_utf8(getstr(t), getstr(p), tslen(t), tslen(p));
   TValue * index = malloc(sizeof(TValue));
   setivalue(index, iVal);
   return index;
@@ -273,7 +293,7 @@ TValue * primitive_String_includes(bean_State * B, TValue * this, expr * express
   assert(ttisstring(pattern));
   TString * t = svalue(this);
   TString * p = svalue(pattern);
-  int iVal = brute_force_search(getstr(t), getstr(p), tslen(t), tslen(p));
+  int iVal = brute_force_search_utf8(getstr(t), getstr(p), tslen(t), tslen(p));
   TValue * value = malloc(sizeof(TValue));
   setbvalue(value, iVal == -1 ? false : true);
   return value;
@@ -343,13 +363,27 @@ TValue * primitive_String_slice(bean_State * B, TValue * this, expr * expression
 
   int start = nvalue(sVal);
   int end = nvalue(eVal);
-  int len = tslen(svalue(this));
+  char * string = getstr(svalue(this));
+  int len = u8_strlen(string);
 
   if (start >= len) start = len;
   if (end >= len) end = len;
 
   if (start < 0) start = start + len;
   if (end < 0) end = end + len + 1;
+
   assert(start <= end);
-  return slice(B, svalue(this), start, end);
+
+  int startIndex = 0;
+  int endIndex = 0;
+
+  for (int i = 0; i < start; i++) {
+    u8_nextchar(string, &startIndex);
+  }
+
+  for (int j = 0; j < end; j++) {
+    u8_nextchar(string, &endIndex);
+  }
+
+  return slice(B, svalue(this), startIndex, endIndex);
 }
