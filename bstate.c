@@ -43,13 +43,16 @@ static TValue * search_from_prototype_link(bean_State * B UNUSED, TValue * objec
     value = hash_get(B, hash, name);
   }
 
-  // Search in current hash
-  TValue * proto = object -> prototype;
-  while (proto && !value) {
-    value = hash_get(B, hhvalue(proto), name);
-    proto = proto -> prototype;
+  if (!value) {
+    // Search in current hash
+    TValue * proto = object -> prototype;
+    while (proto && !value) {
+      value = hash_get(B, hhvalue(proto), name);
+      proto = proto -> prototype;
+    }
+    if (!proto) runtime_error(B, "%s", "Can not find the attribute from prototype chain.");
   }
-  if (!proto) runtime_error(B, "%s", "Can not access attributes by nil.");
+
 
   return value;
 }
@@ -219,7 +222,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression, TV
         tl->context = object;
 
         if (tl->getter) {
-          tl->function(B, object, NULL, 0, context, value);
+          tl->function(B, object, NULL, 0, context, &value);
         }
       }
       return value;
@@ -346,7 +349,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression, TV
       args[i] = *eval(B, expression->call.args->es[i], context);
     }
 
-    t->function(B, v, args, i, selfContext, ret);
+    t->function(B, v, args, i, selfContext, &ret);
   } else if (ttisfunction(func)) {
     Function * f = fcvalue(func);
     push(false);
@@ -634,42 +637,42 @@ static void set_prototype_getter(bean_State *B, const char * method, uint32_t le
 }
 
 
-/* TValue * init_String(bean_State * B) { */
-/*   TValue * proto = malloc(sizeof(TValue)); */
-/*   Hash * h = init_hash(B); */
+TValue * init_String(bean_State * B) {
+  TValue * proto = malloc(sizeof(TValue));
+  Hash * h = init_hash(B);
 
-/*   sethashvalue(proto, h); */
-/*   set_prototype_function(B, "equal", 5, primitive_String_equal, hhvalue(proto)); */
-/*   set_prototype_function(B, "concat", 6, primitive_String_concat, hhvalue(proto)); */
-/*   set_prototype_function(B, "trim", 4, primitive_String_trim, hhvalue(proto)); */
-/*   set_prototype_function(B, "upcase", 6, primitive_String_upcase, hhvalue(proto)); */
-/*   set_prototype_function(B, "downcase", 8, primitive_String_downcase, hhvalue(proto)); */
-/*   set_prototype_function(B, "capitalize", 10, primitive_String_capitalize, hhvalue(proto)); */
-/*   set_prototype_function(B, "slice", 5, primitive_String_slice, hhvalue(proto)); */
-/*   set_prototype_function(B, "indexOf", 7, primitive_String_indexOf, hhvalue(proto)); */
-/*   set_prototype_function(B, "includes", 8, primitive_String_includes, hhvalue(proto)); */
-/*   set_prototype_getter(B, "length", 6, primitive_String_length, hhvalue(proto)); */
-/*   set_prototype_function(B, "split", 5, primitive_String_split, hhvalue(proto)); */
-/*   set_prototype_function(B, "codePoint", 9, primitive_String_codePoint, hhvalue(proto)); */
-/*   return proto; */
-/* } */
+  sethashvalue(proto, h);
+  set_prototype_function(B, "equal", 5, primitive_String_equal, hhvalue(proto));
+  set_prototype_function(B, "concat", 6, primitive_String_concat, hhvalue(proto));
+  set_prototype_function(B, "trim", 4, primitive_String_trim, hhvalue(proto));
+  set_prototype_function(B, "upcase", 6, primitive_String_upcase, hhvalue(proto));
+  set_prototype_function(B, "downcase", 8, primitive_String_downcase, hhvalue(proto));
+  set_prototype_function(B, "capitalize", 10, primitive_String_capitalize, hhvalue(proto));
+  set_prototype_function(B, "slice", 5, primitive_String_slice, hhvalue(proto));
+  set_prototype_function(B, "indexOf", 7, primitive_String_indexOf, hhvalue(proto));
+  set_prototype_function(B, "includes", 8, primitive_String_includes, hhvalue(proto));
+  set_prototype_getter(B, "length", 6, primitive_String_length, hhvalue(proto));
+  set_prototype_function(B, "split", 5, primitive_String_split, hhvalue(proto));
+  set_prototype_function(B, "codePoint", 9, primitive_String_codePoint, hhvalue(proto));
+  return proto;
+}
 
-/* TValue * init_Array(bean_State * B) { */
-/*   TValue * proto = malloc(sizeof(TValue)); */
-/*   Hash * h = init_hash(B); */
+TValue * init_Array(bean_State * B) {
+  TValue * proto = malloc(sizeof(TValue));
+  Hash * h = init_hash(B);
 
-/*   sethashvalue(proto, h); */
-/*   set_prototype_function(B, "join", 4, primitive_Array_join, hhvalue(proto)); */
-/*   set_prototype_function(B, "push", 4, primitive_Array_push, hhvalue(proto)); */
-/*   set_prototype_function(B, "pop", 3, primitive_Array_pop, hhvalue(proto)); */
-/*   set_prototype_function(B, "shift", 5, primitive_Array_shift, hhvalue(proto)); */
-/*   set_prototype_function(B, "unshift", 7, primitive_Array_unshift, hhvalue(proto)); */
-/*   set_prototype_function(B, "find", 4, primitive_Array_find, hhvalue(proto)); */
-/*   set_prototype_function(B, "map", 3, primitive_Array_map, hhvalue(proto)); */
-/*   set_prototype_function(B, "reduce", 6, primitive_Array_reduce, hhvalue(proto)); */
-/*   set_prototype_function(B, "reverse", 7, primitive_Array_reverse, hhvalue(proto)); */
-/*   return proto; */
-/* } */
+  sethashvalue(proto, h);
+  set_prototype_function(B, "join", 4, primitive_Array_join, hhvalue(proto));
+  set_prototype_function(B, "push", 4, primitive_Array_push, hhvalue(proto));
+  set_prototype_function(B, "pop", 3, primitive_Array_pop, hhvalue(proto));
+  set_prototype_function(B, "shift", 5, primitive_Array_shift, hhvalue(proto));
+  set_prototype_function(B, "unshift", 7, primitive_Array_unshift, hhvalue(proto));
+  set_prototype_function(B, "find", 4, primitive_Array_find, hhvalue(proto));
+  set_prototype_function(B, "map", 3, primitive_Array_map, hhvalue(proto));
+  set_prototype_function(B, "reduce", 6, primitive_Array_reduce, hhvalue(proto));
+  set_prototype_function(B, "reverse", 7, primitive_Array_reverse, hhvalue(proto));
+  return proto;
+}
 
 TValue * init_Nil(bean_State * B UNUSED) {
   TValue * proto = malloc(sizeof(TValue));
@@ -678,16 +681,16 @@ TValue * init_Nil(bean_State * B UNUSED) {
   return proto;
 }
 
-/* TValue * init_Hash(bean_State * B) { */
-/*   TValue * proto = malloc(sizeof(TValue)); */
-/*   Hash * h = init_hash(B); */
-/*   sethashvalue(proto, h); */
-/*   set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto)); */
-/*   set_prototype_function(B, "clone", 5, primitive_Hash_clone, hhvalue(proto)); */
-/*   set_prototype_getter(B, "__proto__", 9, primitive_Hash_proto, hhvalue(proto)); */
+TValue * init_Hash(bean_State * B) {
+  TValue * proto = malloc(sizeof(TValue));
+  Hash * h = init_hash(B);
+  sethashvalue(proto, h);
+  set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto));
+  set_prototype_function(B, "clone", 5, primitive_Hash_clone, hhvalue(proto));
+  set_prototype_getter(B, "__proto__", 9, primitive_Hash_proto, hhvalue(proto));
 
-/*   return proto; */
-/* } */
+  return proto;
+}
 
 void global_init(bean_State * B) {
   global_State * G = malloc(sizeof(global_State));
@@ -699,13 +702,13 @@ void global_init(bean_State * B) {
   B -> l_G = G;
   add_tools(B);
   G -> nil = init_Nil(B);
-  /* G -> sproto = init_String(B); */
-  /* G -> aproto = init_Array(B); */
-  /* G -> hproto = init_Hash(B); */
+  G -> sproto = init_String(B);
+  G -> aproto = init_Array(B);
+  G -> hproto = init_Hash(B);
 
-  /* G -> sproto -> prototype = G -> hproto; */
-  /* G -> aproto -> prototype = G -> hproto; */
-  /* G -> hproto -> prototype = G -> nil; */
+  G -> sproto -> prototype = G -> hproto;
+  G -> aproto -> prototype = G -> hproto;
+  G -> hproto -> prototype = G -> nil;
 }
 
 TValue * eval(bean_State * B, struct expr * expression, TValue * context) {

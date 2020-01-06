@@ -6,7 +6,7 @@ fn sum1(i) {
   }
 }
 
-print(sum1(4000))
+print(sum1(400))
 
 fn sum2(i) {
   if (i > 1) {
@@ -15,7 +15,7 @@ fn sum2(i) {
   return i
 }
 
-print(sum2(4000))
+print(sum2(400))
 
 var a = [1,2,3,4,5,6]
 

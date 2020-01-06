@@ -68,7 +68,7 @@ typedef struct Proto {
   bu_byte assign;
 } Proto;
 
-typedef int (*primitive_Fn) (bean_State * B, TValue * this, TValue * args, int argc, TValue * ret, TValue * context);
+typedef int (*primitive_Fn) (bean_State * B, TValue * this, TValue * args, int argc, TValue * context, TValue ** ret);
 
 typedef struct Tool {
   primitive_Fn function;
@@ -174,6 +174,10 @@ typedef struct expr {
 #define lte(a, b) (a <= b)
 #define lt(a, b) (a < b)
 #define neq(a, b) (a != b)
+
+
+#define BEAN_OK 1
+#define BEAN_FAIL 0
 
 void global_init(bean_State * B);
 TValue * eval(bean_State * B, expr * expression, TValue * context);

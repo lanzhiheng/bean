@@ -154,26 +154,24 @@ TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
   return rValue;
 }
 
-TValue * primitive_Hash_clone(bean_State * B, TValue * this, expr * expression UNUSED, TValue * context UNUSED) {
-  TValue * instance = malloc(sizeof(TValue));
+int primitive_Hash_clone(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
   Hash * h = init_hash(B);
 
   if (!ttishash(this)) {
     runtime_error(B, "%s", "Just the hash can be clone!");
   }
-  sethashvalue(instance, h);
-  instance -> prototype = this;// reset the prototype
-  return instance;
+  sethashvalue(*ret, h);
+  (*ret) -> prototype = this;// reset the prototype
+  return BEAN_OK;
 }
 
-TValue * primitive_Hash_proto(bean_State * B UNUSED, TValue * this, expr * expression UNUSED, TValue * context UNUSED) {
-  return this->prototype;
+int primitive_Hash_proto(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
+  *ret = this->prototype;
+  return BEAN_OK;
 }
 
-TValue * primitive_Hash_id(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+int primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
   char id[MAX_LEN_ID];
-  assert(expression -> type == EXPR_CALL);
-  TValue * v = malloc(sizeof(TValue));
   TString * ts = NULL;
 
   switch(this->tt_) {
@@ -198,6 +196,6 @@ TValue * primitive_Hash_id(bean_State * B, TValue * this, expr * expression, TVa
   }
 
   ts = beanS_newlstr(B, id, strlen(id));
-  setsvalue(v, ts);
-  return v;
+  setsvalue(*ret, ts);
+  return BEAN_OK;
 }
