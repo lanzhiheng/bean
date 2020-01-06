@@ -192,15 +192,12 @@ TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value) {
   return inspect(B, value, true);
 }
 
-TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, expr * expression, TValue * context) {
-  assert(expression -> type == EXPR_CALL);
-
-  for (int i = 0; i < expression -> call.args -> count; i ++) {
-    expr * ep = expression -> call.args -> es[i];
-    TValue * tvalue = eval(B, ep, context);
-    TValue * string = tvalue_inspect(B, tvalue);
+int primitive_print(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int count, TValue * context UNUSED, TValue * ret) {
+  *(&ret) = G(B)->nil;
+  for (int i = 0; i < count; i ++) {
+    TValue * string = tvalue_inspect(B, args+i);
     printf("%s ", getstr(svalue(string)));
   }
   printf("\n");
-  return G(B)->nil;
+  return 0;
 }
