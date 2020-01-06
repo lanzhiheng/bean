@@ -152,5 +152,5 @@ typedef struct TValue {
 bool tvalue_equal(TValue * v1, TValue * v2);
 TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value);
 TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value);
-int primitive_print(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int count, TValue * context, TValue * ret);
+int primitive_print(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int argc, TValue * context, TValue ** ret);
 #endif

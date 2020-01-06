@@ -117,73 +117,64 @@ bool array_unshift(bean_State * B, Array * arr, TValue * value) {
   return true;
 }
 
-TValue * primitive_Array_shift(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+int primitive_Array_shift(bean_State * B, TValue * this, TValue * args UNUSED, int argc, TValue * context UNUSED, TValue ** ret) {
   assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  assert(expression -> call.args -> count == 0);
+  assert(argc == 0);
   Array * array = arrvalue(this);
-  TValue * value = array_shift(B, array);
-  return value;
+  *ret = array_shift(B, array);
+  return BEAN_OK;
 }
 
-TValue * primitive_Array_pop(bean_State * B, TValue * this, expr * expression, TValue * context UNUSED) {
+int primitive_Array_pop(bean_State * B, TValue * this, TValue * args UNUSED, int argc, TValue * context UNUSED, TValue ** ret) {
   assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  assert(expression -> call.args -> count == 0);
+  assert(argc == 0);
   Array * array = arrvalue(this);
-  TValue * value = array_pop(B, array);
-  return value;
+  *ret = array_pop(B, array);
+  return BEAN_OK;
 }
 
-
-TValue * primitive_Array_push(bean_State * B, TValue * this, expr * expression, TValue * context) {
+int primitive_Array_push(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
   assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  assert(expression -> call.args -> count < 2);
+  assert(argc < 2);
 
   Array * array = arrvalue(this);
-  if (expression -> call.args -> count) {
-    TValue * element = eval(B, expression -> call.args -> es[0], context);
-    array_push(B, array, element);
+  if (argc) {
+    TValue element = args[0];
+    array_push(B, array, &element);
   }
 
-  TValue * value = malloc(sizeof(TValue));
   uint32_t count = array->count;
-  setivalue(value, count);
-  return value;
+  setivalue(*ret, count);
+  return BEAN_OK;
 }
 
-
-TValue * primitive_Array_unshift(bean_State * B, TValue * this, expr * expression, TValue * context) {
+int primitive_Array_unshift(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
   assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  assert(expression -> call.args -> count < 2);
+  assert(argc < 2);
 
   Array * array = arrvalue(this);
-  if (expression -> call.args -> count) {
-    TValue * element = eval(B, expression -> call.args -> es[0], context);
-    array_unshift(B, array, element);
+  if (argc) {
+    TValue element = args[0];
+    array_unshift(B, array, &element);
   }
 
-  TValue * value = malloc(sizeof(TValue));
   uint32_t count = array->count;
-  setivalue(value, count);
-  return value;
+  setivalue(*ret, count);
+  return BEAN_OK;
 }
 
-TValue * primitive_Array_join(bean_State * B, TValue * this, expr * expression, TValue * context) {
+int primitive_Array_join(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
   assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  assert(expression -> call.args -> count < 2);
+  assert(argc < 2);
 
   Array * array = arrvalue(this);
   uint32_t total = 0;
   TString * dts;
 
-  if (expression -> call.args -> count) {
-    TValue * delimiter = eval(B, expression -> call.args -> es[0], context);
-    assert(ttisstring(delimiter));
-    dts = svalue(delimiter);
+  if (argc) {
+    TValue delimiter = args[0];
+    assert(ttisstring(&delimiter));
+    dts = svalue(&delimiter);
   } else {
     dts = beanS_newlstr(B, ",", 1);
   }
@@ -214,24 +205,22 @@ TValue * primitive_Array_join(bean_State * B, TValue * this, expr * expression, 
     }
   }
   resStr[index] = 0;
-  TValue * value = malloc(sizeof(TValue));
-  setsvalue(value, beanS_newlstr(B, resStr, total));
-  return value;
+  setsvalue(*ret, beanS_newlstr(B, resStr, total));
+  return BEAN_OK;
 }
 
-TValue * primitive_Array_map(bean_State * B, TValue * this, expr * expression, TValue * context) {
+int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
   assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  assert(expression -> call.args -> count == 1);
+  assert(argc == 1);
 
-  TValue * callback = eval(B, expression -> call.args -> es[0], context);
-  assert(ttisfunction(callback));
+  TValue callback = args[0];
+  assert(ttisfunction(&callback));
 
   Array * arr = arrvalue(this);
   Array * newarr = init_array(B);
-  Function * f = fcvalue(callback);
+  Function * f = fcvalue(&callback);
   TValue * key = malloc(sizeof(TValue));
-  TValue * ret = NULL;
+  TValue * retVal = NULL;
   setsvalue(key, f->p->args[0]);
 
   for (uint32_t i = 0; i < arr->count; i++) {
@@ -248,24 +237,22 @@ TValue * primitive_Array_map(bean_State * B, TValue * this, expr * expression, T
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      ret = eval(B, ex, this);
+      retVal = eval(B, ex, this);
       if (peek()) break;
     }
-    array_push(B, newarr, ret);
+    array_push(B, newarr, retVal);
 
     leave_scope(B);
     pop();
   }
 
-  TValue * value = malloc(sizeof(TValue));
-  setarrvalue(value, newarr);
-  return value;
+  setarrvalue(*ret, newarr);
+  return BEAN_OK;
 }
 
-TValue * primitive_Array_reverse(bean_State * B UNUSED, TValue * this, expr * expression, TValue * context UNUSED) {
+int primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
   assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  assert(expression -> call.args -> count == 0);
+  assert(argc == 0);
 
   Array * arr = arrvalue(this);
 
@@ -275,20 +262,20 @@ TValue * primitive_Array_reverse(bean_State * B UNUSED, TValue * this, expr * ex
     arr->entries[arr->count-i-1] = temp;
   }
 
-  return this;
+  *ret = this;
+  return BEAN_OK;
 }
 
-TValue * primitive_Array_reduce(bean_State * B, TValue * this, expr * expression, TValue * context) {
+int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
   assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  assert(expression -> call.args -> count == 2);
+  assert(argc == 2);
 
-  TValue * callback = eval(B, expression -> call.args -> es[0], context);
-  assert(ttisfunction(callback));
+  TValue callback = args[0];
+  assert(ttisfunction(&callback));
 
   Array * arr = arrvalue(this);
-  TValue * val = eval(B, expression -> call.args -> es[1], context);
-  Function * f = fcvalue(callback);
+  TValue * val = &args[1];
+  Function * f = fcvalue(&callback);
   TValue * elem = malloc(sizeof(TValue));
   setsvalue(elem, f->p->args[0]);
   TValue * acc = malloc(sizeof(TValue));
@@ -315,26 +302,25 @@ TValue * primitive_Array_reduce(bean_State * B, TValue * this, expr * expression
     leave_scope(B);
     pop();
   }
-
-  return val;
+  *ret = val;
+  return BEAN_OK;
 }
 
-TValue * primitive_Array_find(bean_State * B, TValue * this, expr * expression, TValue * context) {
+int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
   assert(ttisarray(this));
-  assert(expression -> type == EXPR_CALL);
-  assert(expression -> call.args -> count == 1);
+  assert(argc == 1);
 
-  TValue * callback = eval(B, expression -> call.args -> es[0], context);
-  assert(ttisfunction(callback));
-  assert(fcvalue(callback)->p->arity >= 1);
+  TValue callback = args[0];
+  assert(ttisfunction(&callback));
+  assert(fcvalue(&callback)->p->arity >= 1);
 
   Array * arr = arrvalue(this);
   TValue * val = G(B)->nil;
-  Function * f = fcvalue(callback);
+  Function * f = fcvalue(&callback);
   TValue * key = malloc(sizeof(TValue));
   setsvalue(key, f->p->args[0]);
 
-  TValue * ret = NULL;
+  TValue * retVal = NULL;
   for (uint32_t i = 0; i < arr->count; i++) {
     push(false);
     enter_scope(B);
@@ -349,17 +335,19 @@ TValue * primitive_Array_find(bean_State * B, TValue * this, expr * expression, 
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      ret = eval(B, ex, this);
+      retVal = eval(B, ex, this);
       if (peek()) break;
     }
 
 
-    if (truthvalue(ret)) {
+    if (truthvalue(retVal)) {
       val = arr->entries[i];
       break;
     }
     leave_scope(B);
     pop();
   }
-  return val;
+
+  *ret = val;
+  return BEAN_OK;
 }
