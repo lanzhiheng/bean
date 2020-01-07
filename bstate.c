@@ -235,7 +235,7 @@ static int binary_eval (bean_State * B UNUSED, struct expr * expression, TValue 
         tl->context = object;
 
         if (tl->getter) {
-          tl->function(B, object, NULL, 0, NULL, &value);
+          tl->function(B, object, NULL, 0, &value);
         }
       }
       *ret = value;
@@ -273,7 +273,7 @@ static int binary_eval (bean_State * B UNUSED, struct expr * expression, TValue 
 }
 
 static int self_eval (bean_State * B UNUSED, struct expr * expression UNUSED, TValue ** ret) {
-  *ret = ctx ? ctx : G(B)->nil;
+  *ret = ctx;
   return BEAN_OK;
 }
 
@@ -382,7 +382,7 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
       args[i] = *val;
     }
 
-    t->function(B, this, args, i, selfContext, ret);
+    t->function(B, this, args, i, ret);
   } else if (ttisfunction(func)) {
     Function * f = fcvalue(func);
     push(false);

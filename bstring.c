@@ -180,14 +180,14 @@ bool beanS_equal(TString * ts1, TString * ts2) {
   return memcmp(getstr(ts1), getstr(ts2), tslen(ts2)) == 0;
 }
 
-int primitive_String_equal(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_equal(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisstring(this));
   assert(argc == 1);
   TValue arg1 = args[0];
   setbvalue(*ret, beanS_equal(svalue(this), svalue(&arg1)));
   return BEAN_OK;
 }
-int primitive_String_concat(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_concat(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisstring(this));
   assert(argc == 1);
   TValue arg1 = args[0];
@@ -213,7 +213,7 @@ int primitive_String_concat(bean_State * B, TValue * this, TValue * args, int ar
   setsvalue(*ret, result);
   return BEAN_OK;
 }
-int primitive_String_trim(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_trim(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
   assert(ttisstring(this));
   uint32_t start = 0, end = tslen(svalue(this)) - 1;
   TString * origin = svalue(this);
@@ -223,15 +223,15 @@ int primitive_String_trim(bean_State * B, TValue * this, TValue * args UNUSED, i
   setsvalue(*ret, slice(B, origin, start, end + 1));
   return BEAN_OK;
 }
-int primitive_String_downcase(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_downcase(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   setsvalue(*ret, case_transform(B, this, 'A', 'a' - 'A'));
   return BEAN_OK;
 }
-int primitive_String_upcase(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_upcase(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
   setsvalue(*ret, case_transform(B, this, 'a', 'A' - 'a'));
   return BEAN_OK;
 }
-int primitive_String_capitalize(bean_State * B, TValue * this, TValue * args, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_capitalize(bean_State * B, TValue * this, TValue * args, int argc UNUSED, TValue ** ret) {
   TString * ts = case_transform(B, this, 'A', 0);
   char * c = getstr(ts);
   char diff = 'A' - 'a';
@@ -239,7 +239,7 @@ int primitive_String_capitalize(bean_State * B, TValue * this, TValue * args, in
   setsvalue(*ret, ts);
   return BEAN_OK;
 }
-int primitive_String_codePoint(bean_State * B UNUSED, TValue * this, TValue * args, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_codePoint(bean_State * B UNUSED, TValue * this, TValue * args, int argc UNUSED, TValue ** ret) {
   assert(ttisstring(this));
   TString * ts = svalue(this);
   char * string = getstr(ts);
@@ -248,14 +248,14 @@ int primitive_String_codePoint(bean_State * B UNUSED, TValue * this, TValue * ar
   setivalue(*ret, m);
   return BEAN_OK;
 }
-int primitive_String_length(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_length(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
   assert(ttisstring(this));
   TString * ts = svalue(this);
   char * string = getstr(ts);
   setivalue(*ret, u8_strlen(string));
   return BEAN_OK;
 }
-int primitive_String_indexOf(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_indexOf(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisstring(this));
   assert(argc == 1);
   TValue pattern = args[0];
@@ -266,7 +266,7 @@ int primitive_String_indexOf(bean_State * B UNUSED, TValue * this, TValue * args
   setivalue(*ret, iVal);
   return BEAN_OK;
 }
-int primitive_String_includes(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_includes(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisstring(this));
   assert(argc == 1);
   TValue pattern = args[0];
@@ -277,7 +277,7 @@ int primitive_String_includes(bean_State * B UNUSED, TValue * this, TValue * arg
   setbvalue(*ret, iVal == -1 ? false : true);
   return BEAN_OK;
 }
-int primitive_String_split(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_split(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisstring(this));
   assert(argc < 2);
   Array * arr = init_array(B);
@@ -315,7 +315,7 @@ int primitive_String_split(bean_State * B UNUSED, TValue * this, TValue * args, 
   setarrvalue(*ret, arr);
   return BEAN_OK;
 }
-int primitive_String_slice(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_String_slice(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisstring(this));
   assert(argc);
   if (argc != 2) {

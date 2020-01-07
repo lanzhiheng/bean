@@ -68,7 +68,7 @@ typedef struct Proto {
   bu_byte assign;
 } Proto;
 
-typedef int (*primitive_Fn) (bean_State * B, TValue * this, TValue * args, int argc, TValue * context, TValue ** ret);
+typedef int (*primitive_Fn) (bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
 
 typedef struct Tool {
   primitive_Fn function;
