@@ -1,0 +1,63 @@
+nil
+123123
+
+true
+false;
+(- 1000);
+(-233.33);
+(100 + 200123)
+100 - 29 * 0
+
+fn a() {
+   100 + 100000
+}
+
+// var a = 10
+// a = 100
+
+fn a() {
+  return self
+}
+
+fn b() {
+  return self
+}
+
+print(a() == b())
+print(a)
+print(b)
+// var i = 0;
+
+// while(i < 10) {
+//   print(i)
+//   i = i + 1
+// }
+
+// if (i > 100) {
+//  print("less than 100")
+// } else {
+//  print("large than 100")
+// }
+
+// print([1,2,3,3,4,"lanzhiheng"])
+// print({
+//  a: 100,
+//  b: fn() {
+//    return self
+//  }
+// })
+
+var hash = {
+  this: fn() {
+    self
+  },
+  a: 1000
+}
+
+// // hash.this
+print(hash)
+print(hash.this())
+print(hash.this().this())
+print(nil)
+print(12312)
+print(nil)
