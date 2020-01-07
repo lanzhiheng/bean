@@ -117,7 +117,7 @@ bool array_unshift(bean_State * B, Array * arr, TValue * value) {
   return true;
 }
 
-int primitive_Array_shift(bean_State * B, TValue * this, TValue * args UNUSED, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_Array_shift(bean_State * B, TValue * this, TValue * args UNUSED, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc == 0);
   Array * array = arrvalue(this);
@@ -125,7 +125,7 @@ int primitive_Array_shift(bean_State * B, TValue * this, TValue * args UNUSED, i
   return BEAN_OK;
 }
 
-int primitive_Array_pop(bean_State * B, TValue * this, TValue * args UNUSED, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_Array_pop(bean_State * B, TValue * this, TValue * args UNUSED, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc == 0);
   Array * array = arrvalue(this);
@@ -133,7 +133,7 @@ int primitive_Array_pop(bean_State * B, TValue * this, TValue * args UNUSED, int
   return BEAN_OK;
 }
 
-int primitive_Array_push(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_Array_push(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc < 2);
 
@@ -148,7 +148,7 @@ int primitive_Array_push(bean_State * B, TValue * this, TValue * args, int argc,
   return BEAN_OK;
 }
 
-int primitive_Array_unshift(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_Array_unshift(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc < 2);
 
@@ -163,7 +163,7 @@ int primitive_Array_unshift(bean_State * B, TValue * this, TValue * args, int ar
   return BEAN_OK;
 }
 
-int primitive_Array_join(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_Array_join(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc < 2);
 
@@ -209,7 +209,7 @@ int primitive_Array_join(bean_State * B, TValue * this, TValue * args, int argc,
   return BEAN_OK;
 }
 
-int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc == 1);
 
@@ -251,7 +251,7 @@ int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, 
   return BEAN_OK;
 }
 
-int primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc == 0);
 
@@ -267,7 +267,7 @@ int primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue * args,
   return BEAN_OK;
 }
 
-int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc == 2);
 
@@ -307,7 +307,7 @@ int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int arg
   return BEAN_OK;
 }
 
-int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc == 1);
 

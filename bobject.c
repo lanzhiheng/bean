@@ -192,7 +192,7 @@ TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value) {
   return inspect(B, value, true);
 }
 
-int primitive_print(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int argc, TValue * context UNUSED, TValue ** ret) {
+int primitive_print(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int argc, TValue ** ret) {
   *ret = G(B)->nil;
   for (int i = 0; i < argc; i ++) {
     TValue * string = tvalue_inspect(B, args+i);

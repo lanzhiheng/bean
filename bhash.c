@@ -154,7 +154,7 @@ TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
   return rValue;
 }
 
-int primitive_Hash_clone(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
+int primitive_Hash_clone(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
   Hash * h = init_hash(B);
 
   if (!ttishash(this)) {
@@ -165,12 +165,12 @@ int primitive_Hash_clone(bean_State * B, TValue * this, TValue * args UNUSED, in
   return BEAN_OK;
 }
 
-int primitive_Hash_proto(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
+int primitive_Hash_proto(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
   *ret = this->prototype;
   return BEAN_OK;
 }
 
-int primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue * context UNUSED, TValue ** ret) {
+int primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
   char id[MAX_LEN_ID];
   TString * ts = NULL;
 
