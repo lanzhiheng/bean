@@ -54,5 +54,7 @@ typedef struct symbol {
 
 extern symbol symbol_table[];
 
-void bparser(LexState * ls, TValue ** value);
+void bparser(LexState * ls);
+void parse_program(LexState * ls, TValue ** value);
+
 #endif

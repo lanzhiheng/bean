@@ -220,10 +220,11 @@ int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, 
   Array * newarr = init_array(B);
   Function * f = fcvalue(&callback);
   TValue * key = malloc(sizeof(TValue));
-  TValue * retVal = NULL;
+
   setsvalue(key, f->p->args[0]);
 
   for (uint32_t i = 0; i < arr->count; i++) {
+    TValue * item = malloc(sizeof(TValue));
     push(false);
     enter_scope(B);
 
@@ -237,10 +238,10 @@ int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, 
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      retVal = eval(B, ex, this);
+      eval(B, ex, &item);
       if (peek()) break;
     }
-    array_push(B, newarr, retVal);
+    array_push(B, newarr, item);
 
     leave_scope(B);
     pop();
@@ -296,7 +297,7 @@ int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int arg
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      val = eval(B, ex, this);
+      eval(B, ex, &val);
       if (peek()) break;
     }
     leave_scope(B);
@@ -320,7 +321,7 @@ int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc,
   TValue * key = malloc(sizeof(TValue));
   setsvalue(key, f->p->args[0]);
 
-  TValue * retVal = NULL;
+  TValue * retVal = malloc(sizeof(TValue));
   for (uint32_t i = 0; i < arr->count; i++) {
     push(false);
     enter_scope(B);
@@ -335,10 +336,9 @@ int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc,
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      retVal = eval(B, ex, this);
+      eval(B, ex, &retVal);
       if (peek()) break;
     }
-
 
     if (truthvalue(retVal)) {
       val = arr->entries[i];
