@@ -273,7 +273,7 @@ static int binary_eval (bean_State * B UNUSED, struct expr * expression, TValue 
 }
 
 static int self_eval (bean_State * B UNUSED, struct expr * expression UNUSED, TValue ** ret) {
-  *ret = ctx;
+  *ret = ctx ? ctx : G(B)->nil;
   return BEAN_OK;
 }
 
@@ -363,8 +363,8 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
   if (ttistool(func)) {
     Tool * t = tlvalue(func);
     // Use binding context
-    TValue * selfContext = t->context ? t->context : G(B)->nil;
-    ctx = selfContext; // 全局变量设置上下文
+
+    ctx = t->context; // 全局变量设置上下文
     TValue * this = malloc(sizeof(TValue));
 
     if (expression->call.callee->type == EXPR_BINARY) {
@@ -388,8 +388,7 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
     push(false);
 
     // Use binding context
-    TValue * selfContext = f->context ? f->context : G(B)->nil;
-    ctx = selfContext; // 全局变量设置上下文
+    ctx = f->context; // 全局变量设置上下文
 
     for (int i = 0; i < f->p->arity; i++) {
       TValue * key = malloc(sizeof(TValue));
@@ -417,6 +416,8 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
   }
 
   leave_scope(B);
+  ctx = NULL;
+
   return BEAN_OK;
 }
 
@@ -629,7 +630,7 @@ void run() {
     if (len == 1 && source[0] == '\n') continue;
     beanX_setinput(B, source, e, *source);
     TValue * value = malloc(sizeof(TValue));
-    parse_program(B->ls, &value);
+    bparser_for_line(B->ls, &value);
     TValue * string = tvalue_inspect_pure(B, value);
     TString * ts = svalue(string);
     printf("=> %s\n", getstr(ts));
