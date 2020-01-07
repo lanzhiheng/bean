@@ -61,3 +61,7 @@ print(hash.this().this())
 print(nil)
 print(12312)
 print(nil)
+
+
+print(hash.this())
+print(self)
