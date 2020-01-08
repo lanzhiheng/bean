@@ -327,11 +327,15 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   tree -> type = EXPR_BRANCH;
   tree -> branch.condition = parse_statement(ls, rbp);
   tree -> branch.if_body = init_dynamic_expr(ls->B);
-  testnext(ls, TK_LEFT_BRACE);
-  while (ls->t.type != TK_RIGHT_BRACE) {
-    add_element(ls->B, tree -> branch.if_body, parse_statement(ls, rbp));
+
+  if (testnext(ls, TK_LEFT_BRACE)) {
+    while (ls->t.type != TK_RIGHT_BRACE) {
+      add_element(ls->B, tree -> branch.if_body, parse_statement(ls, rbp));
+    }
+    testnext(ls, TK_RIGHT_BRACE);
+  } else {
+    semantic_error(ls, "You must wrap the statements by {} in if block.");
   }
-  testnext(ls, TK_RIGHT_BRACE);
 
   if (ls->t.type == TK_ELSE) {
     testnext(ls, TK_ELSE);
@@ -341,11 +345,14 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
       add_element(ls->B, tree -> branch.else_body, parse_branch(ls, rbp));
     } else {
       tree -> branch.else_body = init_dynamic_expr(ls->B);
-      testnext(ls, TK_LEFT_BRACE);
-      while (ls->t.type != TK_RIGHT_BRACE) {
-        add_element(ls->B, tree -> branch.else_body, parse_statement(ls, rbp));
+      if (testnext(ls, TK_LEFT_BRACE)) {
+        while (ls->t.type != TK_RIGHT_BRACE) {
+          add_element(ls->B, tree -> branch.else_body, parse_statement(ls, rbp));
+        }
+        testnext(ls, TK_RIGHT_BRACE);
+      } else {
+        semantic_error(ls, "You must wrap the statements by {} in else block.");
       }
-      testnext(ls, TK_RIGHT_BRACE);
     }
   } else {
     tree -> branch.else_body = NULL;
@@ -408,58 +415,56 @@ static expr * parse_hash(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
   return ep;
 }
 
-static expr * parse_statement(struct LexState *ls, bindpower rbp) {
-  if (ls->t.type == TK_BREAK) {
-    return parse_break(ls, rbp);
-  }
-
-  if (ls->t.type == TK_WHILE) {
-    return parse_while(ls, rbp);
-  }
-
-  if (ls->t.type == TK_IF) {
-    return parse_branch(ls, rbp);
-  }
-
-  if (ls->t.type == TK_FUNCTION) { // Define an function
-    return parse_definition(ls);
-  }
-
-  if (ls->t.type == TK_LEFT_BRACKET) {
-    return parse_array(ls, rbp);
-  }
-
-  if (ls->t.type == TK_LEFT_BRACE) {
-    return parse_hash(ls, rbp);
-  }
-
-  if (ls->t.type == TK_VAR) { // Define an variable
-    beanX_next(ls);
-
-    if (ls->t.type != TK_NAME) {
-      semantic_error(ls, "Must have a variable name.");
-    }
-  }
-
-  expr * tree = symbol_table[ls->t.type].nud(ls, NULL);
-
-  while (rbp < get_tk_precedence(ls)) {
-    Token token = ls->t;
-    beanX_next(ls);
-    tree = symbol_table[token.type].led(ls, tree);
-  }
-
-  return tree;
-};
-
 static void skip_semicolon(LexState * ls) { // Skip all the semicolon
   while (ls -> t.type == TK_SEMI) beanX_next(ls);
 }
 
+static expr * parse_statement(struct LexState *ls, bindpower rbp) {
+  skip_semicolon(ls);
+  expr * tree;
+  switch(ls->t.type) {
+    case TK_BREAK:
+      tree = parse_break(ls, rbp);
+      break;
+    case TK_WHILE:
+      tree = parse_while(ls, rbp);
+      break;
+    case TK_IF:
+      tree = parse_branch(ls, rbp);
+      break;
+    case TK_FUNCTION:
+      tree = parse_definition(ls);
+      break;
+    case TK_LEFT_BRACKET:
+      tree = parse_array(ls, rbp);
+      break;
+    case TK_LEFT_BRACE:
+      tree = parse_hash(ls, rbp);
+      break;
+    case TK_VAR: {
+      beanX_next(ls);
+      if (ls->t.type != TK_NAME) {
+        semantic_error(ls, "Must provide a variable name.");
+      }
+    }
+    default: {
+      tree = symbol_table[ls->t.type].nud(ls, NULL);
+
+      while (rbp < get_tk_precedence(ls)) {
+        Token token = ls->t;
+        beanX_next(ls);
+        tree = symbol_table[token.type].led(ls, tree);
+      }
+    }
+  }
+
+  skip_semicolon(ls);
+  return tree;
+};
+
+
 static void parse_program(LexState * ls, TValue ** value) {
-  skip_semicolon(ls);
   expr * ex = parse_statement(ls, BP_LOWEST);
-  skip_semicolon(ls);
   eval(ls->B, ex, value);
 }
 
