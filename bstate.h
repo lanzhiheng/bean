@@ -46,6 +46,7 @@ typedef struct Scope {
 typedef struct global_State {
   unsigned int seed;  /* randomized seed for hashes */
   GCObject *allgc;  /* list of all collectable objects */
+  TValue * thisVal;
   stringtable strt;
   Scope * globalScope;
   Scope * cScope;

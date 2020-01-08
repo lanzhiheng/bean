@@ -11,8 +11,6 @@
 #include "mem.h"
 #define MIN_STRT_SIZE 64
 
-TValue * ctx = NULL;
-
 typedef int (*eval_func) (bean_State * B, struct expr * expression, TValue ** ret);
 char * rootDir = NULL;
 
@@ -273,7 +271,7 @@ static int binary_eval (bean_State * B UNUSED, struct expr * expression, TValue 
 }
 
 static int self_eval (bean_State * B UNUSED, struct expr * expression UNUSED, TValue ** ret) {
-  *ret = ctx ? ctx : G(B)->nil;
+  *ret = G(B)->thisVal ? G(B)->thisVal : G(B)->nil;
   return BEAN_OK;
 }
 
@@ -364,7 +362,7 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
     Tool * t = tlvalue(func);
     // Use binding context
 
-    ctx = t->context; // 全局变量设置上下文
+    G(B)->thisVal = t->context; // 全局变量设置上下文
     TValue * this = malloc(sizeof(TValue));
 
     if (expression->call.callee->type == EXPR_BINARY) {
@@ -388,7 +386,7 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
     push(false);
 
     // Use binding context
-    ctx = f->context; // 全局变量设置上下文
+    G(B)->thisVal = f->context; // 全局变量设置上下文
 
     for (int i = 0; i < f->p->arity; i++) {
       TValue * key = malloc(sizeof(TValue));
@@ -416,7 +414,7 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
   }
 
   leave_scope(B);
-  ctx = NULL;
+  G(B)->thisVal = NULL;
 
   return BEAN_OK;
 }
@@ -736,6 +734,7 @@ void global_init(bean_State * B) {
   G -> seed = rand();
   G -> allgc = NULL;
   G -> strt = stringtable_init(B);
+  G -> thisVal = NULL;
   G -> globalScope = create_scope(B, NULL);
   G -> cScope = G -> globalScope;
   B -> l_G = G;
