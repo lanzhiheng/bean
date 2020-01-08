@@ -65,3 +65,13 @@ print(nil)
 
 print(hash.this())
 print(self)
+
+fn abc() {
+  var i = 100
+
+  if (i < 10) { return i;;; }
+  else { return 3000 + i ;; };
+  300
+}
+
+print(abc())
