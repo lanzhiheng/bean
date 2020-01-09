@@ -307,6 +307,61 @@ int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int arg
   return BEAN_OK;
 }
 
+int primitive_Array_each(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
+  assert(ttisarray(this));
+  assert(argc == 1);
+
+  TValue callback = args[0];
+  assert(ttisfunction(&callback));
+  assert(fcvalue(&callback)->p->arity >= 1);
+
+  Array * arr = arrvalue(this);
+  Function * f = fcvalue(&callback);
+
+  uint32_t argIdx = 0;
+  TValue * index = malloc(sizeof(TValue));
+
+  TValue * item = malloc(sizeof(TValue));
+  setsvalue(item, f->p->args[argIdx++]);
+  TValue * retVal = malloc(sizeof(TValue));
+
+  TValue * idxName = NULL;
+  if (f->p->arity == 2) {
+    idxName = malloc(sizeof(TValue));
+    setsvalue(idxName, f->p->args[argIdx++]);
+  }
+
+  for (uint32_t i = 0; i < arr->count; i++) {
+    enter_scope(B);
+    call_stack_create_frame(B);
+
+    SCSV(B, item, arr->entries[i]);
+
+    if (f->p->arity == 2) {
+      setivalue(index, i);
+      SCSV(B, idxName, index);
+    }
+
+    for (int m = argIdx; m < f->p->arity; m++) { // All extra is nil
+      TValue * extra = malloc(sizeof(TValue));
+      setsvalue(extra, f->p->args[m]);
+      SCSV(B, extra, G(B)->nil);
+    }
+
+    for (int j = 0; j < f->body->count; j++) {
+      expr * ex = f->body->es[j];
+      eval(B, ex, &retVal);
+      if (call_stack_peek(B)) break;
+    }
+
+    leave_scope(B);
+    call_stack_restore_frame(B);
+  }
+
+  *ret = this;
+  return BEAN_OK;
+}
+
 int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
   assert(ttisarray(this));
   assert(argc == 1);

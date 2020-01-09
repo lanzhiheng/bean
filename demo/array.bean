@@ -75,3 +75,17 @@ print(reverseArray.reverse())
 var joinDiff = [1,2,3,4,5,"lanzhiheng"]
 print(joinDiff)
 print(joinDiff.join(","))
+
+
+// each
+
+var eachArr = [1,2,3,4,6]
+
+eachArr.each(fn (i, c) {
+  print(i, c)
+})
+
+eachArr.each(fn (i) {
+  print(self)
+  // print(i)
+})
