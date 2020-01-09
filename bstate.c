@@ -14,6 +14,43 @@
 typedef int (*eval_func) (bean_State * B, struct expr * expression, TValue ** ret);
 char * rootDir = NULL;
 
+void call_stack_create_frame(bean_State * B) {
+  Mbuffer * stack = G(B)->callStack;
+
+  if (stack->buffsize < stack->n + 1) {
+    if (stack->buffsize + BEAN_MINBUFFER >= BUFFER_MAX) {
+      runtime_error(B, "%s", "Call stack overflow");
+    }
+
+    beanZ_resizebuffer(B, stack, stack->buffsize + BEAN_MINBUFFER);
+  }
+  stack->buffer[stack->n++] = false;
+}
+
+void call_stack_frame_will_recycle(bean_State * B) {
+  Mbuffer * stack = G(B)->callStack;
+  stack->buffer[stack->n - 1] = true;
+}
+
+void call_stack_restore_frame(bean_State * B) {
+  Mbuffer * stack = G(B)->callStack;
+
+  if (stack->buffsize - BEAN_MINBUFFER > stack->n) {
+    beanZ_resizebuffer(B, stack, stack->buffsize - BEAN_MINBUFFER);
+  }
+
+  if (stack->n > 0) {
+    stack->buffer[stack->n--] = false;
+  } else {
+    runtime_error(B, "%s", "Empty of the call stack");
+  }
+}
+
+char call_stack_peek(bean_State * B) {
+  Mbuffer * stack = G(B)->callStack;
+  return stack->buffer[stack->n - 1];
+}
+
 static Scope * find_variable_scope(bean_State * B, TValue * name) {
   TValue * res;
   Scope * scope = B->l_G->cScope;
@@ -331,7 +368,7 @@ static int loop_eval(bean_State * B, struct expr * expression, TValue **ret) {
     for (int i = 0; i < body->count; i++) {
       expr * ep = body->es[i];
 
-      if (ep -> type == EXPR_BREAK) {
+      if (ep -> type == EXPR_BREAK || call_stack_peek(B)) {
         goto breakoff; // Only one jump point, Use goto statement can be more clear and easy
       } else {
         eval(B, ep, &stmt);
@@ -341,14 +378,14 @@ static int loop_eval(bean_State * B, struct expr * expression, TValue **ret) {
 
  breakoff:
   leave_scope(B);
-  *ret = G(B)->nil;
+  *ret = stmt;
 
   #undef condition_is_true
   return BEAN_OK;
 }
 
 static int return_eval(bean_State * B, struct expr * expression, TValue ** ret) {
-  set(true);
+  call_stack_frame_will_recycle(B);
   eval(B, expression->ret.ret_val, ret);
   return BEAN_OK;
 }
@@ -362,7 +399,7 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
     Tool * t = tlvalue(func);
     // Use binding context
 
-    G(B)->thisVal = t->context; // 全局变量设置上下文
+    G(B)->thisVal = t->context;
     TValue * this = malloc(sizeof(TValue));
 
     if (expression->call.callee->type == EXPR_BINARY) {
@@ -383,10 +420,9 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
     t->function(B, this, args, i, ret);
   } else if (ttisfunction(func)) {
     Function * f = fcvalue(func);
-    push(false);
+    call_stack_create_frame(B);
 
-    // Use binding context
-    G(B)->thisVal = f->context; // 全局变量设置上下文
+    G(B)->thisVal = f->context;
 
     for (int i = 0; i < f->p->arity; i++) {
       TValue * key = malloc(sizeof(TValue));
@@ -406,9 +442,9 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       eval(B, ex, ret);
-      if (peek()) break;
+      if (call_stack_peek(B)) break;
     }
-    pop();
+    call_stack_restore_frame(B);
   } else {
     eval_error(B, "%s", "You are trying to call which is not a function.");
   }
@@ -438,6 +474,8 @@ static int branch_eval(bean_State * B, struct expr * expression, TValue ** ret) 
     for (int i = 0; i < body->count; i++) {
       expr * ep = body->es[i];
       eval(B, ep, &retVal);
+
+      if (call_stack_peek(B)) break;
     }
   } else {
     retVal = G(B) -> nil;
@@ -734,6 +772,7 @@ void global_init(bean_State * B) {
   G -> seed = rand();
   G -> allgc = NULL;
   G -> strt = stringtable_init(B);
+  G -> callStack = malloc(sizeof(Mbuffer));
   G -> thisVal = NULL;
   G -> globalScope = create_scope(B, NULL);
   G -> cScope = G -> globalScope;
@@ -743,10 +782,11 @@ void global_init(bean_State * B) {
   G -> sproto = init_String(B);
   G -> aproto = init_Array(B);
   G -> hproto = init_Hash(B);
-
   G -> sproto -> prototype = G -> hproto;
   G -> aproto -> prototype = G -> hproto;
   G -> hproto -> prototype = G -> nil;
+
+  beanZ_initbuffer(G->callStack);
 }
 
 int eval(bean_State * B, struct expr * expression, TValue ** ret) {

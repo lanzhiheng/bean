@@ -1,11 +1,13 @@
 #ifndef _BEAN_STATE_H
 #define _BEAN_STATE_H
 
-#include "stack.h"
+#include "bzio.h"
 #include "common.h"
 #include "bobject.h"
 #include "bhash.h"
 #include "barray.h"
+
+typedef struct Mbuffer Mbuffer;
 
 typedef struct stringtable {
   struct TString ** hash;
@@ -54,6 +56,7 @@ typedef struct global_State {
   TValue * sproto; // Prototype for String
   TValue * aproto; // Prototype for Array
   TValue * hproto; // Prototype for Hash
+  Mbuffer * callStack;
 } global_State;
 
 typedef struct dynamic_expr {
@@ -163,7 +166,7 @@ typedef struct expr {
 
 /* macros to convert a GCObject into a specific value */
 #define gco2ts(o)  \
-        check_exp(novariant((o)->tt) == LUA_TSTRING, &((cast_u(o))->ts))
+        check_exp(novariant((o)->tt) == BEAN_TSTRING, &((cast_u(o))->ts))
 
 #define add(a, b) (a + b)
 #define sub(a, b) (a - b)
@@ -186,4 +189,9 @@ void run_file(const char * path);
 void run();
 void enter_scope(bean_State * B);
 void leave_scope(bean_State * B);
+
+void call_stack_create_frame(bean_State * B);
+void call_stack_frame_will_recycle(bean_State * B);
+void call_stack_restore_frame(bean_State * B);
+char call_stack_peek(bean_State * B);
 #endif

@@ -1,0 +1,17 @@
+fn breakfn() {
+ var i = 40
+
+ while (i > 10) {
+   i = i - 1
+
+   if (i < 30) {
+     if (i == 20) {
+       5000
+     } else {
+       return 3000
+     }
+   }
+ }
+}
+
+print(breakfn())

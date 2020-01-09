@@ -225,7 +225,7 @@ int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, 
 
   for (uint32_t i = 0; i < arr->count; i++) {
     TValue * item = malloc(sizeof(TValue));
-    push(false);
+    call_stack_create_frame(B);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
@@ -239,12 +239,12 @@ int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       eval(B, ex, &item);
-      if (peek()) break;
+      if (call_stack_peek(B)) break;
     }
     array_push(B, newarr, item);
 
     leave_scope(B);
-    pop();
+    call_stack_restore_frame(B);
   }
 
   setarrvalue(*ret, newarr);
@@ -283,7 +283,7 @@ int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int arg
   setsvalue(acc, f->p->args[1]);
 
   for (uint32_t i = 0; i < arr->count; i++) {
-    push(false);
+    call_stack_create_frame(B);
     enter_scope(B);
 
     SCSV(B, elem, arr->entries[i]);
@@ -298,10 +298,10 @@ int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int arg
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       eval(B, ex, &val);
-      if (peek()) break;
+      if (call_stack_peek(B)) break;
     }
     leave_scope(B);
-    pop();
+    call_stack_restore_frame(B);
   }
   *ret = val;
   return BEAN_OK;
@@ -323,7 +323,7 @@ int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc,
 
   TValue * retVal = malloc(sizeof(TValue));
   for (uint32_t i = 0; i < arr->count; i++) {
-    push(false);
+    call_stack_create_frame(B);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
@@ -337,7 +337,7 @@ int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc,
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       eval(B, ex, &retVal);
-      if (peek()) break;
+      if (call_stack_peek(B)) break;
     }
 
     if (truthvalue(retVal)) {
@@ -345,7 +345,7 @@ int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc,
       break;
     }
     leave_scope(B);
-    pop();
+    call_stack_restore_frame(B);
   }
 
   *ret = val;
