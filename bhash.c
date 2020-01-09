@@ -154,7 +154,7 @@ TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
   return rValue;
 }
 
-int primitive_Hash_clone(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
+static int primitive_Hash_clone(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
   Hash * h = init_hash(B);
 
   if (!ttishash(this)) {
@@ -165,12 +165,12 @@ int primitive_Hash_clone(bean_State * B, TValue * this, TValue * args UNUSED, in
   return BEAN_OK;
 }
 
-int primitive_Hash_proto(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
+static int primitive_Hash_proto(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
   *ret = this->prototype;
   return BEAN_OK;
 }
 
-int primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
+static int primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret) {
   char id[MAX_LEN_ID];
   TString * ts = NULL;
 
@@ -198,4 +198,15 @@ int primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int a
   ts = beanS_newlstr(B, id, strlen(id));
   setsvalue(*ret, ts);
   return BEAN_OK;
+}
+
+TValue * init_Hash(bean_State * B) {
+  TValue * proto = malloc(sizeof(TValue));
+  Hash * h = init_hash(B);
+  sethashvalue(proto, h);
+  set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto));
+  set_prototype_function(B, "clone", 5, primitive_Hash_clone, hhvalue(proto));
+  set_prototype_getter(B, "__proto__", 9, primitive_Hash_proto, hhvalue(proto));
+
+  return proto;
 }

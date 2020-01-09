@@ -24,18 +24,5 @@
 TString * beanS_newlstr (bean_State * B, const char *str, size_t l);
 
 bool beanS_equal(TString * ts1, TString * ts2);
-
-int primitive_String_equal(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_concat(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_trim(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_upcase(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_downcase(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_capitalize(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_codePoint(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_length(bean_State * B UNUSED, TValue * this, TValue * args, int argc UNUSED, TValue ** ret);
-int primitive_String_indexOf(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_includes(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_split(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_String_slice(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-
+TValue * init_String(bean_State * B);
 #endif

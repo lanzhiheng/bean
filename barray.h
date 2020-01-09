@@ -19,14 +19,5 @@ bool array_push(bean_State * B, Array * arr, TValue * value);
 TValue * array_pop(bean_State * B, Array * arr);
 bool array_unshift(bean_State * B, Array * arr, TValue * value);
 TValue * array_shift(bean_State * B, Array * arr);
-int primitive_Array_shift(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Array_pop(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Array_push(bean_State * B, TValue * this, TValue * args UNUSED, int argc, TValue ** ret);
-int primitive_Array_unshift(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Array_join(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Array_each(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
+TValue * init_Array(bean_State * B);
 #endif

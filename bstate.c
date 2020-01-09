@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include "bstring.h"
 #include "berror.h"
+#include "barray.h"
 #include "bobject.h"
 #include "bstate.h"
 #include "bparser.h"
@@ -704,67 +705,18 @@ static void set_prototype(bean_State *B, const char * method, uint32_t len, prim
   hash_set(B, h, name, func);
 }
 
-static void set_prototype_function(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h) {
+void set_prototype_function(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h) {
   set_prototype(B, method, len, fn, h, false);
 }
 
-static void set_prototype_getter(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h) {
+void set_prototype_getter(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h) {
   set_prototype(B, method, len, fn, h, true);
-}
-
-TValue * init_String(bean_State * B) {
-  TValue * proto = malloc(sizeof(TValue));
-  Hash * h = init_hash(B);
-
-  sethashvalue(proto, h);
-  set_prototype_function(B, "equal", 5, primitive_String_equal, hhvalue(proto));
-  set_prototype_function(B, "concat", 6, primitive_String_concat, hhvalue(proto));
-  set_prototype_function(B, "trim", 4, primitive_String_trim, hhvalue(proto));
-  set_prototype_function(B, "upcase", 6, primitive_String_upcase, hhvalue(proto));
-  set_prototype_function(B, "downcase", 8, primitive_String_downcase, hhvalue(proto));
-  set_prototype_function(B, "capitalize", 10, primitive_String_capitalize, hhvalue(proto));
-  set_prototype_function(B, "slice", 5, primitive_String_slice, hhvalue(proto));
-  set_prototype_function(B, "indexOf", 7, primitive_String_indexOf, hhvalue(proto));
-  set_prototype_function(B, "includes", 8, primitive_String_includes, hhvalue(proto));
-  set_prototype_getter(B, "length", 6, primitive_String_length, hhvalue(proto));
-  set_prototype_function(B, "split", 5, primitive_String_split, hhvalue(proto));
-  set_prototype_function(B, "codePoint", 9, primitive_String_codePoint, hhvalue(proto));
-  return proto;
-}
-
-TValue * init_Array(bean_State * B) {
-  TValue * proto = malloc(sizeof(TValue));
-  Hash * h = init_hash(B);
-
-  sethashvalue(proto, h);
-  set_prototype_function(B, "join", 4, primitive_Array_join, hhvalue(proto));
-  set_prototype_function(B, "push", 4, primitive_Array_push, hhvalue(proto));
-  set_prototype_function(B, "pop", 3, primitive_Array_pop, hhvalue(proto));
-  set_prototype_function(B, "shift", 5, primitive_Array_shift, hhvalue(proto));
-  set_prototype_function(B, "unshift", 7, primitive_Array_unshift, hhvalue(proto));
-  set_prototype_function(B, "find", 4, primitive_Array_find, hhvalue(proto));
-  set_prototype_function(B, "map", 3, primitive_Array_map, hhvalue(proto));
-  set_prototype_function(B, "reduce", 6, primitive_Array_reduce, hhvalue(proto));
-  set_prototype_function(B, "reverse", 7, primitive_Array_reverse, hhvalue(proto));
-  set_prototype_function(B, "each", 4, primitive_Array_each, hhvalue(proto));
-  return proto;
 }
 
 TValue * init_Nil(bean_State * B UNUSED) {
   TValue * proto = malloc(sizeof(TValue));
   setnilvalue(proto);
   proto -> prototype = NULL;
-  return proto;
-}
-
-TValue * init_Hash(bean_State * B) {
-  TValue * proto = malloc(sizeof(TValue));
-  Hash * h = init_hash(B);
-  sethashvalue(proto, h);
-  set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto));
-  set_prototype_function(B, "clone", 5, primitive_Hash_clone, hhvalue(proto));
-  set_prototype_getter(B, "__proto__", 9, primitive_Hash_proto, hhvalue(proto));
-
   return proto;
 }
 

@@ -25,8 +25,5 @@ Hash * init_hash(bean_State * B);
 bool hash_set(bean_State * B, Hash * hash, TValue * key, TValue * value);
 TValue * hash_get(bean_State * B, Hash * hash, TValue * key);
 TValue * hash_remove(bean_State * B, Hash * hash, TValue * key);
-
-int primitive_Hash_clone(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Hash_proto(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret);
-int primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED, TValue ** ret);
+TValue * init_Hash(bean_State * B);
 #endif
