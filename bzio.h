@@ -18,7 +18,7 @@ typedef struct Mbuffer {
   size_t buffsize;
 } Mbuffer;
 
-#define beanZ_initbuffer(buff) ((buff)->buffer = beanM_mallocvchar(B, BEAN_MINBUFFER, char), (buff)->buffsize = BEAN_MINBUFFER)
+#define beanZ_initbuffer(buff) ((buff)->buffer = beanM_mallocvchar(B, BEAN_MINBUFFER, char), (buff)->buffsize = BEAN_MINBUFFER, (buff)->n = 0)
 #define beanZ_buffer(buff)	((buff)->buffer)
 #define beanZ_sizebuffer(buff)	((buff)->buffsize)
 #define beanZ_bufflen(buff)	((buff)->n)
@@ -31,5 +31,6 @@ typedef struct Mbuffer {
    (buff) -> buffsize = size)
 
 #define beanZ_freebuffer(B, buff)	beanZ_resizebuffer(B, buff, 0)
+
 
 #endif

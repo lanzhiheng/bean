@@ -4,6 +4,8 @@
 #include "common.h"
 #include "bstate.h"
 
+typedef struct bean_State bean_State;
+
 #define beanM_newobject(B,tag,s)	old_beanM_malloc_(B, (s), tag)
 
 #define beanM_limitN(n, t) \
