@@ -746,6 +746,7 @@ TValue * init_Array(bean_State * B) {
   set_prototype_function(B, "map", 3, primitive_Array_map, hhvalue(proto));
   set_prototype_function(B, "reduce", 6, primitive_Array_reduce, hhvalue(proto));
   set_prototype_function(B, "reverse", 7, primitive_Array_reverse, hhvalue(proto));
+  set_prototype_function(B, "each", 4, primitive_Array_each, hhvalue(proto));
   return proto;
 }
 
