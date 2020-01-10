@@ -238,7 +238,7 @@ static int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      eval(B, ex, &item);
+      eval(B, ex, item);
       if (call_stack_peek(B)) break;
     }
     array_push(B, newarr, item);
@@ -297,7 +297,7 @@ static int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, 
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      eval(B, ex, &val);
+      eval(B, ex, val);
       if (call_stack_peek(B)) break;
     }
     leave_scope(B);
@@ -350,7 +350,7 @@ static int primitive_Array_each(bean_State * B, TValue * this, TValue * args, in
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      eval(B, ex, &retVal);
+      eval(B, ex, retVal);
       if (call_stack_peek(B)) break;
     }
 
@@ -391,7 +391,7 @@ static int primitive_Array_find(bean_State * B, TValue * this, TValue * args, in
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      eval(B, ex, &retVal);
+      eval(B, ex, retVal);
       if (call_stack_peek(B)) break;
     }
 

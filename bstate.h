@@ -183,7 +183,7 @@ typedef struct expr {
 #define BEAN_FAIL 0
 
 void global_init(bean_State * B);
-int eval(bean_State * B, struct expr * expression, TValue ** ret);
+int eval(bean_State * B, struct expr * expression, TValue * ret);
 void run_file(const char * path);
 void run();
 void enter_scope(bean_State * B);
