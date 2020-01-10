@@ -26,26 +26,26 @@ fn b() {
 print(a() == b())
 print(a)
 print(b)
-// var i = 0;
+var i = 0;
 
-// while(i < 10) {
-//   print(i)
-//   i = i + 1
-// }
+while(i < 10) {
+  print(i)
+  i = i + 1
+}
 
-// if (i > 100) {
-//  print("less than 100")
-// } else {
-//  print("large than 100")
-// }
+if (i > 100) {
+ print("less than 100")
+} else {
+ print("large than 100")
+}
 
-// print([1,2,3,3,4,"lanzhiheng"])
-// print({
-//  a: 100,
-//  b: fn() {
-//    return self
-//  }
-// })
+print([1,2,3,3,4,"lanzhiheng"])
+print({
+ a: 100,
+ b: fn() {
+   return self
+ }
+})
 
 var hash = {
   this: fn() {

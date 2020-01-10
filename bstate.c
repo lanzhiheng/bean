@@ -15,17 +15,22 @@
 typedef int (*eval_func) (bean_State * B, struct expr * expression, TValue ** ret);
 char * rootDir = NULL;
 
-void call_stack_create_frame(bean_State * B) {
+void call_stack_create_frame(bean_State * B, TValue * thisPtr) {
   Mbuffer * stack = G(B)->callStack;
+  uint32_t need = 1 + sizeof(TValue *);
 
-  if (stack->buffsize < stack->n + 1) {
-    if (stack->buffsize + BEAN_MINBUFFER >= BUFFER_MAX) {
+  if (!thisPtr) thisPtr = G(B) -> nil;
+
+  if (stack->buffsize < stack->n + need) {
+    if (stack->buffsize + BEAN_MINBUFFER * need >= BUFFER_MAX) {
       runtime_error(B, "%s", "Call stack overflow");
     }
 
-    beanZ_resizebuffer(B, stack, stack->buffsize + BEAN_MINBUFFER);
+    beanZ_resizebuffer(B, stack, stack->buffsize + BEAN_MINBUFFER * need);
   }
-  stack->buffer[stack->n++] = false;
+  memcpy(stack->buffer + stack->n, &thisPtr, sizeof(TValue*));
+  stack->buffer[stack->n + sizeof(TValue*)] = false;
+  stack->n += need;
 }
 
 void call_stack_frame_will_recycle(bean_State * B) {
@@ -35,13 +40,15 @@ void call_stack_frame_will_recycle(bean_State * B) {
 
 void call_stack_restore_frame(bean_State * B) {
   Mbuffer * stack = G(B)->callStack;
+  uint32_t need = 1 + sizeof(TValue*);
 
-  if (stack->buffsize - BEAN_MINBUFFER > stack->n) {
-    beanZ_resizebuffer(B, stack, stack->buffsize - BEAN_MINBUFFER);
-  }
+  /* if (stack->buffsize - BEAN_MINBUFFER * need > stack->n) { */
+  /*   beanZ_resizebuffer(B, stack, stack->buffsize - BEAN_MINBUFFER * need); */
+  /* } */
 
-  if (stack->n > 0) {
-    stack->buffer[stack->n--] = false;
+  if (stack->n >= need) {
+    stack->buffer[stack->n-1] = false;
+    stack->n -= need;
   } else {
     runtime_error(B, "%s", "Empty of the call stack");
   }
@@ -50,6 +57,15 @@ void call_stack_restore_frame(bean_State * B) {
 char call_stack_peek(bean_State * B) {
   Mbuffer * stack = G(B)->callStack;
   return stack->buffer[stack->n - 1];
+}
+
+TValue * call_stack_peek_context(bean_State * B) {
+  Mbuffer * stack = G(B)->callStack;
+  uint32_t need = 1 + sizeof(TValue*);
+  TValue ** tvPtr = malloc(sizeof(TValue*));
+  memcpy((char*)tvPtr, stack->buffer + stack->n - need, sizeof(TValue*));
+
+  return *tvPtr;
 }
 
 static Scope * find_variable_scope(bean_State * B, TValue * name) {
@@ -309,7 +325,11 @@ static int binary_eval (bean_State * B UNUSED, struct expr * expression, TValue 
 }
 
 static int self_eval (bean_State * B UNUSED, struct expr * expression UNUSED, TValue ** ret) {
-  *ret = G(B)->thisVal ? G(B)->thisVal : G(B)->nil;
+  if (G(B)->callStack->n) {
+    *ret = call_stack_peek_context(B);
+  } else {
+    *ret = G(B) -> nil;
+  }
   return BEAN_OK;
 }
 
@@ -400,7 +420,6 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
     Tool * t = tlvalue(func);
     // Use binding context
 
-    G(B)->thisVal = t->context;
     TValue * this = malloc(sizeof(TValue));
 
     if (expression->call.callee->type == EXPR_BINARY) {
@@ -421,9 +440,7 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
     t->function(B, this, args, i, ret);
   } else if (ttisfunction(func)) {
     Function * f = fcvalue(func);
-    call_stack_create_frame(B);
-
-    G(B)->thisVal = f->context;
+    call_stack_create_frame(B, f->context);
 
     for (int i = 0; i < f->p->arity; i++) {
       TValue * key = malloc(sizeof(TValue));
@@ -451,7 +468,6 @@ static int function_call_eval (bean_State * B, struct expr * expression, TValue 
   }
 
   leave_scope(B);
-  G(B)->thisVal = NULL;
 
   return BEAN_OK;
 }
@@ -726,7 +742,6 @@ void global_init(bean_State * B) {
   G -> allgc = NULL;
   G -> strt = stringtable_init(B);
   G -> callStack = malloc(sizeof(Mbuffer));
-  G -> thisVal = NULL;
   G -> globalScope = create_scope(B, NULL);
   G -> cScope = G -> globalScope;
   B -> l_G = G;

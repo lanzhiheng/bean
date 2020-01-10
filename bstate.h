@@ -48,7 +48,6 @@ typedef struct Scope {
 typedef struct global_State {
   unsigned int seed;  /* randomized seed for hashes */
   GCObject *allgc;  /* list of all collectable objects */
-  TValue * thisVal;
   stringtable strt;
   Scope * globalScope;
   Scope * cScope;
@@ -190,7 +189,7 @@ void run();
 void enter_scope(bean_State * B);
 void leave_scope(bean_State * B);
 
-void call_stack_create_frame(bean_State * B);
+void call_stack_create_frame(bean_State * B, TValue * this);
 void call_stack_frame_will_recycle(bean_State * B);
 void call_stack_restore_frame(bean_State * B);
 char call_stack_peek(bean_State * B);

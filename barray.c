@@ -225,7 +225,7 @@ static int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int
 
   for (uint32_t i = 0; i < arr->count; i++) {
     TValue * item = malloc(sizeof(TValue));
-    call_stack_create_frame(B);
+    call_stack_create_frame(B, this);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
@@ -283,7 +283,7 @@ static int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, 
   setsvalue(acc, f->p->args[1]);
 
   for (uint32_t i = 0; i < arr->count; i++) {
-    call_stack_create_frame(B);
+    call_stack_create_frame(B, this);
     enter_scope(B);
 
     SCSV(B, elem, arr->entries[i]);
@@ -333,7 +333,7 @@ static int primitive_Array_each(bean_State * B, TValue * this, TValue * args, in
 
   for (uint32_t i = 0; i < arr->count; i++) {
     enter_scope(B);
-    call_stack_create_frame(B);
+    call_stack_create_frame(B, this);
 
     SCSV(B, item, arr->entries[i]);
 
@@ -378,7 +378,7 @@ static int primitive_Array_find(bean_State * B, TValue * this, TValue * args, in
 
   TValue * retVal = malloc(sizeof(TValue));
   for (uint32_t i = 0; i < arr->count; i++) {
-    call_stack_create_frame(B);
+    call_stack_create_frame(B, this);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
