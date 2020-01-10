@@ -23,7 +23,7 @@ fn b() {
   return self
 }
 
-print(a() == b())
+// print(a() == b())
 print(a)
 print(b)
 var i = 0;
@@ -57,14 +57,14 @@ var hash = {
 // // hash.this
 print(hash)
 print(hash.this())
-print(hash.this().this())
+var a = hash.this()
+print(a)
+print(a.this())
 print(nil)
 print(12312)
 print(nil)
 
-
 print(hash.this())
-print(self)
 
 fn abc() {
   var i = 100

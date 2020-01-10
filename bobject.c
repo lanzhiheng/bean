@@ -192,12 +192,25 @@ TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value) {
   return inspect(B, value, true);
 }
 
-int primitive_print(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int argc, TValue ** ret) {
-  *ret = G(B)->nil;
+static TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int argc) {
   for (int i = 0; i < argc; i ++) {
     TValue * string = tvalue_inspect(B, args+i);
     printf("%s ", getstr(svalue(string)));
   }
   printf("\n");
-  return BEAN_OK;
+  return G(B)->nil;
+}
+
+// Add some default tool functions
+void add_tools(bean_State * B) {
+  Hash * variables = B -> l_G -> globalScope -> variables;
+  TValue * name = malloc(sizeof(TValue));
+  TString * ts = beanS_newlstr(B, "print", 5);
+  setsvalue(name, ts);
+
+  TValue * func = malloc(sizeof(TValue));
+  Tool * tool = initialize_tool_by_fn(primitive_print, false);
+
+  settlvalue(func, tool);
+  hash_set(B, variables, name, func);
 }
