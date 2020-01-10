@@ -86,6 +86,14 @@ eachArr.each(fn (i, c) {
 })
 
 eachArr.each(fn (i) {
-  print(self)
-  // print(i)
+fn hello() {
+print(self)
+}
+hello()
 })
+
+// var i = 10
+// while(i < 100) {
+//  print(nil)
+//  i = i + 1
+// }

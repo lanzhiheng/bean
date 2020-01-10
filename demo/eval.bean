@@ -12,8 +12,8 @@ fn a() {
    100 + 100000
 }
 
-// var a = 10
-// a = 100
+var a = 10
+a = 100
 
 fn a() {
   return self
