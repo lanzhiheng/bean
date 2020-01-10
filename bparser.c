@@ -463,26 +463,21 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
 };
 
 
-static void parse_program(LexState * ls, TValue * value) {
+static TValue * parse_program(LexState * ls) {
   expr * ex = parse_statement(ls, BP_LOWEST);
-  eval(ls->B, ex, value);
+  return eval(ls->B, ex);
 }
 
 void bparser(LexState * ls) {
   beanX_next(ls);
 
-  TValue * value;
   while (ls -> current != EOZ) {
-    value = malloc(sizeof(TValue));
-    parse_program(ls, value);
+    parse_program(ls);
   }
-  free(value);
 }
 
-void bparser_for_line(LexState * ls, TValue * value) {
+void bparser_for_line(LexState * ls, TValue ** ret) {
   beanX_next(ls);
 
-  while (ls -> current != EOZ) {
-    parse_program(ls, value);
-  }
+  *ret = parse_program(ls);
 }

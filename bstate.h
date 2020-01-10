@@ -71,7 +71,7 @@ typedef struct Proto {
   bu_byte assign;
 } Proto;
 
-typedef int (*primitive_Fn) (bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret);
+typedef TValue * (*primitive_Fn) (bean_State * B, TValue * this, TValue * args, int argc);
 
 typedef struct Tool {
   primitive_Fn function;
@@ -183,7 +183,7 @@ typedef struct expr {
 #define BEAN_FAIL 0
 
 void global_init(bean_State * B);
-int eval(bean_State * B, struct expr * expression, TValue * ret);
+TValue * eval(bean_State * B, struct expr * expression);
 void run_file(const char * path);
 void run();
 void enter_scope(bean_State * B);
@@ -193,6 +193,8 @@ void call_stack_create_frame(bean_State * B, TValue * this);
 void call_stack_frame_will_recycle(bean_State * B);
 void call_stack_restore_frame(bean_State * B);
 char call_stack_peek(bean_State * B);
+Tool * initialize_tool_by_fn(primitive_Fn fn, bool getter);
 void set_prototype_function(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h);
 void set_prototype_getter(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h);
+void set_self_before_caling(bean_State * B, TValue * context);
 #endif

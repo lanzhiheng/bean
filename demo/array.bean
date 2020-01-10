@@ -89,11 +89,23 @@ eachArr.each(fn (i) {
 fn hello() {
 print(self)
 }
+print(self)
+
 hello()
 })
 
-// var i = 10
-// while(i < 100) {
-//  print(nil)
-//  i = i + 1
-// }
+var b = {
+  console: fn(a) {
+    print(a)
+  }
+}
+
+var a = {
+ hello: fn() {
+  b.console(self)
+  return self
+ }
+}
+
+a.hello()
+// print(self)
