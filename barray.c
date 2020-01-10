@@ -117,23 +117,22 @@ bool array_unshift(bean_State * B, Array * arr, TValue * value) {
   return true;
 }
 
-int primitive_Array_shift(bean_State * B, TValue * this, TValue * args UNUSED, int argc, TValue ** ret) {
+TValue * primitive_Array_shift(bean_State * B, TValue * this, TValue * args UNUSED, int argc) {
   assert(ttisarray(this));
   assert(argc == 0);
   Array * array = arrvalue(this);
-  *ret = array_shift(B, array);
-  return BEAN_OK;
+  return array_shift(B, array);
 }
 
-static int primitive_Array_pop(bean_State * B, TValue * this, TValue * args UNUSED, int argc, TValue ** ret) {
+static TValue * primitive_Array_pop(bean_State * B, TValue * this, TValue * args UNUSED, int argc) {
   assert(ttisarray(this));
   assert(argc == 0);
   Array * array = arrvalue(this);
-  *ret = array_pop(B, array);
-  return BEAN_OK;
+  return array_pop(B, array);
 }
 
-static int primitive_Array_push(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
+static TValue * primitive_Array_push(bean_State * B, TValue * this, TValue * args, int argc) {
+  TValue * ret = malloc(sizeof(TValue));
   assert(ttisarray(this));
   assert(argc < 2);
 
@@ -144,13 +143,14 @@ static int primitive_Array_push(bean_State * B, TValue * this, TValue * args, in
   }
 
   uint32_t count = array->count;
-  setivalue(*ret, count);
-  return BEAN_OK;
+  setivalue(ret, count);
+  return ret;
 }
 
-static int primitive_Array_unshift(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
+static TValue * primitive_Array_unshift(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisarray(this));
   assert(argc < 2);
+  TValue * ret = malloc(sizeof(TValue));
 
   Array * array = arrvalue(this);
   if (argc) {
@@ -159,14 +159,14 @@ static int primitive_Array_unshift(bean_State * B, TValue * this, TValue * args,
   }
 
   uint32_t count = array->count;
-  setivalue(*ret, count);
-  return BEAN_OK;
+  setivalue(ret, count);
+  return ret;
 }
 
-static int primitive_Array_join(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
+static TValue * primitive_Array_join(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisarray(this));
   assert(argc < 2);
-
+  TValue * ret = malloc(sizeof(TValue));
   Array * array = arrvalue(this);
   uint32_t total = 0;
   TString * dts;
@@ -205,15 +205,16 @@ static int primitive_Array_join(bean_State * B, TValue * this, TValue * args, in
     }
   }
   resStr[index] = 0;
-  setsvalue(*ret, beanS_newlstr(B, resStr, total));
-  return BEAN_OK;
+  setsvalue(ret, beanS_newlstr(B, resStr, total));
+  return ret;
 }
 
-static int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
+static TValue * primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisarray(this));
   assert(argc == 1);
 
   TValue callback = args[0];
+  TValue * ret = malloc(sizeof(TValue));
   assert(ttisfunction(&callback));
 
   Array * arr = arrvalue(this);
@@ -224,7 +225,7 @@ static int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int
   setsvalue(key, f->p->args[0]);
 
   for (uint32_t i = 0; i < arr->count; i++) {
-    TValue * item = malloc(sizeof(TValue));
+    TValue * item = NULL;
     call_stack_create_frame(B, this);
     enter_scope(B);
 
@@ -238,7 +239,7 @@ static int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      eval(B, ex, item);
+      item = eval(B, ex);
       if (call_stack_peek(B)) break;
     }
     array_push(B, newarr, item);
@@ -247,11 +248,11 @@ static int primitive_Array_map(bean_State * B, TValue * this, TValue * args, int
     call_stack_restore_frame(B);
   }
 
-  setarrvalue(*ret, newarr);
-  return BEAN_OK;
+  setarrvalue(ret, newarr);
+  return ret;
 }
 
-static int primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue * args, int argc, TValue ** ret) {
+static TValue * primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc) {
   assert(ttisarray(this));
   assert(argc == 0);
 
@@ -263,11 +264,10 @@ static int primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue 
     arr->entries[arr->count-i-1] = temp;
   }
 
-  *ret = this;
-  return BEAN_OK;
+  return this;
 }
 
-static int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
+static TValue * primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisarray(this));
   assert(argc == 2);
 
@@ -297,17 +297,16 @@ static int primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, 
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      eval(B, ex, val);
+      val = eval(B, ex);
       if (call_stack_peek(B)) break;
     }
     leave_scope(B);
     call_stack_restore_frame(B);
   }
-  *ret = val;
-  return BEAN_OK;
+  return val;
 }
 
-static int primitive_Array_each(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
+static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisarray(this));
   assert(argc == 1);
 
@@ -350,7 +349,7 @@ static int primitive_Array_each(bean_State * B, TValue * this, TValue * args, in
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      eval(B, ex, retVal);
+      retVal = eval(B, ex);
       if (call_stack_peek(B)) break;
     }
 
@@ -358,11 +357,10 @@ static int primitive_Array_each(bean_State * B, TValue * this, TValue * args, in
     call_stack_restore_frame(B);
   }
 
-  *ret = this;
-  return BEAN_OK;
+  return this;
 }
 
-static int primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc, TValue ** ret) {
+static TValue * primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisarray(this));
   assert(argc == 1);
 
@@ -376,7 +374,7 @@ static int primitive_Array_find(bean_State * B, TValue * this, TValue * args, in
   TValue * key = malloc(sizeof(TValue));
   setsvalue(key, f->p->args[0]);
 
-  TValue * retVal = malloc(sizeof(TValue));
+  TValue * retVal = NULL;
   for (uint32_t i = 0; i < arr->count; i++) {
     call_stack_create_frame(B, this);
     enter_scope(B);
@@ -391,7 +389,7 @@ static int primitive_Array_find(bean_State * B, TValue * this, TValue * args, in
 
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
-      eval(B, ex, retVal);
+      retVal = eval(B, ex);
       if (call_stack_peek(B)) break;
     }
 
@@ -403,8 +401,7 @@ static int primitive_Array_find(bean_State * B, TValue * this, TValue * args, in
     call_stack_restore_frame(B);
   }
 
-  *ret = val;
-  return BEAN_OK;
+  return val;
 }
 
 TValue * init_Array(bean_State * B) {
