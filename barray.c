@@ -241,7 +241,11 @@ static TValue * primitive_Array_map(bean_State * B, TValue * this, TValue * args
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       item = eval(B, ex);
-      if (call_stack_peek(B)) break;
+
+      if (call_stack_peek(B)) {
+        item = call_stack_peek_return(B);
+        break;
+      };
     }
     array_push(B, newarr, item);
 
@@ -300,7 +304,11 @@ static TValue * primitive_Array_reduce(bean_State * B, TValue * this, TValue * a
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       val = eval(B, ex);
-      if (call_stack_peek(B)) break;
+
+      if (call_stack_peek(B)) {
+        val = call_stack_peek_return(B);
+        break;
+      };
     }
     leave_scope(B);
     call_stack_restore_frame(B);
@@ -354,7 +362,11 @@ static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * arg
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       retVal = eval(B, ex);
-      if (call_stack_peek(B)) break;
+
+      if (call_stack_peek(B)) {
+        retVal = call_stack_peek_return(B);
+        break;
+      }
     }
 
     leave_scope(B);
@@ -395,7 +407,11 @@ static TValue * primitive_Array_find(bean_State * B, TValue * this, TValue * arg
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       retVal = eval(B, ex);
-      if (call_stack_peek(B)) break;
+
+      if (call_stack_peek(B)) {
+        retVal = call_stack_peek_return(B);
+        break;
+      };
     }
 
     if (truthvalue(retVal)) {

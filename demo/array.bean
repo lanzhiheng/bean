@@ -101,11 +101,15 @@ var b = {
 }
 
 var a = {
- hello: fn() {
-  b.console(self)
-  return self
- }
+  hello: fn(target) {
+    while (target) {
+      if (target) {
+        return self;
+      }
+      return 100
+    }
+  }
 }
 
-a.hello()
-// print(self)
+print(a.hello(true))
+print(a.hello(false))
