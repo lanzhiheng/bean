@@ -17,39 +17,53 @@ char * rootDir = NULL;
 
 void call_stack_create_frame(bean_State * B, TValue * thisPtr) {
   Mbuffer * stack = G(B)->callStack;
-  uint32_t need = 1 + sizeof(TValue *);
+  uint32_t need = 1 + sizeof(TValue *) + sizeof(TValue *); // returnTag + this + retVal
+  TValue * emptyReturn = NULL;
 
-   if (stack->buffsize < stack->n + need) {
+  if (stack->buffsize < stack->n + need) {
     if (stack->buffsize + BEAN_MINBUFFER * need >= BUFFER_MAX) {
       runtime_error(B, "%s", "Call stack overflow");
     }
 
     beanZ_resizebuffer(B, stack, stack->buffsize + BEAN_MINBUFFER * need);
   }
-  memcpy(stack->buffer + stack->n, &thisPtr, sizeof(TValue*));
-  stack->buffer[stack->n + sizeof(TValue*)] = false;
+  memcpy(stack->buffer + stack->n, &thisPtr, sizeof(TValue*)); // Put this in stackFrame
+  memcpy(stack->buffer + stack->n + sizeof(TValue*), &emptyReturn, sizeof(TValue*)); // Put defaultReturn
+  stack->buffer[stack->n + 2 * sizeof(TValue*)] = false; // Put target of return stmt
   stack->n += need;
 }
 
-void call_stack_frame_will_recycle(bean_State * B) {
+// Set return target and retValue
+void call_stack_frame_will_recycle(bean_State * B, TValue * retVal) {
   Mbuffer * stack = G(B)->callStack;
   stack->buffer[stack->n - 1] = true;
+  memcpy(stack->buffer + stack->n - sizeof(TValue*) - 1, &retVal, sizeof(TValue*));
 }
 
 void call_stack_restore_frame(bean_State * B) {
   Mbuffer * stack = G(B)->callStack;
-  uint32_t need = 1 + sizeof(TValue*);
-
-  /* if (stack->buffsize - BEAN_MINBUFFER * need > stack->n) { */
-  /*   beanZ_resizebuffer(B, stack, stack->buffsize - BEAN_MINBUFFER * need); */
-  /* } */
+  uint32_t need = 1 + sizeof(TValue*) + sizeof(TValue*);
 
   if (stack->n >= need) {
     stack->buffer[stack->n-1] = false;
     stack->n -= need;
+
+    long newSize = stack->buffsize - BEAN_MINBUFFER * need; // 可能会是负数为了避免自动转换成无符号数，需要用有符号数来保存
+    if (newSize > (long)stack->n) {
+      beanZ_resizebuffer(B, stack, newSize);
+    }
+
   } else {
     runtime_error(B, "%s", "Empty of the call stack");
   }
+}
+
+TValue * call_stack_peek_return(bean_State * B) {
+  Mbuffer * stack = G(B)->callStack;
+  uint32_t need = 1 + sizeof(TValue*);
+  TValue ** tvPtr = malloc(sizeof(TValue*));
+  memcpy((char*)tvPtr, stack->buffer + stack->n - need, sizeof(TValue*));
+  return *tvPtr;
 }
 
 char call_stack_peek(bean_State * B) {
@@ -59,7 +73,7 @@ char call_stack_peek(bean_State * B) {
 
 TValue * call_stack_peek_self(bean_State * B) {
   Mbuffer * stack = G(B)->callStack;
-  uint32_t need = 1 + sizeof(TValue*);
+  uint32_t need = 1 + sizeof(TValue*) + sizeof(TValue*);
   TValue ** tvPtr = malloc(sizeof(TValue*));
   memcpy((char*)tvPtr, stack->buffer + stack->n - need, sizeof(TValue*));
 
@@ -396,12 +410,13 @@ static TValue * loop_eval(bean_State * B, struct expr * expression) {
  breakoff:
   leave_scope(B);
 
-  return stmt;
+  return G(B)->nil;
 }
 
 static TValue * return_eval(bean_State * B, struct expr * expression) {
-  call_stack_frame_will_recycle(B);
-  return eval(B, expression->ret.ret_val);
+  TValue * retVal = eval(B, expression->ret.ret_val);
+  call_stack_frame_will_recycle(B, retVal);
+  return retVal;
 }
 
 static TValue * function_call_eval (bean_State * B, struct expr * expression) {
@@ -454,7 +469,11 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
     for (int j = 0; j < f->body->count; j++) {
       expr * ex = f->body->es[j];
       ret = eval(B, ex);
-      if (call_stack_peek(B)) break;
+
+      if (call_stack_peek(B)) {
+        ret = call_stack_peek_return(B);
+        break;
+      }
     }
     call_stack_restore_frame(B);
   } else {
