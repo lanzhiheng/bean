@@ -12,7 +12,7 @@ fn a() {
    100 + 100000
 }
 
-var a = 10
+a = 10
 a = 100
 
 fn a() {
@@ -26,7 +26,7 @@ fn b() {
 // print(a() == b())
 print(a)
 print(b)
-var i = 0;
+i = 0;
 
 while(i < 10) {
   print(i)
@@ -47,7 +47,7 @@ print({
  }
 })
 
-var hash = {
+hash = {
   this: fn() {
     self
   },
@@ -57,7 +57,7 @@ var hash = {
 // // hash.this
 print(hash)
 print(hash.this())
-var a = hash.this()
+a = hash.this()
 print(a)
 print(a.this())
 print(nil)
@@ -67,7 +67,7 @@ print(nil)
 print(hash.this())
 
 fn abc() {
-  var i = 100
+  i = 100
 
   if (i < 10) { return i;;; }
   else { return 3000 + i ;; };

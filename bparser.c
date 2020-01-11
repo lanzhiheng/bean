@@ -144,21 +144,21 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
   Token preToken = ls->pre;
   Token token = ls->t;
   beanX_next(ls);
+  bool isGlobal = preToken.type == TK_GLOBAL;
 
-  if (preToken.type == TK_VAR) { // variable definition
-    ep -> type = EXPR_DVAR;
-    ep -> var.name = token.seminfo.ts;
+  if (ls->t.type == TK_ASSIGN && preToken.type != TK_DOT) {
+    ep->type = EXPR_DVAR;
+    ep->var.name = token.seminfo.ts;
 
-    if (ls->t.type == TK_ASSIGN) {
-      beanX_next(ls);
-      ep -> var.value = parse_statement(ls, BP_LOWEST);
-    } else {
-      ep -> var.value = NULL;
-    }
+    beanX_next(ls);
+    ep->var.value = parse_statement(ls, BP_LOWEST);
   } else {
-    ep -> type = EXPR_GVAR;
-    ep -> gvar.name = token.seminfo.ts;
+    ep->type = EXPR_GVAR;
+    ep->var.name = token.seminfo.ts;
+    ep->var.value = NULL;
   }
+  ep->var.global = isGlobal;
+
   return ep;
 }
 
@@ -272,7 +272,7 @@ symbol symbol_table[] = {
   { "if", BP_NONE, NULL, NULL },
   { "self", BP_NONE, self, NULL },
   { "in", BP_CONDITION, NULL, NULL },
-  { "var", BP_NONE, NULL, NULL },
+  { "global", BP_NONE, NULL, NULL },
   { "nil", BP_NONE, nil, NULL },
   { "not", BP_CONDITION, NULL, NULL },
   { "or", BP_LOGIC_OR, NULL, NULL },
@@ -441,7 +441,7 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
     case TK_LEFT_BRACE:
       tree = parse_hash(ls, rbp);
       break;
-    case TK_VAR: {
+    case TK_GLOBAL: {
       beanX_next(ls);
       if (ls->t.type != TK_NAME) {
         semantic_error(ls, "Must provide a variable name.");

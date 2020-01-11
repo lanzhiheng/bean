@@ -1,11 +1,11 @@
 /* There is some tests for this language */
 
 // Nil testing
-var lan = nil
+lan = nil
 print(lan)
 
 // Hash testing
-var c = {}
+c = {}
 c["lan"] = 100
 c["lan333"] = "lanzhiheng"
 c.lan = 333
@@ -15,7 +15,7 @@ print(c.lan)
 print([])
 
 // Array testing
-var a = [1,2,3,4,5,6,7]
+a = [1,2,3,4,5,6,7]
 a[0] = 100
 a[1] = 1
 a[11] = "lanzhiheng"
@@ -40,13 +40,13 @@ c['hello'] = 12882
 print(c)
 
 
-var str = "lanzhiheng"
+str = "lanzhiheng"
 print(str.id())
 // print(str['id']) // TODO: need to implement
 print(str.concat(" nihao"))
 print(str.equal("lanzhg"))
 
-var array = [1,2,3,4,5,6,7]
+array = [1,2,3,4,5,6,7]
 print(array)
 print(array.id())
 
@@ -54,7 +54,7 @@ fn a() {
   return "lanzhiheng"
 }
 
-var hash = { a: 1, b: 2, c: 3, d: { g: a } }
+hash = { a: 1, b: 2, c: 3, d: { g: a } }
 hash.lan = a
 print(hash)
 print(hash['lan'])
