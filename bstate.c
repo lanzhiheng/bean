@@ -48,8 +48,8 @@ void call_stack_restore_frame(bean_State * B) {
     stack->buffer[stack->n-1] = false;
     stack->n -= need;
 
-    long newSize = stack->buffsize - BEAN_MINBUFFER * need; // 可能会是负数为了避免自动转换成无符号数，需要用有符号数来保存
-    if (newSize > (long)stack->n) {
+    ssize_t newSize = stack->buffsize - BEAN_MINBUFFER * need; // 可能会是负数为了避免自动转换成无符号数，需要用有符号数来保存
+    if (newSize > (ssize_t)stack->n) {
       beanZ_resizebuffer(B, stack, newSize);
     }
 
@@ -678,7 +678,7 @@ void run_file(const char * path) {
 void run() {
   char * source;
   size_t buffersize = 200;
-  size_t len;
+  ssize_t len;
   source = (char *)malloc(buffersize * sizeof(char));
 
   if( source == NULL) {
@@ -692,6 +692,8 @@ void run() {
   while(true) {
     printf("> ");
     len = getline(&source, &buffersize, stdin);
+    if (len == -1) break; //  return -1 on failure
+
     if (len == 1 && source[0] == '\n') continue;
     beanX_setinput(B, source, e, *source);
     TValue * value = malloc(sizeof(TValue));
@@ -751,8 +753,11 @@ void global_init(bean_State * B) {
   G -> sproto -> prototype = G -> hproto;
   G -> aproto -> prototype = G -> hproto;
   G -> hproto -> prototype = G -> nil;
-
   beanZ_initbuffer(G->callStack);
+
+  TValue * self = malloc(sizeof(TValue));
+  setsvalue(self, beanS_newlstr(B, "self", 4));
+  hash_set(B, G->globalScope->variables, self, G->nil);
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {
