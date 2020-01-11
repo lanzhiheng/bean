@@ -1,28 +1,28 @@
 // Basic handle
 
-var array = ["lanzhiheng", "zhiheng", "lan"]
+array = ["lanzhiheng", "zhiheng", "lan"]
 
 print(array.join("-"))
 print(array.join(",    "))
 print(array.join())
 
-var popArray = ["lanzhiheng", "zhiheng", "lan"]
+popArray = ["lanzhiheng", "zhiheng", "lan"]
 print(popArray.pop())
 print(popArray)
 
-var pushArray = ["lanzhiheng", "zhiheng", "lan"]
+pushArray = ["lanzhiheng", "zhiheng", "lan"]
 print(pushArray.push("1234"))
 print(pushArray)
 
-var shiftArray = ["lanzhiheng", "zhiheng", "lan"]
+shiftArray = ["lanzhiheng", "zhiheng", "lan"]
 print(shiftArray.shift())
 print(shiftArray)
 
-var unshiftArray = ["lanzhiheng", "zhiheng", "lan"]
+unshiftArray = ["lanzhiheng", "zhiheng", "lan"]
 print(unshiftArray.unshift("1233"))
 print(unshiftArray)
 
-var findArray = [1, 2, 3, "lanzhiheng"]
+findArray = [1, 2, 3, "lanzhiheng"]
 print(findArray.find(fn(a) {
   a == 2
 }))
@@ -32,14 +32,14 @@ print(findArray.find(fn(a) {
 }))
 
 // Have some issue
-var findArrayStr = ["lanzhiheng", "string"]
+findArrayStr = ["lanzhiheng", "string"]
 print(findArrayStr.find(fn cb(a) {
   a.equal("lan")
   // print(cb)
 }))
 
 
-var mapArray = [1, 2, 3, 4]
+mapArray = [1, 2, 3, 4]
 print(mapArray.map(fn(a) {
  a * 300
 }))
@@ -48,7 +48,7 @@ print(mapArray.map(fn(a, b) { // all is nil
  b
 }))
 
-var reduceArray = [1, 2, 3, 4]
+reduceArray = [1, 2, 3, 4]
 
 print(reduceArray.reduce(fn(a, b) {
   return a + b
@@ -58,7 +58,7 @@ print(reduceArray.reduce(fn(a, b) {
   return a * b
 }, 1))
 
-var reduceStrArray = ["lanzhiheng", "zhiheng"]
+reduceStrArray = ["lanzhiheng", "zhiheng"]
 print(reduceStrArray.reduce(fn(a,b) {
   return b.concat(a)
 }, ""))
@@ -66,20 +66,20 @@ print(reduceStrArray.reduce(fn(a,b) {
 // reduceStrArray.a = 1
 print(reduceStrArray.__proto__)
 
-var reverseArray = [1, 2, 3, 4, "string"]
+reverseArray = [1, 2, 3, 4, "string"]
 print(reverseArray.reverse())
-var reverseArray = []
+reverseArray = []
 print(reverseArray.reverse())
 
 // join different type
-var joinDiff = [1,2,3,4,5,"lanzhiheng"]
+joinDiff = [1,2,3,4,5,"lanzhiheng"]
 print(joinDiff)
 print(joinDiff.join(","))
 
 
 // each
 
-var eachArr = [1,2,3,4,6]
+eachArr = [1,2,3,4,6]
 
 eachArr.each(fn (i, c) {
   print(i, c)
@@ -94,13 +94,13 @@ print(self)
 hello()
 })
 
-var b = {
+b = {
   console: fn(a) {
     print(a)
   }
 }
 
-var a = {
+a = {
   hello: fn(target) {
     while (target) {
       if (target) {

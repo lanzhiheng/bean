@@ -17,9 +17,9 @@ fn sum2(i) {
 
 print(sum2(4000))
 
-var a = [1,2,3,4,5,6]
+a = [1,2,3,4,5,6]
 
-var g = a.map(fn a(i) {
+g = a.map(fn a(i) {
   if (i > 1) {
     return a(i - 1)
   }

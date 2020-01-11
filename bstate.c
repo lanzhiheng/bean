@@ -109,26 +109,27 @@ static TValue * find_variable(bean_State * B, TValue * name) {
 }
 
 static TValue * search_from_prototype_link(bean_State * B UNUSED, TValue * object, TValue * name) {
+  if (ttisnil(object)) runtime_error(B, "%s", "Can not find the attribute from prototype chain.");
+
   TValue * value = NULL;
   if (ttishash(object)) { // Search in current hash
     Hash * hash = hhvalue(object);
     value = hash_get(B, hash, name);
   }
+  if (value) return value;
 
-  if (!value) {
-    // Search in current hash
-    TValue * proto = object -> prototype;
-    while (proto && !value) {
-      value = hash_get(B, hhvalue(proto), name);
-      proto = proto -> prototype;
-    }
-    if (!proto) runtime_error(B, "%s", "Can not find the attribute from prototype chain.");
-  }
+  // Search in proto chain
+  TValue * proto = object;
+  do {
+    proto = proto -> prototype;
+    value = hash_get(B, hhvalue(proto), name);
+    if (value) return value;
+  } while(!ttisnil(proto));
 
+  runtime_error(B, "%s", "Can not find the attribute from prototype chain.");
   return value;
 }
 
-// Nil have some copy
 static TValue * nil_eval (bean_State * B UNUSED, struct expr * expression UNUSED) {
   return G(B)->nil;
 }
@@ -236,7 +237,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       switch(leftExpr->type) {
         case(EXPR_GVAR): {
           TValue * left = malloc(sizeof(TValue));
-          setsvalue(left, expression -> infix.left->gvar.name);
+          setsvalue(left, expression -> infix.left->var.name);
           value = eval(B, expression -> infix.right);
           Scope * scope = find_variable_scope(B, left);
           if (!scope) eval_error(B, "%s", "Can't reference the variable before defined.");
@@ -253,7 +254,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
             case(TK_DOT): {
               assert(ttishash(object));
               assert(leftExpr -> infix.right->type == EXPR_GVAR);
-              TString * ts = leftExpr -> infix.right -> gvar.name;
+              TString * ts = leftExpr -> infix.right -> var.name;
               TValue * key = malloc(sizeof(TValue));
               setsvalue(key, ts);
               hash_set(B, hhvalue(object), key, value);
@@ -289,7 +290,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       TValue * object = eval(B, expression -> infix.left);
       TValue * name = malloc(sizeof(TValue));
       expr * right = expression -> infix.right;
-      setsvalue(name, right->gvar.name);
+      setsvalue(name, right->var.name);
       TValue * value = search_from_prototype_link(B, object, name);
 
       if (ttisfunction(value)) { // setting context for function
@@ -358,10 +359,16 @@ static TValue * self_eval (bean_State * B UNUSED, struct expr * expression UNUSE
 
 static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expression) {
   TValue * name = malloc(sizeof(TValue));
-  TString * variable = expression->gvar.name;
+  TString * variable = expression->var.name;
   setsvalue(name, variable);
 
-  TValue * value = find_variable(B, name);
+  TValue * value = NULL;
+  if (expression->var.global) {
+    value = GGSV(B, name);
+  } else {
+    value = find_variable(B, name);
+  }
+
   if (!value) eval_error(B, "%s", "Can't reference the variable before defined.");
 
   return value;
@@ -381,7 +388,12 @@ static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expre
     }
   }
 
-  SCSV(B, name, value);
+  if (expression->var.global) {
+    SGSV(B, name, value);
+  } else {
+    SCSV(B, name, value);
+  }
+
   return value;
 }
 
@@ -537,7 +549,7 @@ static TValue * array_eval(bean_State * B UNUSED, struct expr * expression) {
 static TValue * hash_key_eval(bean_State * B UNUSED, struct expr * expression) {
   switch(expression->type) {
     case(EXPR_GVAR): {
-      TString * name = expression->gvar.name;
+      TString * name = expression->var.name;
       TValue * n = malloc(sizeof(TValue));
       setsvalue(n, name);
       return n;

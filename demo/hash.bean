@@ -1,6 +1,6 @@
-var hash = {}
-var string = ""
-var array = []
+hash = {}
+string = ""
+array = []
 
 print(string.__proto__.__proto__.__proto__)
 print(array.__proto__.__proto__)
@@ -8,9 +8,9 @@ print(hash.__proto__)
 
 // test clone
 
-var new1 = hash.clone()
+new1 = hash.clone()
 new1.name = 'new1'
-var new2 = new1.clone()
+new2 = new1.clone()
 new2.name = 'new2'
 
 print(new2)

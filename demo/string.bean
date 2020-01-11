@@ -1,28 +1,28 @@
-var str = "Hello, "
+str = "Hello, "
 print(str.concat("World."))
 print(str.equal("Hello, "))
 print(str.equal("Hello"))
 
-var strWithWhiteSpace = "\t\t\t\thello\n\n\n    "
+strWithWhiteSpace = "\t\t\t\thello\n\n\n    "
 print(strWithWhiteSpace.trim())
 
-var ustr = "hello你好"
+ustr = "hello你好"
 print(ustr.upcase())
 
-var dstr = "HELLO你好"
+dstr = "HELLO你好"
 print(dstr.downcase())
 
-var cstr = "hello你好"
+cstr = "hello你好"
 print(cstr.capitalize())
 
-var slicestr = "你好Ruby，世界上最好的语言。"
+slicestr = "你好Ruby，世界上最好的语言。"
 print(slicestr.slice(0, 5))
 print(slicestr.slice(5, 6))
 print(slicestr.slice(6, -1))
 print(slicestr.slice(10000, 1000000))
 print(slicestr.slice(1, 10))
 
-var indexstr = "你好，Ruby。"
+indexstr = "你好，Ruby。"
 print(indexstr.indexOf("Ruby"))
 print(indexstr.indexOf("zhi"))
 print(indexstr.indexOf("lam"))
@@ -34,13 +34,13 @@ print(indexstr.split())
 print(indexstr.split(""))
 print(indexstr.split("，"))
 
-var strLen1 = "lanzhiheng"
+strLen1 = "lanzhiheng"
 print(strLen1.length)
 
-var strLen2 = "你好"
+strLen2 = "你好"
 print(strLen2.length)
 
-var strCodePoint1 = "你好"
+strCodePoint1 = "你好"
 print(strCodePoint1.codePoint())
-var strCodePoint2 = "好"
+strCodePoint2 = "好"
 print(strCodePoint2.codePoint())
