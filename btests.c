@@ -26,15 +26,15 @@ void test_barray_pop_and_push(bean_State * B) {
   setivalue(v2, 300);
   array_push(B, array, v1);
   array_push(B, array, v2);
-  assert(tvalue_equal(array_get(B, array, 0), v1));
-  assert(tvalue_equal(array_get(B, array, 1), v2));
+  assert(check_equal(array_get(B, array, 0), v1));
+  assert(check_equal(array_get(B, array, 1), v2));
   assert(array->count == 2);
   assert(array->capacity == ARRAY_MIN_CAPACITY);
 
   TValue * popValue1 = array_pop(B, array);
   TValue * popValue2 = array_pop(B, array);
-  assert(tvalue_equal(popValue1, v2));
-  assert(tvalue_equal(popValue2, v1));
+  assert(check_equal(popValue1, v2));
+  assert(check_equal(popValue2, v1));
   assert(array->count == 0);
 }
 
@@ -46,17 +46,17 @@ void test_barray_shift_and_unshift(bean_State * B) {
   array_unshift(B, array, v1);
   array_unshift(B, array, v2);
   array_unshift(B, array, v3);
-  assert(tvalue_equal(array_get(B, array, 0), v3));
-  assert(tvalue_equal(array_get(B, array, 1), v2));
-  assert(tvalue_equal(array_get(B, array, 2), v1));
+  assert(check_equal(array_get(B, array, 0), v3));
+  assert(check_equal(array_get(B, array, 1), v2));
+  assert(check_equal(array_get(B, array, 2), v1));
   assert(array->count == 3);
 
   TValue * shiftValue1 = array_shift(B, array);
   TValue * shiftValue2 = array_shift(B, array);
   TValue * shiftValue3 = array_shift(B, array);
-  assert(tvalue_equal(shiftValue1, v3));
-  assert(tvalue_equal(shiftValue2, v2));
-  assert(tvalue_equal(shiftValue3, v1));
+  assert(check_equal(shiftValue1, v3));
+  assert(check_equal(shiftValue2, v2));
+  assert(check_equal(shiftValue3, v1));
   assert(array->count == 0);
 }
 
@@ -75,9 +75,9 @@ void test_barray_set_value(bean_State * B) {
   array_set(B, array, 80, v3);
   assert(array->count == 81);
   assert(array->capacity == 96);
-  assert(tvalue_equal(array_get(B, array, 80), v3));
-  assert(tvalue_equal(array_get(B, array, 60), v2));
-  assert(tvalue_equal(array_get(B, array, 10), v1));
+  assert(check_equal(array_get(B, array, 80), v3));
+  assert(check_equal(array_get(B, array, 60), v2));
+  assert(check_equal(array_get(B, array, 10), v1));
 }
 
 static TValue * getValue(bean_State * B, uint32_t i) {
@@ -106,7 +106,7 @@ static void testing_value_by_count (bean_State * B, Hash * hash, uint32_t count)
   for (uint32_t i = 0; i < count; i ++) {
     TValue * key = getKey(B, i);
     TValue * value = getValue(B, i);
-    assert(tvalue_equal(hash_get(B, hash, key), value));
+    assert(check_equal(hash_get(B, hash, key), value));
   }
 }
 

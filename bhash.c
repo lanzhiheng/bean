@@ -15,6 +15,21 @@ typedef union {
   double num;
 } Bits64;
 
+static bool key_equal(TValue * v1, TValue * v2) {
+  if (v1 == v2) return true;
+  if (rawtt(v1) != rawtt(v2)) return false;
+
+  switch(v1 -> tt_) {
+    case BEAN_TNUMFLT:
+    case BEAN_TNUMINT:
+      return nvalue(v1) == nvalue(v2);
+    case BEAN_TSTRING:
+      return beanS_equal(svalue(v1), svalue(v2));
+    default:
+      return false;
+  }
+}
+
 Hash * init_hash(bean_State * B) {
   Hash * hash = beanM_malloc_(B, Hash);
   hash -> count = 0;
@@ -100,7 +115,7 @@ bool hash_set(bean_State * B, Hash * hash, TValue * key, TValue * value) {
   Entry * entry = create_entry(B, key, value);
 
   Entry ** header = &hash -> entries[index];
-  while (*header && !tvalue_equal((*header) -> key, key)) {
+  while (*header && !key_equal((*header) -> key, key)) {
     header = &(*header) -> next;
   }
   if (*header == NULL) {
@@ -120,7 +135,7 @@ TValue * hash_get(bean_State * B UNUSED, Hash * hash, TValue * key) {
   TValue * result = NULL;
 
   while (*entry) {
-    if (tvalue_equal((*entry) -> key, key)) {
+    if (key_equal((*entry) -> key, key)) {
       result = (*entry) -> value;
       break;
     }
@@ -137,7 +152,7 @@ TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
   Entry ** header = &hash -> entries[index];
   while ((*header) -> next) {
     header = &(*header) -> next;
-    if (tvalue_equal((*header) -> key, key)) break;
+    if (key_equal((*header) -> key, key)) break;
   }
 
   if (*header != NULL) {
