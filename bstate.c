@@ -212,9 +212,13 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_DIV):
       cal_statement(div);
       break;
-    case(TK_EQ):
-      compare_statement(eq);
-      break;
+    case(TK_EQ): {
+      TValue * v1 = eval(B, expression -> infix.left);
+      TValue * v2 = eval(B, expression -> infix.right);
+      TValue * v = malloc(sizeof(TValue));
+      setbvalue(v, check_equal(v1, v2));
+      return v;
+    }
     case(TK_GE):
       compare_statement(gte);
       break;
