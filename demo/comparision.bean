@@ -1,9 +1,11 @@
-a = {}
-b = {}
-a == b
+// a = {}
+// b = {}
+// a == b
 
-c = "Ruby" + " " + "JavaScript"
-print(c)
+// c = "Ruby" + " " + "JavaScript"
+// print(c)
 
-d = "Ruby " + {a: 1, b: 2}
-print(d)
+// d = "Ruby " + {a: 1, b: 2}
+// print(d)
+
+print({} == {})
