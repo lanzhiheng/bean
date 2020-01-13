@@ -168,6 +168,10 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
       break;
     case(TK_ADD):
       break;
+    case(TK_BANG): {
+      setbvalue(value, truthvalue(value) ? false : true);
+      break;
+    }
     default:
       eval_error(B, "%s", "Unary expression must follow a number");
   }
@@ -223,8 +227,6 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       cal_statement(div);
       break;
     case(TK_EQ): {
-      TValue * v1 = eval(B, expression -> infix.left);
-      TValue * v2 = eval(B, expression -> infix.right);
       TValue * v = malloc(sizeof(TValue));
       setbvalue(v, check_equal(v1, v2));
       return v;
@@ -241,9 +243,11 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_LT):
       compare_statement(lt);
       break;
-    case(TK_NE):
-      compare_statement(neq);
-      break;
+    case(TK_NE): {
+      TValue * v = malloc(sizeof(TValue));
+      setbvalue(v, !check_equal(v1, v2));
+      return v;
+    }
     case(TK_ASSIGN): {
       expr * leftExpr = expression -> infix.left;
       TValue * value = malloc(sizeof(TValue));

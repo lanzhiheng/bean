@@ -259,6 +259,7 @@ symbol symbol_table[] = {
   { ":", BP_NONE, NULL, NULL },
   { ",", BP_NONE, NULL, NULL },
   { ";", BP_NONE, NULL, NULL },
+  { "!", BP_NONE, unary, NULL },
   { "{", BP_NONE, NULL, NULL },
   { "}", BP_NONE, NULL, NULL },
   { "(", BP_CALL, left_paren, function_call },
