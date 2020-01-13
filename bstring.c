@@ -181,12 +181,10 @@ bool beanS_equal(TString * ts1, TString * ts2) {
 }
 
 static TValue * primitive_String_equal(bean_State * B UNUSED, TValue * this, TValue * args, int argc) {
-  TValue * ret = malloc(sizeof(TValue));
   assert(ttisstring(this));
   assert(argc == 1);
   TValue arg1 = args[0];
-  setbvalue(ret, beanS_equal(svalue(this), svalue(&arg1)));
-  return ret;
+  return beanS_equal(svalue(this), svalue(&arg1)) ? G(B)->tVal : G(B)->fVal;
 }
 
 static TValue * primitive_String_concat(bean_State * B, TValue * this, TValue * args, int argc) {
@@ -287,17 +285,15 @@ static TValue * primitive_String_indexOf(bean_State * B UNUSED, TValue * this, T
   return ret;
 }
 
-static TValue * primitive_String_includes(bean_State * B UNUSED, TValue * this, TValue * args, int argc) {
+static TValue * primitive_String_includes(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisstring(this));
   assert(argc == 1);
-  TValue * ret = malloc(sizeof(TValue));
   TValue pattern = args[0];
   assert(ttisstring(&pattern));
   TString * t = svalue(this);
   TString * p = svalue(&pattern);
   int iVal = brute_force_search_utf8(getstr(t), getstr(p), tslen(t), tslen(p));
-  setbvalue(ret, iVal == -1 ? false : true);
-  return ret;
+  return iVal == -1 ? G(B)->fVal : G(B)->tVal;
 }
 
 static TValue * primitive_String_split(bean_State * B UNUSED, TValue * this, TValue * args, int argc) {

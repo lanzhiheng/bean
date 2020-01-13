@@ -149,10 +149,7 @@ static TValue * float_eval (bean_State * B UNUSED, struct expr * expression) {
 }
 
 static TValue * boolean_eval (bean_State * B UNUSED, struct expr * expression) {
-  TValue * ret = malloc(sizeof(TValue));
-  ret->tt_ = BEAN_TBOOLEAN;
-  ret->value_.b = expression -> bval;
-  return ret;
+  return expression -> bval ? G(B)->tVal : G(B)->fVal;
 }
 
 static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
@@ -169,7 +166,7 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_ADD):
       break;
     case(TK_BANG): {
-      setbvalue(value, truthvalue(value) ? false : true);
+      value = truthvalue(value) ? G(B)->tVal : G(B)->fVal;
       break;
     }
     default:
@@ -206,8 +203,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     if (!ttisnumber(v2)) {                                           \
       eval_error(B, "%s", "right operand must be number");           \
     }                                                                \
-    ret->value_.b = action(nvalue(v1), nvalue(v2));                  \
-    ret->tt_ = BEAN_TBOOLEAN;                                        \
+    ret = action(nvalue(v1), nvalue(v2)) ? G(B)->tVal : G(B)->fVal;  \
   } while(0)
 
   switch(op) {
@@ -241,9 +237,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_EQ): {
       TValue * v1 = eval(B, expression -> infix.left);                    \
       TValue * v2 = eval(B, expression -> infix.right);                   \
-      TValue * v = malloc(sizeof(TValue));
-      setbvalue(v, check_equal(v1, v2));
-      return v;
+      return check_equal(v1, v2) ? G(B)->tVal : G(B)->fVal;
     }
     case(TK_GE):
       compare_statement(gte);
@@ -260,9 +254,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_NE): {
       TValue * v1 = eval(B, expression -> infix.left);                    \
       TValue * v2 = eval(B, expression -> infix.right);             \
-      TValue * v = malloc(sizeof(TValue));
-      setbvalue(v, !check_equal(v1, v2));
-      return v;
+      return !check_equal(v1, v2) ? G(B)->tVal : G(B)->fVal;
     }
     case(TK_ASSIGN): {
       expr * leftExpr = expression -> infix.left;
@@ -804,6 +796,12 @@ void global_init(bean_State * B) {
   TValue * self = malloc(sizeof(TValue));
   setsvalue(self, beanS_newlstr(B, "self", 4));
   hash_set(B, G->globalScope->variables, self, G->nil);
+
+  G -> tVal = malloc(sizeof(TValue));
+  setbvalue(G->tVal, true);
+  G -> fVal = malloc(sizeof(TValue));
+  setbvalue(G->fVal, false);
+
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {
