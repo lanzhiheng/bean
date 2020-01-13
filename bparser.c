@@ -11,7 +11,7 @@
 
 static dynamic_expr * init_dynamic_expr(bean_State * B UNUSED) {
   dynamic_expr * target = malloc(sizeof(dynamic_expr));
-  target -> es = malloc(sizeof(struct expr *) * MIN_EXPR_SIZE);
+  target -> es = calloc(sizeof(struct expr *), MIN_EXPR_SIZE);
   target -> size = MIN_EXPR_SIZE;
   target -> count = 0;
   return target;
@@ -21,10 +21,12 @@ static void add_element(bean_State * B, dynamic_expr * target, struct expr * exp
   if (target -> count + 1 > target -> size) {
     size_t oldSize = (target -> size) * sizeof(struct expr *);
     size_t newSize = oldSize * 2;
-    target -> es = beanM_realloc_(B, target -> es, oldSize, newSize);
+    target->es = beanM_realloc_(B, target -> es, oldSize, newSize);
 
-    if (target -> es) {
-      target -> size = newSize;
+    if (target->es) {
+      for (uint32_t i = target->size; i < newSize; i++) target->es[i] = NULL;
+
+      target->size = newSize;
     }
   }
   target -> es[target -> count++] = expression;
@@ -246,6 +248,37 @@ static expr * unary(LexState *ls, expr * exp UNUSED) {
   return temp;
 }
 
+static expr * parse_array(struct LexState *ls UNUSED, expr * exp UNUSED) {
+  beanX_next(ls);
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_ARRAY;
+  ep -> array = init_dynamic_expr(ls->B);
+
+  if (testnext(ls, TK_RIGHT_BRACKET)) return ep;
+  do {
+    add_element(ls->B, ep->array, parse_statement(ls, BP_LOWEST));
+  } while(testnext(ls, TK_COMMA));
+  testnext(ls, TK_RIGHT_BRACKET);
+  return ep;
+}
+
+static expr * parse_hash(struct LexState *ls UNUSED, expr * exp UNUSED) {
+  beanX_next(ls);
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_HASH;
+  ep -> hash = init_dynamic_expr(ls->B);
+  if (testnext(ls, TK_RIGHT_BRACE)) return ep;
+
+  do {
+    add_element(ls->B, ep->hash, parse_statement(ls, BP_LOWEST));
+    testnext(ls, TK_COLON);
+    add_element(ls->B, ep->hash, parse_statement(ls, BP_LOWEST));
+  } while(testnext(ls, TK_COMMA));
+
+  testnext(ls, TK_RIGHT_BRACE);
+  return ep;
+}
+
 symbol symbol_table[] = {
   /* arithmetic operators */
   { "and", BP_LOGIC_AND, NULL, NULL },
@@ -260,11 +293,11 @@ symbol symbol_table[] = {
   { ",", BP_NONE, NULL, NULL },
   { ";", BP_NONE, NULL, NULL },
   { "!", BP_NONE, unary, NULL },
-  { "{", BP_NONE, NULL, NULL },
+  { "{", BP_NONE, parse_hash, NULL },
   { "}", BP_NONE, NULL, NULL },
   { "(", BP_CALL, left_paren, function_call },
   { ")", BP_NONE, NULL, NULL },
-  { "[", BP_DOT, NULL, infix },
+  { "[", BP_DOT, parse_array, infix },
   { "]", BP_NONE, NULL, NULL },
   { ".", BP_DOT, NULL, infix },
   { "false", BP_NONE, boolean, NULL },
@@ -385,37 +418,6 @@ static expr * parse_break(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
   return ep;
 }
 
-static expr * parse_array(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
-  beanX_next(ls);
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_ARRAY;
-  ep -> array = init_dynamic_expr(ls->B);
-
-  if (testnext(ls, TK_RIGHT_BRACKET)) return ep;
-  do {
-    add_element(ls->B, ep->array, parse_statement(ls, BP_LOWEST));
-  } while(testnext(ls, TK_COMMA));
-  testnext(ls, TK_RIGHT_BRACKET);
-  return ep;
-}
-
-static expr * parse_hash(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
-  beanX_next(ls);
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_HASH;
-  ep -> hash = init_dynamic_expr(ls->B);
-  if (testnext(ls, TK_RIGHT_BRACE)) return ep;
-
-  do {
-    add_element(ls->B, ep->hash, parse_statement(ls, BP_LOWEST));
-    testnext(ls, TK_COLON);
-    add_element(ls->B, ep->hash, parse_statement(ls, BP_LOWEST));
-  } while(testnext(ls, TK_COMMA));
-
-  testnext(ls, TK_RIGHT_BRACE);
-  return ep;
-}
-
 static void skip_semicolon(LexState * ls) { // Skip all the semicolon
   while (ls -> t.type == TK_SEMI) beanX_next(ls);
 }
@@ -425,38 +427,26 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
   expr * tree;
   switch(ls->t.type) {
     case TK_BREAK:
-      tree = parse_break(ls, rbp);
-      break;
+      return parse_break(ls, rbp);
     case TK_WHILE:
-      tree = parse_while(ls, rbp);
-      break;
+      return parse_while(ls, rbp);
     case TK_IF:
-      tree = parse_branch(ls, rbp);
-      break;
+      return parse_branch(ls, rbp);
     case TK_FUNCTION:
-      tree = parse_definition(ls);
-      break;
-    case TK_LEFT_BRACKET:
-      tree = parse_array(ls, rbp);
-      break;
-    case TK_LEFT_BRACE:
-      tree = parse_hash(ls, rbp);
-      break;
+      return parse_definition(ls);
     case TK_GLOBAL: {
       beanX_next(ls);
       if (ls->t.type != TK_NAME) {
         semantic_error(ls, "Must provide a variable name.");
       }
     }
-    default: {
-      tree = symbol_table[ls->t.type].nud(ls, NULL);
+  }
+  tree = symbol_table[ls->t.type].nud(ls, NULL);
 
-      while (rbp < get_tk_precedence(ls)) {
-        Token token = ls->t;
-        beanX_next(ls);
-        tree = symbol_table[token.type].led(ls, tree);
-      }
-    }
+  while (rbp < get_tk_precedence(ls)) {
+    Token token = ls->t;
+    beanX_next(ls);
+    tree = symbol_table[token.type].led(ls, tree);
   }
 
   skip_semicolon(ls);

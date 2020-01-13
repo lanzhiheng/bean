@@ -182,11 +182,11 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
 static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
   TokenType op = expression -> infix.op;
   TValue * ret = malloc(sizeof(TValue));
-  TValue * v1 = eval(B, expression -> infix.left);
-  TValue * v2 = eval(B, expression -> infix.right);
 
 
 #define cal_statement(action) do {                                      \
+    TValue * v1 = eval(B, expression -> infix.left);                    \
+    TValue * v2 = eval(B, expression -> infix.right);                   \
     bu_byte isfloat = ttisfloat(v1) || ttisfloat(v1);                   \
     if (isfloat) {                                      \
       ret->value_.n = action(nvalue(v1), nvalue(v2));  \
@@ -198,6 +198,8 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
  } while(0)
 
 #define compare_statement(action) do {                      \
+    TValue * v1 = eval(B, expression -> infix.left);                 \
+    TValue * v2 = eval(B, expression -> infix.right);                \
     if (!ttisnumber(v1)) {                                           \
       eval_error(B, "%s", "left operand must be number");            \
     }                                                                \
@@ -205,13 +207,23 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       eval_error(B, "%s", "right operand must be number");           \
     }                                                                \
     ret->value_.b = action(nvalue(v1), nvalue(v2));                  \
-    ret->tt_ = BEAN_TBOOLEAN;                                  \
+    ret->tt_ = BEAN_TBOOLEAN;                                        \
   } while(0)
 
   switch(op) {
     case(TK_ADD): {
+      TValue * v1 = eval(B, expression -> infix.left);
+      TValue * v2 = eval(B, expression -> infix.right);
+
       if (ttisnumber(v1) && ttisnumber(v2)) {
-        cal_statement(add);
+        bu_byte isfloat = ttisfloat(v1) || ttisfloat(v2);
+        if (isfloat) {
+          ret->value_.n = add(nvalue(v1), nvalue(v2));
+          ret->tt_ = BEAN_TNUMFLT;
+        } else {
+          ret->value_.i = add(nvalue(v1), nvalue(v2));
+          ret->tt_ = BEAN_TNUMINT;
+        }
       } else {
         ret = concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
       }
@@ -227,6 +239,8 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       cal_statement(div);
       break;
     case(TK_EQ): {
+      TValue * v1 = eval(B, expression -> infix.left);                    \
+      TValue * v2 = eval(B, expression -> infix.right);                   \
       TValue * v = malloc(sizeof(TValue));
       setbvalue(v, check_equal(v1, v2));
       return v;
@@ -244,6 +258,8 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       compare_statement(lt);
       break;
     case(TK_NE): {
+      TValue * v1 = eval(B, expression -> infix.left);                    \
+      TValue * v2 = eval(B, expression -> infix.right);             \
       TValue * v = malloc(sizeof(TValue));
       setbvalue(v, !check_equal(v1, v2));
       return v;
