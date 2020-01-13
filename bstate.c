@@ -178,11 +178,12 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
 static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
   TokenType op = expression -> infix.op;
   TValue * ret = malloc(sizeof(TValue));
+  TValue * v1 = eval(B, expression -> infix.left);
+  TValue * v2 = eval(B, expression -> infix.right);
+
 
 #define cal_statement(action) do {                                      \
-    TValue * v1 = eval(B, expression -> infix.left);                    \
-    TValue * v2 = eval(B, expression -> infix.right);                   \
-    bu_byte isfloat = ttisfloat(v1) || ttisfloat(v1);   \
+    bu_byte isfloat = ttisfloat(v1) || ttisfloat(v1);                   \
     if (isfloat) {                                      \
       ret->value_.n = action(nvalue(v1), nvalue(v2));  \
       ret->tt_ = BEAN_TNUMFLT;                             \
@@ -193,16 +194,25 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
  } while(0)
 
 #define compare_statement(action) do {                      \
-    TValue * v1 = eval(B, expression -> infix.left);                 \
-    TValue * v2 = eval(B, expression -> infix.right);                \
-    ret->value_.b = action(nvalue(v1), nvalue(v2));        \
+    if (!ttisnumber(v1)) {                                           \
+      eval_error(B, "%s", "left operand must be number");            \
+    }                                                                \
+    if (!ttisnumber(v2)) {                                           \
+      eval_error(B, "%s", "right operand must be number");           \
+    }                                                                \
+    ret->value_.b = action(nvalue(v1), nvalue(v2));                  \
     ret->tt_ = BEAN_TBOOLEAN;                                  \
   } while(0)
 
   switch(op) {
-    case(TK_ADD):
-      cal_statement(add);
+    case(TK_ADD): {
+      if (ttisnumber(v1) && ttisnumber(v2)) {
+        cal_statement(add);
+      } else {
+        ret = concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
+      }
       break;
+    }
     case(TK_SUB):
       cal_statement(sub);
       break;

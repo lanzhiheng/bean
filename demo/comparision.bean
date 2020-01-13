@@ -1,5 +1,9 @@
 a = {}
 b = {}
 a == b
-// true == true
-// false == false
+
+c = "Ruby" + " " + "JavaScript"
+print(c)
+
+d = "Ruby " + {a: 1, b: 2}
+print(d)

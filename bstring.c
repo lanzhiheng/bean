@@ -217,6 +217,10 @@ static TValue * primitive_String_concat(bean_State * B, TValue * this, TValue * 
   return ret;
 }
 
+TValue * concat(bean_State * B, TValue * left, TValue * right) {
+  return primitive_String_concat(B, left, right, 1);
+}
+
 static TValue * primitive_String_trim(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
   assert(ttisstring(this));
   TValue * ret = malloc(sizeof(TValue));
