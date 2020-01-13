@@ -56,6 +56,8 @@ typedef struct global_State {
   Scope * globalScope;
   Scope * cScope;
   TValue * nil;  // nil
+  TValue * tVal;
+  TValue * fVal;
   TValue * sproto; // Prototype for String
   TValue * aproto; // Prototype for Array
   TValue * hproto; // Prototype for Hash
