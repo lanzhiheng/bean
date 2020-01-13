@@ -25,4 +25,5 @@ TString * beanS_newlstr (bean_State * B, const char *str, size_t l);
 
 bool beanS_equal(TString * ts1, TString * ts2);
 TValue * init_String(bean_State * B);
+TValue * concat(bean_State * B, TValue * left, TValue * right);
 #endif
