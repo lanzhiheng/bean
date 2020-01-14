@@ -169,6 +169,10 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
       value = truthvalue(value) ? G(B)->tVal : G(B)->fVal;
       break;
     }
+    case(TK_TYPE_OF): {
+      value = type_statement(B, value);
+      break;
+    }
     default:
       eval_error(B, "%s", "Unary expression must follow a number");
   }
@@ -184,8 +188,14 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
 #define cal_statement(action) do {                                      \
     TValue * v1 = eval(B, expression -> infix.left);                    \
     TValue * v2 = eval(B, expression -> infix.right);                   \
+    if (!ttisnumber(v1)) {                                              \
+      eval_error(B, "%s", "left operand of "#action" must be number");               \
+    }                                                                   \
+    if (!ttisnumber(v2)) {                                              \
+      eval_error(B, "%s", "right operand of "#action" must be number");              \
+    }                                                                   \
     bu_byte isfloat = ttisfloat(v1) || ttisfloat(v1);                   \
-    if (isfloat) {                                      \
+    if (isfloat) {                                                      \
       ret->value_.n = action(nvalue(v1), nvalue(v2));  \
       ret->tt_ = BEAN_TNUMFLT;                             \
     } else {                                            \
@@ -198,10 +208,10 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     TValue * v1 = eval(B, expression -> infix.left);                 \
     TValue * v2 = eval(B, expression -> infix.right);                \
     if (!ttisnumber(v1)) {                                           \
-      eval_error(B, "%s", "left operand must be number");            \
+      eval_error(B, "%s", "left operand of "#action" must be number");            \
     }                                                                \
     if (!ttisnumber(v2)) {                                           \
-      eval_error(B, "%s", "right operand must be number");           \
+      eval_error(B, "%s", "right operand of "#action" must be number");           \
     }                                                                \
     ret = action(nvalue(v1), nvalue(v2)) ? G(B)->tVal : G(B)->fVal;  \
   } while(0)

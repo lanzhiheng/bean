@@ -212,3 +212,33 @@ void add_tools(bean_State * B) {
   settlvalue(func, tool);
   hash_set(B, variables, name, func);
 }
+
+TValue * type_statement(bean_State * B UNUSED, TValue * target) {
+  char * typeStr;
+  switch(ttype(target)) {
+    case BEAN_TNIL:
+      typeStr = "nil";
+      break;
+    case BEAN_TBOOLEAN:
+      typeStr = "boolean";
+      break;
+    case BEAN_TNUMBER:
+      typeStr = "number";
+      break;
+    case BEAN_TTOOL:
+    case BEAN_TFUNCTION:
+      typeStr = "function";
+      break;
+    case BEAN_TSTRING:
+      typeStr = "string";
+      break;
+    case BEAN_TLIST:
+      typeStr = "array";
+      break;
+  }
+
+  TString * ts = beanS_newlstr(B, typeStr, strlen(typeStr));
+  TValue * typeVal = malloc(sizeof(TValue));
+  setsvalue(typeVal, ts);
+  return typeVal;
+}
