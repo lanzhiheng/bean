@@ -235,9 +235,10 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       cal_statement(div);
       break;
     case(TK_EQ): {
-      TValue * v1 = eval(B, expression -> infix.left);                    \
-      TValue * v2 = eval(B, expression -> infix.right);                   \
-      return check_equal(v1, v2) ? G(B)->tVal : G(B)->fVal;
+      TValue * v1 = eval(B, expression -> infix.left);
+      TValue * v2 = eval(B, expression -> infix.right);
+      ret = check_equal(v1, v2) ? G(B)->tVal : G(B)->fVal;
+      break;
     }
     case(TK_GE):
       compare_statement(gte);
@@ -252,9 +253,10 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       compare_statement(lt);
       break;
     case(TK_NE): {
-      TValue * v1 = eval(B, expression -> infix.left);                    \
-      TValue * v2 = eval(B, expression -> infix.right);             \
-      return !check_equal(v1, v2) ? G(B)->tVal : G(B)->fVal;
+      TValue * v1 = eval(B, expression -> infix.left);
+      TValue * v2 = eval(B, expression -> infix.right);
+      ret = !check_equal(v1, v2) ? G(B)->tVal : G(B)->fVal;
+      break;
     }
     case(TK_ASSIGN): {
       expr * leftExpr = expression -> infix.left;
