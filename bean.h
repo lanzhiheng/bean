@@ -9,6 +9,5 @@
 #define BEAN_THASH		5
 #define BEAN_TFUNCTION		6
 #define BEAN_TLIST		7
-#define BEAN_TTHREAD		8
 
 #endif

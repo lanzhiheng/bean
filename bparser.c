@@ -306,6 +306,7 @@ symbol symbol_table[] = {
   { "if", BP_NONE, NULL, NULL },
   { "self", BP_NONE, self, NULL },
   { "in", BP_CONDITION, NULL, NULL },
+  { "typeof", BP_NONE, unary, NULL },
   { "global", BP_NONE, NULL, NULL },
   { "nil", BP_NONE, nil, NULL },
   { "not", BP_CONDITION, NULL, NULL },
