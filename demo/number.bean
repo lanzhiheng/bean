@@ -1,0 +1,15 @@
+a = 10.22
+print("To Fixed: " + a.toFixed(2))
+print("To String: " + a.toString())
+
+b = 10000000
+print("To Fixed: " + b.toFixed(4))
+print("To String: " + a.toString())
+
+c = 999.00999
+print("To Fixed: " + c.toFixed())
+print("To String: " + a.toString())
+
+d = 999.00999
+print("To Fixed: " + d.toFixed(50))
+print("To String: " + a.toString())
