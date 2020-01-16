@@ -143,7 +143,7 @@ static TValue * primitive_Array_push(bean_State * B, TValue * this, TValue * arg
   }
 
   uint32_t count = array->count;
-  setnvalue(ret, count);
+  setivalue(ret, count);
   return ret;
 }
 
@@ -159,7 +159,7 @@ static TValue * primitive_Array_unshift(bean_State * B, TValue * this, TValue * 
   }
 
   uint32_t count = array->count;
-  setnvalue(ret, count);
+  setivalue(ret, count);
   return ret;
 }
 
@@ -347,7 +347,7 @@ static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * arg
     SCSV(B, item, arr->entries[i]);
 
     if (f->p->arity == 2) {
-      setnvalue(index, i);
+      setivalue(index, i);
       SCSV(B, idxName, index);
     }
 

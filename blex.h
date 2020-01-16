@@ -41,7 +41,7 @@ typedef enum RESERVED {
   TK_EQ, TK_ASSIGN, TK_GE, TK_GT, TK_LE, TK_LT, TK_NE,
   TK_SHL, TK_SHR,
   TK_EOS,
-  TK_NUM, TK_NAME, TK_STRING
+  TK_FLT, TK_INT, TK_NAME, TK_STRING
 } TokenType;
 
 /* ORDER RESERVED */
@@ -51,7 +51,8 @@ extern const char *const beanX_tokens[];
 #define NUM_RESERVED	(cast_int(TK_WHILE + 1))
 
 typedef union {
-  bean_Number n;
+  bean_Number r;
+  bean_Integer i;
   TString *ts;
 } SemInfo;  /* semantics information */
 

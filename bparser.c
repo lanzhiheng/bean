@@ -82,9 +82,14 @@ static expr * string (LexState *ls, expr * exp UNUSED) {
 static expr* num(LexState *ls, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   switch(ls->t.type) {
-    case(TK_NUM): {
+    case(TK_INT): {
       ep -> type = EXPR_NUM;
-      ep -> nval = ls->t.seminfo.n;
+      ep -> ival = ls->t.seminfo.i;
+      break;
+    }
+    case(TK_FLT): {
+      ep -> type = EXPR_FLOAT;
+      ep -> nval = ls->t.seminfo.r;
       break;
     }
     default:
@@ -320,6 +325,7 @@ symbol symbol_table[] = {
   { ">>", BP_BIT_SHIFT, NULL, infix },
   { "<eof>", BP_NONE, NULL, NULL },
   { "<number>", BP_NONE, num, NULL },
+  { "<integer>", BP_NONE, num, NULL },
   { "<name>", BP_NONE, variable, NULL },
   { "<string>", BP_NONE, string, NULL },
 };

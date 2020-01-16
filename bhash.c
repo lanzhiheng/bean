@@ -185,11 +185,6 @@ static TValue * primitive_Hash_proto(bean_State * B UNUSED, TValue * this, TValu
   return this->prototype;
 }
 
-static TValue * primitive_Hash_toString(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  TValue * string = tvalue_inspect_pure(B, this);
-  return string;
-}
-
 static TValue * primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
   char id[MAX_LEN_ID];
   TString * ts = NULL;
@@ -227,7 +222,6 @@ TValue * init_Hash(bean_State * B) {
   sethashvalue(proto, h);
   set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto));
   set_prototype_function(B, "clone", 5, primitive_Hash_clone, hhvalue(proto));
-  set_prototype_function(B, "toString", 8, primitive_Hash_toString, hhvalue(proto));
   set_prototype_getter(B, "__proto__", 9, primitive_Hash_proto, hhvalue(proto));
 
   return proto;

@@ -58,7 +58,6 @@ typedef struct global_State {
   TValue * nil;  // nil
   TValue * tVal;
   TValue * fVal;
-  TValue * nproto; // Prototype for Number
   TValue * sproto; // Prototype for String
   TValue * aproto; // Prototype for Array
   TValue * hproto; // Prototype for Hash
@@ -95,6 +94,7 @@ typedef struct Function {
 typedef enum {
   EXPR_NIL,
   EXPR_NUM,
+  EXPR_FLOAT,
   EXPR_BOOLEAN,
   EXPR_UNARY,
   EXPR_BINARY,
@@ -116,6 +116,7 @@ typedef struct expr {
   EXPR_TYPE type;
 
   union {
+    bean_Integer ival;    /* for TK_INT */
     bean_Number nval;  /* for VKFLT */
     bu_byte bval;
     TString * sval;

@@ -7,7 +7,8 @@
 #define bool char
 #define byte char
 
-#define bean_Number double
+#define bean_Integer long
+#define bean_Number long double
 
 typedef unsigned char bu_byte;
 typedef signed char bs_byte;
@@ -21,6 +22,7 @@ typedef struct vm VM;
 
 #define cast(t, exp)	((t)(exp))
 #define cast_int(i)	cast(int, (i))
+#define cast_num(i)     cast(bean_Integer, (i))
 #define cast_char(i)	cast(char, (i))
 #define cast_charp(i)	cast(char *, (i))
 #define cast_uchar(i)	cast(unsigned char, (i))

@@ -14,7 +14,7 @@ const char *const beanX_tokens [] = {
     "return", "true",  "while",
     "==", "=", ">=", ">", "<=", "<", "~=",
     "<<", ">>", "<eof>",
-    "<number>", "<name>", "<string>"
+    "<number>", "<integer>", "<name>", "<string>"
 };
 
 #define save_and_next(ls) (save(ls, ls->current), next(ls))
@@ -43,7 +43,7 @@ void beanX_init(bean_State * B) {
 const char *txtToken (LexState *ls, int token) {
   switch (token) {
     case TK_NAME: case TK_STRING:
-    case TK_NUM:
+    case TK_FLT: case TK_INT:
       save(ls, '\0');
       return beanO_pushfstring(ls->B, "'%s'", beanZ_buffer(ls->buff));
     default:
@@ -188,7 +188,7 @@ static int check_next2(LexState * ls, const char *set) {
   else return false;
 }
 
-static const char *b_str2int (const char *s, bean_Number *result) {
+static const char *b_str2int (const char *s, bean_Integer *result) {
   const char * p = s;
   int base = 10;
   char * ptr;
@@ -214,14 +214,14 @@ static const char *b_str2d (const char *s, bean_Number *result) {
   return ptr;
 }
 
-int beanO_str2num(bean_State * B, char * s, TValue *o) {
-  bean_Number n;
+int beanO_str2num(char * s, TValue *o) {
+  bean_Integer i; bean_Number n;
   const char *e;
 
-  if ((e = b_str2int(s, &n)) != NULL) {  /* try as an integer */
-    setnvalue(o, n);
+  if ((e = b_str2int(s, &i)) != NULL) {  /* try as an integer */
+    setivalue(o, i);
   } else if ((e = b_str2d(s, &n)) != NULL) {
-    setnvalue(o, n);
+    setfltvalue(o, n);
   } else {
     return 0;
   }
@@ -249,10 +249,17 @@ static int read_numeral(LexState * ls, SemInfo * seminfo) {
     save_and_next(ls);  /* force an error */
   save(ls, '\0');
 
-  if (beanO_str2num(ls->B, beanZ_buffer(ls -> buff), &obj) == 0) lex_error(ls, "malformed number", TK_NUM);
+  if (beanO_str2num(beanZ_buffer(ls -> buff), &obj) == 0) lex_error(ls, "malformed number", TK_FLT);
 
-  seminfo->n = nvalue(&obj);
-  return TK_NUM;
+  if (ttisinteger(&obj)) {
+    seminfo->i = ivalue(&obj);
+    return TK_INT;
+  }
+  else {
+    bean_assert(ttisfloat(&obj));
+    seminfo->r = fltvalue(&obj);
+    return TK_FLT;
+  }
 }
 
 static int llex(LexState * ls, SemInfo * seminfo) {

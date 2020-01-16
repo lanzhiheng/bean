@@ -134,11 +134,11 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
     }
     case BEAN_TNUMFLT:
       string = malloc(sizeof(char) * 100);
-      sprintf(string, "%f", nvalue(value));
+      sprintf(string, "%Lf", fltvalue(value));
       break;
     case BEAN_TNUMINT:
       string = malloc(sizeof(char) * 100);
-      sprintf(string, "%ld", (long)nvalue(value));
+      sprintf(string, "%ld", ivalue(value));
       break;
     case BEAN_TSTRING: {
       TString * ts = svalue(value);
