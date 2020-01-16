@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include "bstring.h"
+#include "bnumber.h"
 #include "berror.h"
 #include "barray.h"
 #include "bobject.h"
@@ -119,11 +120,11 @@ static TValue * search_from_prototype_link(bean_State * B UNUSED, TValue * objec
   if (value) return value;
 
   // Search in proto chain
-  TValue * proto = object;
+  TValue * proto = object -> prototype;
   do {
-    proto = proto -> prototype;
     value = hash_get(B, hhvalue(proto), name);
     if (value) return value;
+    proto = proto -> prototype;
   } while(!ttisnil(proto));
 
   runtime_error(B, "%s", "Can not find the attribute from prototype chain.");
@@ -134,17 +135,9 @@ static TValue * nil_eval (bean_State * B UNUSED, struct expr * expression UNUSED
   return G(B)->nil;
 }
 
-static TValue * int_eval (bean_State * B UNUSED, struct expr * expression) {
+static TValue * number_eval (bean_State * B UNUSED, struct expr * expression) {
   TValue * ret = malloc(sizeof(TValue));
-  ret->tt_ = BEAN_TNUMINT;
-  ret->value_.i = expression -> ival;
-  return ret;
-}
-
-static TValue * float_eval (bean_State * B UNUSED, struct expr * expression) {
-  TValue * ret = malloc(sizeof(TValue));
-  ret->tt_ = BEAN_TNUMFLT;
-  ret->value_.n = expression -> nval;
+  setnvalue(ret, expression -> nval);
   return ret;
 }
 
@@ -157,11 +150,7 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
 
   switch(expression->unary.op) {
     case(TK_SUB):
-      if (ttisinteger(value)) {
-        setivalue(value, -ivalue(value));
-      } else if (ttisfloat(value)) {
-        setfltvalue(value, -fltvalue(value));
-      }
+      setnvalue(value, -nvalue(value));
       break;
     case(TK_ADD):
       break;
@@ -184,7 +173,6 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
   TokenType op = expression -> infix.op;
   TValue * ret = malloc(sizeof(TValue));
 
-
 #define cal_statement(action) do {                                      \
     TValue * v1 = eval(B, expression -> infix.left);                    \
     TValue * v2 = eval(B, expression -> infix.right);                   \
@@ -194,14 +182,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     if (!ttisnumber(v2)) {                                              \
       eval_error(B, "%s", "right operand of "#action" must be number");              \
     }                                                                   \
-    bu_byte isfloat = ttisfloat(v1) || ttisfloat(v1);                   \
-    if (isfloat) {                                                      \
-      ret->value_.n = action(nvalue(v1), nvalue(v2));  \
-      ret->tt_ = BEAN_TNUMFLT;                             \
-    } else {                                            \
-      ret->value_.i = action(nvalue(v1), nvalue(v2));  \
-      ret->tt_ = BEAN_TNUMINT;                             \
-    }                                                   \
+    setnvalue(ret, action(nvalue(v1), nvalue(v2)));                     \
  } while(0)
 
 #define compare_statement(action) do {                      \
@@ -222,14 +203,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       TValue * v2 = eval(B, expression -> infix.right);
 
       if (ttisnumber(v1) && ttisnumber(v2)) {
-        bu_byte isfloat = ttisfloat(v1) || ttisfloat(v2);
-        if (isfloat) {
-          ret->value_.n = add(nvalue(v1), nvalue(v2));
-          ret->tt_ = BEAN_TNUMFLT;
-        } else {
-          ret->value_.i = add(nvalue(v1), nvalue(v2));
-          ret->tt_ = BEAN_TNUMINT;
-        }
+        setnvalue(ret, add(nvalue(v1), nvalue(v2)));
       } else {
         ret = concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
       }
@@ -308,7 +282,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
                 hash_set(B, hhvalue(object), key, value);
               } else if (ttisarray(object)) {
                 assert(leftExpr -> infix.right->type == EXPR_NUM);
-                bean_Integer i = leftExpr -> infix.right -> ival;
+                bean_Number i = leftExpr -> infix.right -> nval;
                 array_set(B, arrvalue(object), i, value);
               }
               break;
@@ -349,7 +323,7 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
       TValue * value = NULL;
 
       if (ttisarray(object) && right->type == EXPR_NUM) { // Array search by index
-        bean_Integer i = right -> ival;
+        bean_Number i = right -> nval;
         value = array_get(B, arrvalue(object), i);
       } else if (right->type == EXPR_STRING) { // Attributes search
         TString * ts = right -> sval;
@@ -620,8 +594,7 @@ static TValue * hash_eval(bean_State * B UNUSED, struct expr * expression) {
 
 eval_func fn[] = {
    nil_eval,
-   int_eval,
-   float_eval,
+   number_eval,
    boolean_eval,
    unary_eval,
    binary_eval,
@@ -797,9 +770,12 @@ void global_init(bean_State * B) {
   B -> l_G = G;
   add_tools(B);
   G -> nil = init_Nil(B);
+  G -> nproto = init_Number(B);
   G -> sproto = init_String(B);
   G -> aproto = init_Array(B);
   G -> hproto = init_Hash(B);
+
+  G -> nproto -> prototype = G -> hproto;
   G -> sproto -> prototype = G -> hproto;
   G -> aproto -> prototype = G -> hproto;
   G -> hproto -> prototype = G -> nil;

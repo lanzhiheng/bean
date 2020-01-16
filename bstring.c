@@ -259,7 +259,7 @@ static TValue * primitive_String_codePoint(bean_State * B UNUSED, TValue * this,
   char * string = getstr(ts);
   int i = 0;
   uint32_t m = u8_nextchar(string, &i);
-  setivalue(ret, m);
+  setnvalue(ret, m);
   return ret;
 }
 
@@ -268,7 +268,7 @@ static TValue * primitive_String_length(bean_State * B UNUSED, TValue * this, TV
   TValue * ret = malloc(sizeof(TValue));
   TString * ts = svalue(this);
   char * string = getstr(ts);
-  setivalue(ret, u8_strlen(string));
+  setnvalue(ret, u8_strlen(string));
   return ret;
 }
 
@@ -281,7 +281,7 @@ static TValue * primitive_String_indexOf(bean_State * B UNUSED, TValue * this, T
   TString * t = svalue(this);
   TString * p = svalue(&pattern);
   int iVal = brute_force_search_utf8(getstr(t), getstr(p), tslen(t), tslen(p));
-  setivalue(ret, iVal);
+  setnvalue(ret, iVal);
   return ret;
 }
 
