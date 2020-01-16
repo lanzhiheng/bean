@@ -30,7 +30,6 @@ typedef struct TString {
 
 typedef union Value {
   struct GCObject * gc;
-  bean_Integer i;
   bean_Number n;
   TString * s;
   struct Function * fc;
@@ -116,17 +115,9 @@ typedef struct TValue {
 #define ttisfloat(o)		checktag((o), BEAN_TNUMFLT)
 #define ttisinteger(o)		checktag((o), BEAN_TNUMINT)
 
-#define nvalue(o)       check_exp(ttisnumber(o),                        \
-                                  (ttisinteger(o) ? cast_num(ivalue(o)): fltvalue(o)))
-#define ivalue(o)       check_exp(ttisinteger(o), val_(o).i)
-#define fltvalue(o)       check_exp(ttisfloat(o), val_(o).n)
-
-#define setivalue(obj,x)                                                \
-  { TValue *io = obj; val_(io).i=(x); settt_(io, BEAN_TNUMINT); }
-
-#define setfltvalue(obj,x) \
-  { TValue *io = obj; val_(io).n=(x); settt_(io, BEAN_TNUMFLT); }
-
+#define nvalue(o)       check_exp(ttisnumber(o), val_(o).n)
+#define setnvalue(obj,x)                                                \
+  { TValue *io = obj; val_(io).n=(x); settt_(io, x == (long)x ? BEAN_TNUMINT : BEAN_TNUMFLT); io->prototype=G(B)->nproto; }
 /* }================================================================== */
 
 #define ttisstring(o)		checktag((o), BEAN_TSTRING)

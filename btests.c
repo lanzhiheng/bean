@@ -22,8 +22,8 @@ void test_barray_pop_and_push(bean_State * B) {
   Array * array = init_array(B);
   TValue * v1 = malloc(sizeof(TValue));
   TValue * v2 = malloc(sizeof(TValue));
-  setivalue(v1, 100);
-  setivalue(v2, 300);
+  setnvalue(v1, 100);
+  setnvalue(v2, 300);
   array_push(B, array, v1);
   array_push(B, array, v2);
   assert(check_equal(array_get(B, array, 0), v1));
@@ -82,7 +82,7 @@ void test_barray_set_value(bean_State * B) {
 
 static TValue * getValue(bean_State * B, uint32_t i) {
   TValue * value = malloc(sizeof(TValue));
-  setivalue(value, i);
+  setnvalue(value, i);
   return value;
 }
 
