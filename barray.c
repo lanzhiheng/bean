@@ -138,8 +138,8 @@ static TValue * primitive_Array_push(bean_State * B, TValue * this, TValue * arg
 
   Array * array = arrvalue(this);
   if (argc) {
-    TValue element = args[0];
-    array_push(B, array, &element);
+    TValue * element = &args[0];
+    array_push(B, array, element);
   }
 
   uint32_t count = array->count;
@@ -154,8 +154,8 @@ static TValue * primitive_Array_unshift(bean_State * B, TValue * this, TValue * 
 
   Array * array = arrvalue(this);
   if (argc) {
-    TValue element = args[0];
-    array_unshift(B, array, &element);
+    TValue * element = &args[0];
+    array_unshift(B, array, element);
   }
 
   uint32_t count = array->count;
