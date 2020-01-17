@@ -7,7 +7,7 @@
 static TValue * primitive_Number_toFixed(bean_State * B, TValue * thisVal, TValue * args, int argc) {
   assert(ttisnumber(thisVal));
   assert(argc <= 1);
-  char buff[MAX_STRING_BUFFER];
+  char * buff = malloc(MAX_STRING_BUFFER * sizeof(char));
   char * template = "%%.%df";
   char * format = malloc(sizeof(char) * strlen(template));
   long bit = argc > 0 ? nvalue(&args[0]) : 2;
@@ -15,7 +15,17 @@ static TValue * primitive_Number_toFixed(bean_State * B, TValue * thisVal, TValu
   TValue * ret = malloc(sizeof(TValue));
   sprintf(format, template, bit);
   bean_Number value = nvalue(thisVal);
-  sprintf(buff, format, value);
+
+  size_t i = 1;
+  size_t result = snprintf(buff, MAX_STRING_BUFFER, format, value);
+  size_t size = MAX_STRING_BUFFER * i;
+
+  while (result > size) {
+    size = size * (++i);
+    buff = malloc(size);
+    result = snprintf(buff, size, format, value);
+  }
+
   TString * ts = beanS_newlstr(B, buff, strlen(buff));
   setsvalue(ret, ts);
   return ret;
