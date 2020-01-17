@@ -13,3 +13,9 @@ print("To String: " + a.toString())
 d = 999.00999
 print("To Fixed: " + d.toFixed(50))
 print("To String: " + a.toString())
+
+e = 999.00999
+print("To Fixed: " + e.toFixed(300))
+
+e = 999.00999
+print("To Fixed: " + e.toFixed(1000))
