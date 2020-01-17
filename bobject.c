@@ -4,6 +4,78 @@
 #include "barray.h"
 #include "bstring.h"
 
+// Copy from https://github.com/cesanta/mjs/blob/master/mjs/src/mjs_json.c#L44
+static const char *hex_digits = "0123456789abcdef";
+static char *append_hex(char *buf, char *limit, uint8_t c) {
+  if (buf < limit) *buf++ = 'u';
+  if (buf < limit) *buf++ = '0';
+  if (buf < limit) *buf++ = '0';
+  if (buf < limit) *buf++ = hex_digits[(int) ((c >> 4) % 0xf)]; // height 4 bits
+  if (buf < limit) *buf++ = hex_digits[(int) (c & 0xf)]; // low 4 bits
+  return buf;
+}
+
+// Copy from https://github.com/cesanta/mjs/blob/master/mjs/src/mjs_json.c#L54
+/*
+ * Appends quoted s to buf. Any double quote contained in s will be escaped.
+ * Returns the number of characters that would have been added,
+ * like snprintf.
+ * If size is zero it doesn't output anything but keeps counting.
+ */
+static int snquote(char *buf, size_t size, const char *s, size_t len) {
+  char *limit = buf + size;
+  const char *end;
+  /*
+   * String single character escape sequence:
+   * http://www.ecma-international.org/ecma-262/6.0/index.html#table-34
+   *
+   * 0x8 -> \b
+   * 0x9 -> \t
+   * 0xa -> \n
+   * 0xb -> \v
+   * 0xc -> \f
+   * 0xd -> \r
+   */
+  const char *specials = "btnvfr";
+  size_t i = 0;
+
+  i++;
+  if (buf < limit) *buf++ = '"';
+
+  for (end = s + len; s < end; s++) {
+    if (*s == '"' || *s == '\\') {
+      i++;
+      if (buf < limit) *buf++ = '\\';
+    } else if (*s >= '\b' && *s <= '\r') {
+      i += 2;
+      if (buf < limit) *buf++ = '\\';
+      if (buf < limit) *buf++ = specials[*s - '\b'];
+      continue;
+    } else if ((unsigned char) *s < '\b' || (*s > '\r' && *s < ' ')) {
+      i += 6 /* \uXXXX */;
+      if (buf < limit) *buf++ = '\\';
+      buf = append_hex(buf, limit, (uint8_t) *s);
+      continue;
+    }
+    i++;
+    if (buf < limit) *buf++ = *s;
+  }
+
+  i++;
+  if (buf < limit) *buf++ = '"';
+
+  if (buf < limit) {
+    *buf = '\0';
+  } else if (size != 0) {
+    /*
+     * There is no room for the NULL char, but the size wasn't zero, so we can
+     * safely put NULL in the previous byte
+     */
+    *(buf - 1) = '\0';
+  }
+  return i;
+}
+
 bool check_equal(TValue * v1, TValue * v2) {
   if (rawtt(v1) != rawtt(v2)) return false;
 
@@ -143,9 +215,18 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
     case BEAN_TSTRING: {
       TString * ts = svalue(value);
       uint32_t len = tslen(ts);
+
       if (pure) {
-        string = malloc(sizeof(char) * len + 2 + 1);
-        sprintf(string, "\"%s\"", getstr(ts));
+        /* Auto enlarge if space not enough */
+        size_t size = MAX_STRING_BUFFER;
+        size_t i = 0;
+        size_t result;
+
+        do {
+          size = size * (++i);
+          string = malloc(size);
+          result = snquote(string, size, getstr(ts), tslen(ts));
+        } while (result >= size);
       } else {
         string = malloc(sizeof(char) * len + 1);
         sprintf(string, "%s", getstr(ts));
