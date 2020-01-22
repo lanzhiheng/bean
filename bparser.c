@@ -315,7 +315,7 @@ symbol symbol_table[] = {
   { ">", BP_CMP, NULL, infix },
   { "<=", BP_CMP, NULL, infix },
   { "<", BP_CMP, NULL, infix },
-  { "~=", BP_CMP, NULL, infix },
+  { "!=", BP_CMP, NULL, infix },
   { "<<", BP_BIT_SHIFT, NULL, infix },
   { ">>", BP_BIT_SHIFT, NULL, infix },
   { "<eof>", BP_NONE, NULL, NULL },
