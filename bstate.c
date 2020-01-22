@@ -154,8 +154,9 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
       break;
     case(TK_ADD):
       break;
-    case(TK_BANG): {
-      value = truthvalue(value) ? G(B)->tVal : G(B)->fVal;
+    case(TK_BANG):
+    case(TK_NOT):{
+      value = truthvalue(value) ?  G(B)->fVal : G(B)->tVal;
       break;
     }
     case(TK_TYPE_OF): {
@@ -215,6 +216,12 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_MUL):
       cal_statement(mul);
       break;
+    case(TK_SHR):
+      cal_statement(shr);
+      break;
+    case(TK_SHL):
+      cal_statement(shl);
+      break;
     case(TK_DIV):
       cal_statement(div);
       break;
@@ -233,6 +240,18 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_LE):
       compare_statement(lte);
       break;
+    case(TK_AND): {
+      TValue * v1 = eval(B, expression -> infix.left);
+      TValue * v2 = eval(B, expression -> infix.right);
+      ret = and(truthvalue(v1), truthvalue(v2)) ? G(B)->tVal : G(B)->fVal;
+      break;
+    }
+    case(TK_OR): {
+      TValue * v1 = eval(B, expression -> infix.left);
+      TValue * v2 = eval(B, expression -> infix.right);
+      ret = or(truthvalue(v1), truthvalue(v2)) ? G(B)->tVal : G(B)->fVal;
+      break;
+    }
     case(TK_LT):
       compare_statement(lt);
       break;
