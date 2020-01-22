@@ -276,7 +276,7 @@ static expr * parse_hash(struct LexState *ls UNUSED, expr * exp UNUSED) {
 
 symbol symbol_table[] = {
   /* arithmetic operators */
-  { "and", BP_LOGIC_AND, NULL, NULL },
+  { "and", BP_LOGIC_AND, NULL, infix },
   { "break", BP_NONE, NULL, NULL },
   { "else", BP_NONE, NULL, NULL },
   { "elseif", BP_NONE, NULL, NULL },
@@ -304,8 +304,8 @@ symbol symbol_table[] = {
   { "typeof", BP_NONE, unary, NULL },
   { "global", BP_NONE, NULL, NULL },
   { "nil", BP_NONE, nil, NULL },
-  { "not", BP_CONDITION, NULL, NULL },
-  { "or", BP_LOGIC_OR, NULL, NULL },
+  { "not", BP_NONE, unary, NULL },
+  { "or", BP_LOGIC_OR, NULL, infix },
   { "return", BP_NONE, return_exp, NULL },
   { "true", BP_NONE, boolean, NULL },
   { "while", BP_NONE, NULL, NULL },

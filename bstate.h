@@ -179,7 +179,11 @@ typedef struct expr {
 #define lte(a, b) (a <= b)
 #define lt(a, b) (a < b)
 #define neq(a, b) (a != b)
-
+#define shr(a, b) ((long)a >> (long)b)
+#define shl(a, b) ((long)a << (long)b)
+#define and(a, b) (a && b)
+#define or(a, b) (a || b)
+#define not(a) (!a)
 
 #define BEAN_OK 1
 #define BEAN_FAIL 0
