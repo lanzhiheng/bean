@@ -7,6 +7,7 @@
 const char *const beanX_tokens [] = {
     "and", "break", "else", "elseif",
     "+", "-", "*", "/",
+    "&", "|", "^", "%",
     ":", ",", ";", "!",
     "{", "}", "(", ")", "[", "]", ".",
     "false", "for", "fn", "if", "self", "in",
@@ -272,6 +273,22 @@ static int llex(LexState * ls, SemInfo * seminfo) {
       case '(': {
         next(ls);
         return TK_LEFT_PAREN;
+      }
+      case '&': {
+        next(ls);
+        return TK_LOGIC_AND;
+      }
+      case '|': {
+        next(ls);
+        return TK_LOGIC_OR;
+      }
+      case '^': {
+        next(ls);
+        return TK_LOGIC_XOR;
+      }
+      case '%': {
+        next(ls);
+        return TK_MOD;
       }
       case ')': {
         next(ls);

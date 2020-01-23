@@ -225,6 +225,18 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_DIV):
       cal_statement(div);
       break;
+    case(TK_MOD):
+      cal_statement(mod);
+      break;
+    case(TK_LOGIC_AND):
+      cal_statement(logic_and);
+      break;
+    case(TK_LOGIC_OR):
+      cal_statement(logic_or);
+      break;
+    case(TK_LOGIC_XOR):
+      cal_statement(logic_xor);
+      break;
     case(TK_EQ): {
       TValue * v1 = eval(B, expression -> infix.left);
       TValue * v2 = eval(B, expression -> infix.right);

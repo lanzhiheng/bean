@@ -183,7 +183,10 @@ typedef struct expr {
 #define shl(a, b) ((long)a << (long)b)
 #define and(a, b) (a && b)
 #define or(a, b) (a || b)
-#define not(a) (!a)
+#define logic_and(a, b) ((long)a & (long)b)
+#define logic_or(a, b) ((long)a | (long)b)
+#define logic_xor(a, b) ((long)a ^ (long)b)
+#define mod(a, b) ((long)a % (long)b)
 
 #define BEAN_OK 1
 #define BEAN_FAIL 0
