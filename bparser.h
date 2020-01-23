@@ -31,6 +31,7 @@ typedef enum {
   BP_IS,
   BP_CMP,
   BP_BIT_OR,
+  BP_BIT_XOR,
   BP_BIT_AND,
   BP_BIT_SHIFT,
   BP_RANGE,
