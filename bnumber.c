@@ -33,10 +33,15 @@ static TValue * primitive_Number_toFixed(bean_State * B, TValue * thisVal, TValu
 }
 
 TValue * init_Number(bean_State * B) {
+  global_State * G = B->l_G;
   TValue * proto = malloc(sizeof(TValue));
   Hash * h = init_hash(B);
   sethashvalue(proto, h);
   set_prototype_function(B, "toFixed", 7, primitive_Number_toFixed, hhvalue(proto));
+
+  TValue * number = malloc(sizeof(TValue));
+  setsvalue(number, beanS_newlstr(B, "Number", 6));
+  hash_set(B, G->globalScope->variables, number, proto);
 
   return proto;
 }
