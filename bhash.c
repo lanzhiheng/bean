@@ -222,6 +222,8 @@ static TValue * primitive_Hash_id(bean_State * B, TValue * this, TValue * args U
 }
 
 TValue * init_Hash(bean_State * B) {
+  global_State * G = B->l_G;
+
   TValue * proto = malloc(sizeof(TValue));
   Hash * h = init_hash(B);
   sethashvalue(proto, h);
@@ -230,5 +232,8 @@ TValue * init_Hash(bean_State * B) {
   set_prototype_function(B, "toString", 8, primitive_Hash_toString, hhvalue(proto));
   set_prototype_getter(B, "__proto__", 9, primitive_Hash_proto, hhvalue(proto));
 
+  TValue * hash = malloc(sizeof(TValue));
+  setsvalue(hash, beanS_newlstr(B, "Hash", 4));
+  hash_set(B, G->globalScope->variables, hash, proto);
   return proto;
 }

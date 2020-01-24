@@ -386,6 +386,7 @@ static TValue * primitive_String_slice(bean_State * B, TValue * this, TValue * a
 TValue * init_String(bean_State * B) {
   TValue * proto = malloc(sizeof(TValue));
   Hash * h = init_hash(B);
+  global_State * G = B->l_G;
 
   sethashvalue(proto, h);
   set_prototype_function(B, "equal", 5, primitive_String_equal, hhvalue(proto));
@@ -400,5 +401,9 @@ TValue * init_String(bean_State * B) {
   set_prototype_getter(B, "length", 6, primitive_String_length, hhvalue(proto));
   set_prototype_function(B, "split", 5, primitive_String_split, hhvalue(proto));
   set_prototype_function(B, "codePoint", 9, primitive_String_codePoint, hhvalue(proto));
+
+  TValue * string = malloc(sizeof(TValue));
+  setsvalue(string, beanS_newlstr(B, "String", 6));
+  hash_set(B, G->globalScope->variables, string, proto);
   return proto;
 }

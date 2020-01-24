@@ -800,6 +800,7 @@ void global_init(bean_State * B) {
   G -> cScope = G -> globalScope;
   B -> l_G = G;
   add_tools(B);
+
   G -> nil = init_Nil(B);
   G -> nproto = init_Number(B);
   G -> sproto = init_String(B);
@@ -810,6 +811,7 @@ void global_init(bean_State * B) {
   G -> sproto -> prototype = G -> hproto;
   G -> aproto -> prototype = G -> hproto;
   G -> hproto -> prototype = G -> nil;
+
   beanZ_initbuffer(G->callStack);
 
   TValue * self = malloc(sizeof(TValue));
@@ -820,7 +822,6 @@ void global_init(bean_State * B) {
   setbvalue(G->tVal, true);
   G -> fVal = malloc(sizeof(TValue));
   setbvalue(G->fVal, false);
-
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {

@@ -426,6 +426,7 @@ static TValue * primitive_Array_find(bean_State * B, TValue * this, TValue * arg
 }
 
 TValue * init_Array(bean_State * B) {
+  global_State * G = B->l_G;
   TValue * proto = malloc(sizeof(TValue));
   Hash * h = init_hash(B);
 
@@ -442,5 +443,9 @@ TValue * init_Array(bean_State * B) {
   set_prototype_function(B, "map", 3, primitive_Array_map, hhvalue(proto));
   set_prototype_function(B, "reduce", 6, primitive_Array_reduce, hhvalue(proto));
   set_prototype_function(B, "each", 4, primitive_Array_each, hhvalue(proto));
+
+  TValue * array = malloc(sizeof(TValue));
+  setsvalue(array, beanS_newlstr(B, "Array", 5));
+  hash_set(B, G->globalScope->variables, array, proto);
   return proto;
 }

@@ -1,0 +1,4 @@
+print(Hash)
+print(Array)
+print(String)
+print(Number)
