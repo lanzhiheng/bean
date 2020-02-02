@@ -18,4 +18,7 @@ e = 999.00999
 print("To Fixed: " + e.toFixed(300))
 
 e = 999.00999
-print("To Fixed: " + e.toFixed(1000))
+print("To Fixed: " + e.toFixed(600))
+
+e = 999.00999
+print("To Exponential: " + e.toExponential())

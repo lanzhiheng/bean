@@ -62,6 +62,7 @@ typedef struct global_State {
   TValue * sproto; // Prototype for String
   TValue * aproto; // Prototype for Array
   TValue * hproto; // Prototype for Hash
+  TValue * mproto; // Prototype for Math
   Mbuffer * callStack;
 } global_State;
 

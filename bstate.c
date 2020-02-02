@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include "bstring.h"
 #include "bnumber.h"
+#include "bmath.h"
 #include "berror.h"
 #include "barray.h"
 #include "bobject.h"
@@ -806,10 +807,12 @@ void global_init(bean_State * B) {
   G -> sproto = init_String(B);
   G -> aproto = init_Array(B);
   G -> hproto = init_Hash(B);
+  G -> mproto = init_Math(B);
 
   G -> nproto -> prototype = G -> hproto;
   G -> sproto -> prototype = G -> hproto;
   G -> aproto -> prototype = G -> hproto;
+  G -> mproto -> prototype = G -> hproto;
   G -> hproto -> prototype = G -> nil;
 
   beanZ_initbuffer(G->callStack);
