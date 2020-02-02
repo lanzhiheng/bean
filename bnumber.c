@@ -4,6 +4,19 @@
 #include "bparser.h"
 #include "bnumber.h"
 
+static TValue * primitive_Number_toExponential(bean_State * B, TValue * thisVal, TValue * args UNUSED, int argc) {
+  assert(ttisnumber(thisVal));
+  assert(argc <= 1);
+  char buff[MAX_STRING_BUFFER];
+  TValue * ret = malloc(sizeof(TValue));
+  bean_Number value = nvalue(thisVal);
+  sprintf(buff, "%e", value);
+
+  TString * ts = beanS_newlstr(B, buff, strlen(buff));
+  setsvalue(ret, ts);
+  return ret;
+}
+
 static TValue * primitive_Number_toFixed(bean_State * B, TValue * thisVal, TValue * args, int argc) {
   assert(ttisnumber(thisVal));
   assert(argc <= 1);
@@ -38,6 +51,7 @@ TValue * init_Number(bean_State * B) {
   Hash * h = init_hash(B);
   sethashvalue(proto, h);
   set_prototype_function(B, "toFixed", 7, primitive_Number_toFixed, hhvalue(proto));
+  set_prototype_function(B, "toExponential", 13, primitive_Number_toExponential, hhvalue(proto));
 
   TValue * number = malloc(sizeof(TValue));
   setsvalue(number, beanS_newlstr(B, "Number", 6));
