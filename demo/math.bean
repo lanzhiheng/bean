@@ -1,0 +1,2 @@
+a = 10.22
+print("To Ceil By Math: " + Math.ceil(a))
