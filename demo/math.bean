@@ -1,2 +1,26 @@
 a = 10.22
 print("To Ceil By Math: " + Math.ceil(a))
+print("To Floor By Math: " + Math.floor(a))
+print("To Round By Math: " + Math.round(a))
+
+b = 30
+print("PI is " + Math.PI)
+print("To sin By Math: " + Math.sin(b * Math.PI / 180))
+print("To cos By Math: " + Math.cos(b * Math.PI / 180))
+
+c = -100
+print("To abs By Math: " + Math.abs(c))
+
+d = 256
+print("To sqrt By Math: " + Math.sqrt(d))
+
+e = Math.exp(1)
+print("To log By Math: " + Math.log(e))
+print("To exp By Math: " + Math.exp(2))
+print("To rand By Math: " + Math.random())
+
+val1 = 100
+val2 = 200
+print("To log By Math: " + Math.max(val1, val2))
+print("To log By Math: " + Math.min(val1, val2))
+print("To log By Math: " + Math.pow(val1, 2))
