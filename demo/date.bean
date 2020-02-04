@@ -1,0 +1,2 @@
+// print("Current time is " + Date.now())
+Math.__proto__
