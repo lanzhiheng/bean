@@ -5,6 +5,7 @@
 #include "bstring.h"
 #include "bnumber.h"
 #include "bmath.h"
+#include "bdate.h"
 #include "berror.h"
 #include "barray.h"
 #include "bobject.h"
@@ -122,11 +123,12 @@ static TValue * search_from_prototype_link(bean_State * B UNUSED, TValue * objec
 
   // Search in proto chain
   TValue * proto = object -> prototype;
-  do {
+
+  while(!ttisnil(proto)) {
     value = hash_get(B, hhvalue(proto), name);
     if (value) return value;
     proto = proto -> prototype;
-  } while(!ttisnil(proto));
+  }
 
   runtime_error(B, "%s", "Can not find the attribute from prototype chain.");
   return value;
@@ -808,12 +810,14 @@ void global_init(bean_State * B) {
   G -> aproto = init_Array(B);
   G -> hproto = init_Hash(B);
   G -> mproto = init_Math(B);
+  G -> dproto = init_Date(B);
 
   G -> nproto -> prototype = G -> hproto;
   G -> sproto -> prototype = G -> hproto;
   G -> aproto -> prototype = G -> hproto;
-  G -> mproto -> prototype = G -> hproto;
+  G -> dproto -> prototype = G -> hproto;
   G -> hproto -> prototype = G -> nil;
+  G -> mproto -> prototype = G -> nil;
 
   beanZ_initbuffer(G->callStack);
 
