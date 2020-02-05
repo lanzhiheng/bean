@@ -437,7 +437,12 @@ static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expre
   if (expression->var.global) {
     SGSV(B, name, value);
   } else {
-    SCSV(B, name, value);
+    Scope * scope = find_variable_scope(B, name);
+    if (scope) {
+      hash_set(B, scope->variables, name, value);
+    } else {
+      SCSV(B, name, value);
+    }
   }
 
   return value;

@@ -336,6 +336,38 @@ static TValue * primitive_String_split(bean_State * B UNUSED, TValue * this, TVa
   return ret;
 }
 
+static TValue * primitive_String_charAt(bean_State * B, TValue * this, TValue * args, int argc) {
+  assert(ttisstring(this));
+  assert(argc);
+  TValue * ret = malloc(sizeof(TValue));
+  TValue indexVal = args[0];
+
+  if (!ttisinteger(&indexVal)) {
+    eval_error(B, "%s", "The first arguments must be integer");
+  }
+
+  int index = nvalue(&indexVal);
+  char * string = getstr(svalue(this));
+  int len = u8_strlen(string);
+
+  if (index >= len) {
+    setsvalue(ret, beanS_newlstr(B, "", 0));
+  } else {
+    int startIndex = 0;
+
+    for (int i = 0; i < index; i++) {
+      u8_nextchar(string, &startIndex);
+    }
+
+    int endIndex = startIndex;
+    u8_nextchar(string, &endIndex);
+
+    setsvalue(ret, slice(B, svalue(this), startIndex, endIndex));
+  }
+
+  return ret;
+}
+
 static TValue * primitive_String_slice(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisstring(this));
   assert(argc);
@@ -396,6 +428,7 @@ TValue * init_String(bean_State * B) {
   set_prototype_function(B, "downcase", 8, primitive_String_downcase, hhvalue(proto));
   set_prototype_function(B, "capitalize", 10, primitive_String_capitalize, hhvalue(proto));
   set_prototype_function(B, "slice", 5, primitive_String_slice, hhvalue(proto));
+  set_prototype_function(B, "charAt", 6, primitive_String_charAt, hhvalue(proto));
   set_prototype_function(B, "indexOf", 7, primitive_String_indexOf, hhvalue(proto));
   set_prototype_function(B, "includes", 8, primitive_String_includes, hhvalue(proto));
   set_prototype_getter(B, "length", 6, primitive_String_length, hhvalue(proto));
