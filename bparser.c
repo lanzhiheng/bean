@@ -49,7 +49,7 @@ static void add_element(bean_State * B, dynamic_expr * target, struct expr * exp
 /*
 ** Test whether next token is 'c'; if so, skip it.
 */
-static bool testnext (LexState *ls, int c) {
+static bool checknext (LexState *ls, int c) {
   if (ls->t.type == c) {
     beanX_next(ls);
     return true;
@@ -57,13 +57,14 @@ static bool testnext (LexState *ls, int c) {
   else return false;
 }
 
-/*
-** Check that next token is 'c' and skip it.
-*/
-/* static void checknext (LexState *ls, int c) { */
-/*   check(ls, c); */
-/*   beanX_next(ls); */
-/* } */
+//  Check that next token is 'c' and skip it.
+static void testnext (LexState *ls, int c) {
+  if (ls->t.type == c) {
+    beanX_next(ls);
+  } else {
+    syntax_error(ls, "SyntaxError: An syntax error occur");
+  }
+}
 
 /*
 ** grep "ORDER OPR" if you change these enums  (ORDER OP)
@@ -88,7 +89,7 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
       break;
     }
     default:
-      semantic_error(ls, "Not the valid number.");
+      syntax_error(ls, "Not the valid number.");
   }
   beanX_next(ls);
   return ep;
@@ -114,24 +115,24 @@ static expr* boolean(LexState *ls, expr * exp UNUSED) {
       break;
     }
     default:
-      semantic_error(ls, "Not the valid boolean value.");
+      syntax_error(ls, "Not the valid boolean value.");
   }
   beanX_next(ls);
   return ep;
 }
 
 static expr* self(LexState *ls, expr *exp UNUSED) {
-  testnext(ls, TK_SELF);
+  checknext(ls, TK_SELF);
   expr * ep = malloc(sizeof(expr));
   ep -> type = EXPR_SELF;
   return ep;
 }
 
 static expr* left_paren(LexState *ls, expr *exp UNUSED) {
-  testnext(ls, TK_LEFT_PAREN);
+  checknext(ls, TK_LEFT_PAREN);
   expr * ep = malloc(sizeof(expr));
   ep = parse_statement(ls, BP_LOWEST);
-  testnext(ls, TK_RIGHT_PAREN);
+  checknext(ls, TK_RIGHT_PAREN);
   return ep;
 }
 
@@ -165,7 +166,7 @@ static expr* return_exp(LexState *ls, expr * exp UNUSED) {
   ep -> type = EXPR_RETURN;
 
   // TODO: support to return the null value
-  if (ls -> t.type == TK_RIGHT_BRACE) semantic_error(ls, "You have to set the return value after the return statement");
+  if (ls -> t.type == TK_RIGHT_BRACE) syntax_error(ls, "You have to set the return value after the return statement");
 
   ep -> ret.ret_val = parse_statement(ls, BP_LOWEST);
   return ep;
@@ -181,9 +182,9 @@ static Proto * parse_prototype(LexState *ls) {
   bool assign = preToken.type == TK_COLON || preToken.type == TK_ASSIGN;
   bool immediate = preToken.type == TK_LEFT_PAREN;
 
-  if (!testnext(ls, TK_NAME)) {
+  if (!checknext(ls, TK_NAME)) {
     if (!assign && !immediate) {
-      semantic_error(ls, "Expect function name in prototype!");
+      syntax_error(ls, "Expect function name in prototype!");
     }
   } else {
     name = ls->t.seminfo.ts;
@@ -194,25 +195,18 @@ static Proto * parse_prototype(LexState *ls) {
   p -> args = malloc(sizeof(TString) * MAX_ARGS);
   p -> arity = 0;
 
-  if (!testnext(ls, TK_LEFT_PAREN)) {
-    semantic_error(ls, "Expect '(' in prototype!");
-  }
+  testnext(ls, TK_LEFT_PAREN);
 
-  if (testnext(ls, TK_RIGHT_PAREN)) {
+  if (checknext(ls, TK_RIGHT_PAREN)) {
     return p;
   }
 
   do {
-    if (testnext(ls, TK_NAME)) {
-      p->args[p->arity++] = ls->t.seminfo.ts;
-    } else {
-      semantic_error(ls, "Expect token name in args list!");
-    }
-  } while(testnext(ls, TK_COMMA));
+    testnext(ls, TK_NAME);
+    p->args[p->arity++] = ls->t.seminfo.ts;
+  } while(checknext(ls, TK_COMMA));
 
-  if (!testnext(ls, TK_RIGHT_PAREN)) {
-    semantic_error(ls, "Expect '(' in prototype!");
-  }
+  testnext(ls, TK_RIGHT_PAREN);
 
   return p;
 }
@@ -249,11 +243,11 @@ static expr * parse_array(struct LexState *ls UNUSED, expr * exp UNUSED) {
   ep -> type = EXPR_ARRAY;
   ep -> array = init_dynamic_expr(ls->B);
 
-  if (testnext(ls, TK_RIGHT_BRACKET)) return ep;
+  if (checknext(ls, TK_RIGHT_BRACKET)) return ep;
   do {
     add_element(ls->B, ep->array, parse_statement(ls, BP_LOWEST));
-  } while(testnext(ls, TK_COMMA));
-  testnext(ls, TK_RIGHT_BRACKET);
+  } while(checknext(ls, TK_COMMA));
+  checknext(ls, TK_RIGHT_BRACKET);
   return ep;
 }
 
@@ -262,15 +256,15 @@ static expr * parse_hash(struct LexState *ls UNUSED, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   ep -> type = EXPR_HASH;
   ep -> hash = init_dynamic_expr(ls->B);
-  if (testnext(ls, TK_RIGHT_BRACE)) return ep;
+  if (checknext(ls, TK_RIGHT_BRACE)) return ep;
 
   do {
     add_element(ls->B, ep->hash, parse_statement(ls, BP_LOWEST));
-    testnext(ls, TK_COLON);
+    checknext(ls, TK_COLON);
     add_element(ls->B, ep->hash, parse_statement(ls, BP_LOWEST));
-  } while(testnext(ls, TK_COMMA));
+  } while(checknext(ls, TK_COMMA));
 
-  testnext(ls, TK_RIGHT_BRACE);
+  checknext(ls, TK_RIGHT_BRACE);
   return ep;
 }
 
@@ -334,13 +328,13 @@ static expr * function_call (LexState *ls, expr * left) {
   func_call -> call.callee = left;
   func_call->call.args = init_dynamic_expr(ls->B);
 
-  if (testnext(ls, TK_RIGHT_PAREN)) return func_call;
+  if (checknext(ls, TK_RIGHT_PAREN)) return func_call;
 
   do {
     add_element(ls->B, func_call->call.args, parse_statement(ls, BP_LOWEST));
-  } while(testnext(ls, TK_COMMA));
+  } while(checknext(ls, TK_COMMA));
 
-  testnext(ls, TK_RIGHT_PAREN);
+  checknext(ls, TK_RIGHT_PAREN);
   return func_call;
 }
 
@@ -355,20 +349,17 @@ static expr * infix (LexState *ls, expr * left) {
 }
 
 static expr * parse_branch(struct LexState *ls, bindpower rbp) {
-  testnext(ls, TK_IF);
+  checknext(ls, TK_IF);
   expr * tree = malloc(sizeof(expr));
   tree -> type = EXPR_BRANCH;
   tree -> branch.condition = parse_statement(ls, rbp);
   tree -> branch.if_body = init_dynamic_expr(ls->B);
 
-  if (testnext(ls, TK_LEFT_BRACE)) {
-    while (ls->t.type != TK_RIGHT_BRACE) {
-      add_element(ls->B, tree -> branch.if_body, parse_statement(ls, rbp));
-    }
-    testnext(ls, TK_RIGHT_BRACE);
-  } else {
-    semantic_error(ls, "You must wrap the statements by {} in if block.");
+  testnext(ls, TK_LEFT_BRACE);
+  while (ls->t.type != TK_RIGHT_BRACE) {
+    add_element(ls->B, tree -> branch.if_body, parse_statement(ls, rbp));
   }
+  testnext(ls, TK_RIGHT_BRACE);
 
   if (ls->t.type == TK_ELSE) {
     testnext(ls, TK_ELSE);
@@ -378,14 +369,11 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
       add_element(ls->B, tree -> branch.else_body, parse_branch(ls, rbp));
     } else {
       tree -> branch.else_body = init_dynamic_expr(ls->B);
-      if (testnext(ls, TK_LEFT_BRACE)) {
-        while (ls->t.type != TK_RIGHT_BRACE) {
-          add_element(ls->B, tree -> branch.else_body, parse_statement(ls, rbp));
-        }
-        testnext(ls, TK_RIGHT_BRACE);
-      } else {
-        semantic_error(ls, "You must wrap the statements by {} in else block.");
+      testnext(ls, TK_LEFT_BRACE);
+      while (ls->t.type != TK_RIGHT_BRACE) {
+        add_element(ls->B, tree -> branch.else_body, parse_statement(ls, rbp));
       }
+      testnext(ls, TK_RIGHT_BRACE);
     }
   } else {
     tree -> branch.else_body = NULL;
@@ -418,7 +406,7 @@ static expr * parse_break(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
 }
 
 static void skip_semicolon(LexState * ls) { // Skip all the semicolon
-  while (ls -> t.type == TK_SEMI) beanX_next(ls);
+  while (checknext(ls, TK_SEMI)) ;
 }
 
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {
@@ -436,7 +424,7 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
     case TK_GLOBAL: {
       beanX_next(ls);
       if (ls->t.type != TK_NAME) {
-        semantic_error(ls, "Must provide a variable name.");
+        syntax_error(ls, "Must provide a variable name.");
       }
     }
   }
