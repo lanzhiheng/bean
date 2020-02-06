@@ -48,12 +48,6 @@ void syntax_error (LexState *ls, const char *msg) {
   lex_error(ls, msg, ls->t.type);
 }
 
-/* semantic error */
-void semantic_error (LexState *ls, const char *msg) {
-  ls->t.type = 0;  /* remove "near <token>" from final message */ // TODO: Why
-  syntax_error(ls, msg);
-}
-
 #define COMMON_ERROR(errorType)                                         \
   do {                                                                  \
     LexState * ls = B->ls;                                              \
