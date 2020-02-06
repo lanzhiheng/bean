@@ -173,7 +173,14 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
   return value;
 }
 
-static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
+static int compareTwoTValue(bean_State * B, TValue * v1, TValue *v2) {
+  TValue * convertV1 = ttisstring(v1) ? v1 : tvalue_inspect(B, v1);
+  TValue * convertV2 = ttisstring(v2) ? v2 : tvalue_inspect(B, v2);
+
+  return strcmp(getstr(svalue(convertV1)), getstr(svalue(convertV2)));
+}
+
+static TValue * binary_eval (bean_State * B, struct expr * expression) {
   TokenType op = expression -> infix.op;
   TValue * ret = malloc(sizeof(TValue));
 
@@ -181,24 +188,23 @@ static TValue * binary_eval (bean_State * B UNUSED, struct expr * expression) {
     TValue * v1 = eval(B, expression -> infix.left);                    \
     TValue * v2 = eval(B, expression -> infix.right);                   \
     if (!ttisnumber(v1)) {                                              \
-      eval_error(B, "%s", "left operand of "#action" must be number");               \
+      eval_error(B, "%s", "left operand of "#action" must be number");  \
     }                                                                   \
     if (!ttisnumber(v2)) {                                              \
-      eval_error(B, "%s", "right operand of "#action" must be number");              \
+      eval_error(B, "%s", "right operand of "#action" must be number"); \
     }                                                                   \
     setnvalue(ret, action(nvalue(v1), nvalue(v2)));                     \
- } while(0)
+  } while(0)
 
-#define compare_statement(action) do {                      \
-    TValue * v1 = eval(B, expression -> infix.left);                 \
-    TValue * v2 = eval(B, expression -> infix.right);                \
-    if (!ttisnumber(v1)) {                                           \
-      eval_error(B, "%s", "left operand of "#action" must be number");            \
-    }                                                                \
-    if (!ttisnumber(v2)) {                                           \
-      eval_error(B, "%s", "right operand of "#action" must be number");           \
-    }                                                                \
-    ret = action(nvalue(v1), nvalue(v2)) ? G(B)->tVal : G(B)->fVal;  \
+#define compare_statement(action) do {                                  \
+    TValue * v1 = eval(B, expression -> infix.left);                    \
+    TValue * v2 = eval(B, expression -> infix.right);                   \
+    if (ttisnumber(v1) && ttisnumber(v2)) {                             \
+      ret = action(nvalue(v1), nvalue(v2)) ? G(B)->tVal : G(B)->fVal;   \
+    } else {                                                            \
+      int result = compareTwoTValue(B, v1, v2);                         \
+      ret = action(result, 0) ? G(B)->tVal : G(B)->fVal;                \
+    }                                                                   \
   } while(0)
 
   switch(op) {

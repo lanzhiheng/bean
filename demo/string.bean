@@ -44,3 +44,14 @@ strCodePoint1 = "你好"
 print(strCodePoint1.codePoint())
 strCodePoint2 = "好"
 print(strCodePoint2.codePoint())
+
+
+print('a' < 'abc')
+print('a' <= 'a')
+print('A' <= 'a')
+print(9 >= 'A')
+print('9'.codePoint())
+print('A'.codePoint())
+
+print({} > 10)
+print('{}' > '10')
