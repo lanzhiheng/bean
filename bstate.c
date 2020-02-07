@@ -210,6 +210,7 @@ static TValue * binary_eval (bean_State * B, struct expr * expression) {
     if (!ttisnumber(v2)) {                                              \
       eval_error(B, "%s", "right operand of "#action" must be number"); \
     }                                                                   \
+    if (expression -> infix.assign) ret = v1;                           \
     setnvalue(ret, action(nvalue(v1), nvalue(v2)));                     \
   } while(0)
 
@@ -228,6 +229,8 @@ static TValue * binary_eval (bean_State * B, struct expr * expression) {
     case(TK_ADD): {
       TValue * v1 = eval(B, expression -> infix.left);
       TValue * v2 = eval(B, expression -> infix.right);
+
+      if (expression -> infix.assign) ret = v1;
 
       if (ttisnumber(v1) && ttisnumber(v2)) {
         setnvalue(ret, add(nvalue(v1), nvalue(v2)));

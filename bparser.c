@@ -352,10 +352,21 @@ static expr * infix (LexState *ls, expr * left) {
       syntax_error(ls, "Just supporting ++ or -- operator.");
     }
   } else {
+    TokenType op = ls->pre.type;
     temp -> type = EXPR_BINARY;
-    temp -> infix.op = ls->pre.type;
+    temp -> infix.op = op;
     temp -> infix.left = left;
-    temp -> infix.right = parse_statement(ls, symbol_table[ls->pre.type].lbp);
+
+    if (ls->t.type == TK_ASSIGN) {
+      if (ls->pre.type >= TK_ADD && ls->pre.type <= TK_MOD) {
+        testnext(ls, TK_ASSIGN);
+        temp -> infix.assign = true;
+      } else {
+        syntax_error(ls, "Just supporting +=, -=, *=, /=, |=, &=, %=");
+      }
+    }
+
+    temp -> infix.right = parse_statement(ls, symbol_table[op].lbp);
     if (temp -> infix.op == TK_LEFT_BRACKET) testnext(ls, TK_RIGHT_BRACKET);
   }
 
