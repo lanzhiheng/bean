@@ -140,6 +140,7 @@ typedef struct expr {
       int op; // Store the TokenType
       struct expr * left;  /* for   TK_ADD, TK_SUB, TK_MUL, TK_DIV, */
       struct expr * right;
+      int assign; // Need reassign
     } infix;
 
     struct {

@@ -37,3 +37,27 @@ subsubA--
 print(subsubA)
 subsubA--
 print(subsubA)
+
+
+a = 100
+a += 10
+print(a)
+a -= 10
+print(a)
+a *= 10
+print(a)
+a /= 10
+print(a)
+
+a = 2
+a |= 10
+print(a)
+a = 2
+a &= 10
+print(a)
+a = 2
+a %= 10
+print(a)
+a = 2
+a ^= 10
+print(a)
