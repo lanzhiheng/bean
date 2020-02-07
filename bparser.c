@@ -340,11 +340,25 @@ static expr * function_call (LexState *ls, expr * left) {
 
 static expr * infix (LexState *ls, expr * left) {
   expr * temp = malloc(sizeof(expr));
-  temp -> type = EXPR_BINARY;
-  temp -> infix.op = ls->pre.type;
-  temp -> infix.left = left;
-  temp -> infix.right = parse_statement(ls, symbol_table[ls->pre.type].lbp);
-  if (temp -> infix.op == TK_LEFT_BRACKET) testnext(ls, TK_RIGHT_BRACKET);
+
+  // Supporting a++, a--
+  if (ls->pre.type == ls->t.type) {
+    if (ls->t.type == TK_ADD || ls->t.type == TK_SUB) {
+      temp -> type = EXPR_CHANGE;
+      temp -> change.op = ls->pre.type;
+      temp -> change.val = left;
+      testnext(ls, ls->pre.type);
+    } else {
+      syntax_error(ls, "Just supporting ++ or -- operator.");
+    }
+  } else {
+    temp -> type = EXPR_BINARY;
+    temp -> infix.op = ls->pre.type;
+    temp -> infix.left = left;
+    temp -> infix.right = parse_statement(ls, symbol_table[ls->pre.type].lbp);
+    if (temp -> infix.op == TK_LEFT_BRACKET) testnext(ls, TK_RIGHT_BRACKET);
+  }
+
   return temp;
 }
 

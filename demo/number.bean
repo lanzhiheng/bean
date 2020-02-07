@@ -22,3 +22,18 @@ print("To Fixed: " + e.toFixed(600))
 
 e = 999.00999
 print("To Exponential: " + e.toExponential())
+
+
+plusplusA = 100
+print(plusplusA)
+plusplusA++
+print(plusplusA)
+plusplusA++
+print(plusplusA)
+
+subsubA = 200
+print(subsubA)
+subsubA--
+print(subsubA)
+subsubA--
+print(subsubA)
