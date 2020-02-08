@@ -368,6 +368,17 @@ static TValue * primitive_String_charAt(bean_State * B, TValue * this, TValue * 
   return ret;
 }
 
+static TValue * primitive_String_toNumber(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
+  assert(ttisstring(this));
+  char * string = getstr(svalue(this));
+  TValue * ret = malloc(sizeof(TValue));
+
+  double number = strtod(string, NULL);
+  setnvalue(ret, number);
+  return ret;
+}
+
+
 static TValue * primitive_String_slice(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisstring(this));
   assert(argc);
@@ -434,6 +445,7 @@ TValue * init_String(bean_State * B) {
   set_prototype_getter(B, "length", 6, primitive_String_length, hhvalue(proto));
   set_prototype_function(B, "split", 5, primitive_String_split, hhvalue(proto));
   set_prototype_function(B, "codePoint", 9, primitive_String_codePoint, hhvalue(proto));
+  set_prototype_function(B, "toNum", 5, primitive_String_toNumber, hhvalue(proto));
 
   TValue * string = malloc(sizeof(TValue));
   setsvalue(string, beanS_newlstr(B, "String", 6));
