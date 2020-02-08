@@ -230,10 +230,33 @@ static expr * parse_definition(LexState *ls) {
 
 static expr * unary(LexState *ls, expr * exp UNUSED) {
   expr * temp = malloc(sizeof(expr));
-  temp -> type = EXPR_UNARY;
-  temp -> unary.op = ls->t.type;
+
   beanX_next(ls);
-  temp -> unary.val = parse_statement(ls, BP_LOWEST);
+
+  // Supporting ++a, --a
+  if (ls->pre.type == ls->t.type) {
+    TokenType op = ls->t.type;
+
+    if (ls->t.type == TK_ADD || ls->t.type == TK_SUB) {
+      temp -> type = EXPR_CHANGE;
+      temp -> change.op = op;
+
+      testnext(ls, op);
+      expr * val = parse_statement(ls, BP_LOWEST);
+      if (val -> type == EXPR_GVAR) {
+        temp -> change.prefix = true;
+        temp -> change.val = val;
+      } else {
+        syntax_error(ls, "Just supporting ++ or -- operator before variable.");
+      }
+    } else {
+      syntax_error(ls, "Just supporting ++ or -- operator.");
+    }
+  } else {
+    temp -> type = EXPR_UNARY;
+    temp -> unary.op = ls->pre.type;
+    temp -> unary.val = parse_statement(ls, BP_LOWEST);
+  }
   return temp;
 }
 
@@ -343,11 +366,18 @@ static expr * infix (LexState *ls, expr * left) {
 
   // Supporting a++, a--
   if (ls->pre.type == ls->t.type) {
+    TokenType op = ls->t.type;
     if (ls->t.type == TK_ADD || ls->t.type == TK_SUB) {
       temp -> type = EXPR_CHANGE;
-      temp -> change.op = ls->pre.type;
-      temp -> change.val = left;
-      testnext(ls, ls->pre.type);
+      temp -> change.op = op;
+
+      if (left -> type == EXPR_GVAR) {
+        temp -> change.prefix = false;
+        temp -> change.val = left;
+        testnext(ls, op);
+      } else {
+        syntax_error(ls, "Just supporting ++ or -- operator after variable.");
+      }
     } else {
       syntax_error(ls, "Just supporting ++ or -- operator.");
     }

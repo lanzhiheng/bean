@@ -134,6 +134,7 @@ typedef struct expr {
     struct {
       int op;
       struct expr * val;
+      int prefix;
     }  change;
 
     struct {
