@@ -174,20 +174,27 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
 }
 
 static TValue * change_eval (bean_State * B UNUSED, struct expr * expression) {
-  TValue * value = eval(B, expression->unary.val);
+  TValue * value = eval(B, expression->change.val);
+  TValue * retVal = malloc(sizeof(TValue));
 
-  switch(expression->unary.op) {
-    case(TK_ADD):
-      setnvalue(value, nvalue(value) + 1);
+  switch(expression->change.op) {
+    case(TK_ADD): {
+      double res = expression->change.prefix ? nvalue(value) + 1 : nvalue(value);
+      setnvalue(retVal, res);
+      setnvalue(value, res + 1);
       break;
-    case(TK_SUB):
+    }
+    case(TK_SUB): {
+      double res = expression->change.prefix ? nvalue(value) - 1: nvalue(value);
+      setnvalue(retVal, res) ;
       setnvalue(value, nvalue(value) - 1);
       break;
+    }
     default:
       eval_error(B, "%s", "Just supporting ++ or -- operator.");
   }
 
-  return value;
+  return retVal;
 }
 
 static int compareTwoTValue(bean_State * B, TValue * v1, TValue *v2) {

@@ -25,17 +25,13 @@ print("To Exponential: " + e.toExponential())
 
 
 plusplusA = 100
-print(plusplusA)
-plusplusA++
-print(plusplusA)
-plusplusA++
+print(++plusplusA)
+print(plusplusA++)
 print(plusplusA)
 
 subsubA = 200
-print(subsubA)
-subsubA--
-print(subsubA)
-subsubA--
+print(--subsubA)
+print(subsubA--)
 print(subsubA)
 
 
