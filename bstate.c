@@ -13,6 +13,11 @@
 #include "bparser.h"
 #include "blex.h"
 #include "mem.h"
+
+#include <setjmp.h>
+jmp_buf buf;
+int REPL = false;
+
 #define MIN_STRT_SIZE 64
 
 typedef TValue * (*eval_func) (bean_State * B, struct expr * expression);
@@ -776,6 +781,7 @@ void run() {
   size_t buffersize = 200;
   ssize_t len;
   source = (char *)malloc(buffersize * sizeof(char));
+  REPL = true;
 
   if( source == NULL) {
     perror("Unable to allocate buffer");
@@ -786,6 +792,7 @@ void run() {
   TString * e = beanS_newlstr(B, "REPL", 4);
 
   while(true) {
+    setjmp(buf);
     printf("> ");
     len = getline(&source, &buffersize, stdin);
     if (len == -1) break; //  return -1 on failure
@@ -868,6 +875,10 @@ void global_init(bean_State * B) {
   setbvalue(G->tVal, true);
   G -> fVal = malloc(sizeof(TValue));
   setbvalue(G->fVal, false);
+}
+
+void exception() {
+  REPL ? longjmp(buf, 1) : abort();
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {
