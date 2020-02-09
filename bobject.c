@@ -3,6 +3,7 @@
 #include "bobject.h"
 #include "barray.h"
 #include "bstring.h"
+#include "berror.h"
 
 // Copy from https://github.com/cesanta/mjs/blob/master/mjs/src/mjs_json.c#L44
 static const char *hex_digits = "0123456789abcdef";
@@ -280,18 +281,31 @@ static TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, TVa
   return G(B)->nil;
 }
 
-// Add some default tool functions
-void add_tools(bean_State * B) {
+static TValue * primitive_throw(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int argc) {
+  assert(argc >= 1);
+  TValue * string = tvalue_inspect(B, &args[0]);
+
+  runtime_error(B, "%s", getstr(svalue(string)));
+  return G(B)->nil;
+}
+
+void add_tool_by_name(bean_State * B, char * str, size_t len, primitive_Fn fn) {
   Hash * variables = B -> l_G -> globalScope -> variables;
   TValue * name = malloc(sizeof(TValue));
-  TString * ts = beanS_newlstr(B, "print", 5);
+  TString * ts = beanS_newlstr(B, str, len);
   setsvalue(name, ts);
 
   TValue * func = malloc(sizeof(TValue));
-  Tool * tool = initialize_tool_by_fn(primitive_print, false);
+  Tool * tool = initialize_tool_by_fn(fn, false);
 
   settlvalue(func, tool);
   hash_set(B, variables, name, func);
+}
+
+// Add some default tool functions
+void add_tools(bean_State * B) {
+  add_tool_by_name(B, "print", 5, primitive_print);
+  add_tool_by_name(B, "throw", 5, primitive_throw);
 }
 
 TValue * type_statement(bean_State * B UNUSED, TValue * target) {

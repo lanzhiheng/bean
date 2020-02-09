@@ -357,7 +357,7 @@ static expr * function_call (LexState *ls, expr * left) {
     add_element(ls->B, func_call->call.args, parse_statement(ls, BP_LOWEST));
   } while(checknext(ls, TK_COMMA));
 
-  checknext(ls, TK_RIGHT_PAREN);
+  testnext(ls, TK_RIGHT_PAREN);
   return func_call;
 }
 

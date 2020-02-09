@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include "berror.h"
 #include "bstring.h"
+#include "bstate.h"
 
 #define addstr(out, str, len) ( memcpy(out, str, len), out += (len) )
 
@@ -41,7 +42,7 @@ void lex_error (LexState *ls, const char *msg, int token) {
   }
 
   printf("%s\n", msg);
-  abort();
+  exception();
 }
 
 void syntax_error (LexState *ls, const char *msg) {
@@ -57,7 +58,7 @@ void syntax_error (LexState *ls, const char *msg) {
     vsnprintf(msg, MAX_STRING_BUFFER, fmt, argp);                 \
     va_end(argp);                                                 \
     printf("%s: %s\n  from %s:%d\n", errorType, msg, getstr(ls->source), ls->linenumber); \
-    abort();                                    \
+    exception();                                                        \
   } while(0)
 
 void runtime_error (bean_State *B, const char *fmt, ...) {
