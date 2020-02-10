@@ -247,7 +247,8 @@ static TValue * binary_eval (bean_State * B, struct expr * expression) {
       if (ttisnumber(v1) && ttisnumber(v2)) {
         setnvalue(ret, add(nvalue(v1), nvalue(v2)));
       } else {
-        ret = concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
+        TValue * temp = concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
+        setsvalue(ret, svalue(temp));
       }
       break;
     }
