@@ -161,6 +161,7 @@ typedef struct expr {
 
     struct {
       struct expr * condition;
+      bool firstcheck;
       dynamic_expr * body;
     } loop;
 
