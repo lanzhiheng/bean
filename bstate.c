@@ -495,6 +495,18 @@ static TValue * loop_eval(bean_State * B, struct expr * expression) {
   TValue * stmt = G(B)->nil;
   enter_scope(B);
 
+  if (!expression->loop.firstcheck) { // do-while loop
+    for (int i = 0; i < body->count; i++) {
+      expr * ep = body->es[i];
+
+      if (ep -> type == EXPR_BREAK || call_stack_peek(B)) {
+        goto breakoff; // Only one jump point, Use goto statement can be more clear and easy
+      } else {
+        stmt = eval(B, ep);
+      }
+    }
+  }
+
   while (condition_is_true) {
     for (int i = 0; i < body->count; i++) {
       expr * ep = body->es[i];

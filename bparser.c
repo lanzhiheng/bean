@@ -329,6 +329,7 @@ symbol symbol_table[] = {
   { "or", BP_LOGIC_OR, NULL, infix },
   { "return", BP_NONE, return_exp, NULL },
   { "true", BP_NONE, boolean, NULL },
+  { "do", BP_NONE, NULL, NULL },
   { "while", BP_NONE, NULL, NULL },
   { "==", BP_EQUAL, NULL, infix },
   { "=", BP_ASSIGN, NULL, infix },
@@ -436,11 +437,31 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   return tree;
 }
 
+static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
+  beanX_next(ls);
+
+  expr * tree = malloc(sizeof(expr));
+  tree -> type = EXPR_LOOP;
+  tree -> loop.body = init_dynamic_expr(ls->B);
+  tree -> loop.firstcheck = false;
+  testnext(ls, TK_LEFT_BRACE);
+
+  while (ls->t.type != TK_RIGHT_BRACE) {
+    add_element(ls->B, tree->loop.body, parse_statement(ls, rbp));
+  }
+
+  testnext(ls, TK_RIGHT_BRACE);
+  testnext(ls, TK_WHILE);
+  tree -> loop.condition = parse_statement(ls, rbp);
+  return tree;
+}
+
 static expr * parse_while(struct LexState *ls, bindpower rbp) {
   beanX_next(ls);
 
   expr * tree = malloc(sizeof(expr));
   tree -> type = EXPR_LOOP;
+  tree -> loop.firstcheck = true;
   tree -> loop.condition = parse_statement(ls, rbp);
   tree -> loop.body = init_dynamic_expr(ls->B);
   testnext(ls, TK_LEFT_BRACE);
@@ -467,11 +488,14 @@ static void skip_semicolon(LexState * ls) { // Skip all the semicolon
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {
   skip_semicolon(ls);
   expr * tree;
+
   switch(ls->t.type) {
     case TK_BREAK:
       return parse_break(ls, rbp);
     case TK_WHILE:
       return parse_while(ls, rbp);
+    case TK_DO:
+      return parse_do_while(ls, rbp);
     case TK_IF:
       return parse_branch(ls, rbp);
     case TK_FUNCTION:
