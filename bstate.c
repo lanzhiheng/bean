@@ -295,15 +295,13 @@ static TValue * binary_eval (bean_State * B, struct expr * expression) {
       compare_statement(lte);
       break;
     case(TK_AND): {
-      TValue * v1 = eval(B, expression -> infix.left);
-      TValue * v2 = eval(B, expression -> infix.right);
-      ret = and(truthvalue(v1), truthvalue(v2)) ? G(B)->tVal : G(B)->fVal;
+      ret = eval(B, expression -> infix.left);
+      if (truthvalue(ret)) ret = eval(B, expression -> infix.right);
       break;
     }
     case(TK_OR): {
-      TValue * v1 = eval(B, expression -> infix.left);
-      TValue * v2 = eval(B, expression -> infix.right);
-      ret = or(truthvalue(v1), truthvalue(v2)) ? G(B)->tVal : G(B)->fVal;
+      ret = eval(B, expression -> infix.left);
+      if (falsyvalue(ret)) ret = eval(B, expression -> infix.right);
       break;
     }
     case(TK_LT):
@@ -347,16 +345,15 @@ static TValue * binary_eval (bean_State * B, struct expr * expression) {
             }
             case(TK_LEFT_BRACKET): {
               assert(ttishash(object) || ttisarray(object));
+              EXPR_TYPE type = leftExpr -> infix.right->type;
               if (ttishash(object)) {
-                assert(leftExpr -> infix.right->type == EXPR_STRING);
-                TString * ts = leftExpr -> infix.right -> sval;
-                TValue * key = malloc(sizeof(TValue));
-                setsvalue(key, ts);
+                assert(type == EXPR_STRING || type == EXPR_GVAR);
+                TValue * key = eval(B, leftExpr -> infix.right);
                 hash_set(B, hhvalue(object), key, value);
               } else if (ttisarray(object)) {
-                assert(leftExpr -> infix.right->type == EXPR_NUM);
-                bean_Number i = leftExpr -> infix.right -> nval;
-                array_set(B, arrvalue(object), i, value);
+                assert(type == EXPR_NUM || type == EXPR_GVAR);
+                TValue * index = eval(B, leftExpr -> infix.right);
+                array_set(B, arrvalue(object), nvalue(index), value);
               }
               break;
             }
