@@ -330,6 +330,8 @@ TValue * type_statement(bean_State * B UNUSED, TValue * target) {
     case BEAN_TLIST:
       typeStr = "array";
       break;
+    default:
+      typeStr = "hash";
   }
 
   TString * ts = beanS_newlstr(B, typeStr, strlen(typeStr));

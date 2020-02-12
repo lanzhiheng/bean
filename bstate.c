@@ -392,14 +392,16 @@ static TValue * binary_eval (bean_State * B, struct expr * expression) {
       expr * right = expression -> infix.right;
       TValue * value = NULL;
 
-      if (ttisarray(object) && right->type == EXPR_NUM) { // Array search by index
-        bean_Number i = right -> nval;
-        value = array_get(B, arrvalue(object), i);
-      } else if (right->type == EXPR_STRING) { // Attributes search
-        TString * ts = right -> sval;
-        TValue * name = malloc(sizeof(TValue));
-        setsvalue(name, ts);
-        value = search_from_prototype_link(B, object, name);
+      EXPR_TYPE type = right->type;
+
+      if (ttishash(object)) {
+        assert(type == EXPR_STRING || type == EXPR_GVAR);
+        TValue * key = eval(B, expression -> infix.right);
+        value = search_from_prototype_link(B, object, key);
+      } else if (ttisarray(object)) {
+        assert(type == EXPR_NUM || type == EXPR_GVAR);
+        TValue * index = eval(B, expression -> infix.right);
+        value = array_get(B, arrvalue(object), nvalue(index));
       }
 
       return value;
