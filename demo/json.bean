@@ -1,0 +1,215 @@
+fn parse(input) {
+  BEGIN_CHARACTER = ' '
+  ch = BEGIN_CHARACTER // 用于记录当前的字符
+  at = 0 // 用于记录当前的索引
+
+  fn error(message) { // 报错信息
+    throw({
+      name: 'SyntaxError',
+      message: message
+    })
+  }
+
+  fn next(c) {
+    if (c and ch != c) {
+      error('An error occurred when parsing, at the ' +  at + ' character of the string')
+    }
+
+    ch = input.charAt(at++);
+    return ch;
+  }
+
+  fn white() { // 跳过空白，简易判断 ' '.codePointAt() === 32
+    while (ch.codePoint() <= 32) { next() }
+  }
+
+  fn number() { // 用于解析数字
+    num = ''
+    if (ch == '-') {
+      num += ch
+      next()
+    }
+
+    while (ch >= '0' and ch <= '9') {
+      num += ch
+      next()
+    }
+
+    if (ch == '.') {
+      num += ch
+      next()
+
+      while (ch >= '0' and ch <= '9') {
+        num += ch
+        next()
+      }
+    }
+
+    if (ch == 'e' or ch == 'E') {
+      num += ch
+      next()
+
+      if (ch == '+' or ch == '-') {
+        num += ch
+        next()
+      }
+
+      while (ch >= '0' and ch <= '9') {
+        num += ch
+        next()
+      }
+    }
+
+    return num.toNum()
+  }
+
+  fn string() { // 用于解析字符串
+    str = ''
+
+    next('"')
+
+    if (ch == '"') {
+      return str
+    }
+
+    while (ch != '"') {
+      str += ch
+      next()
+    }
+
+    next('"')
+    return str
+  }
+
+  fn object() { // 用于解析hash
+    k = ''
+    v = ''
+    obj = {}
+    next('{')
+    white()
+
+    if (ch == '}') { return obj }
+
+    do {
+      white()
+      k = string()
+      white()
+      next(':')
+      white()
+      v = value()
+      obj[k] = v
+      white()
+    } while((ch == ',') and next(","))
+
+    next('}')
+    return obj
+  }
+
+  fn array() { // 用于解析数组
+    ary = []
+    next('[')
+
+    do {
+      white()
+      ary.push(value())
+      white()
+    } while (ch == ',' and next(","))
+
+    next(']')
+    return ary
+  }
+
+  fn value() { // 统一入口，里面可能会有递归调用
+    if (ch == '"') {
+      return string()
+    } else if (ch == '[') {
+      return array()
+    } else if (ch == '{') {
+      return object()
+    } else {
+      if (ch == 'f' or ch == 't' or ch == 'n') {
+        special()
+      } else {
+        number()
+      }
+    }
+  }
+
+  fn special() { // 用于解析一些特殊的值false, true, null
+    if (ch == 'f') {
+      next('f')
+      next('a')
+      next('l')
+      next('s')
+      next('e')
+      return false
+    } else if (ch == 't'){
+      next('t')
+      next('r')
+      next('u')
+      next('e')
+      return true
+    } else if (ch == 'n') {
+      next('n')
+      next('u')
+      next('l')
+      next('l')
+      return nil
+    } else {
+      error('An error occurred when parsing special value, at the ' + at + ' character of the string')
+    }
+  }
+
+  next(BEGIN_CHARACTER)
+  value()
+}
+
+fn stringify(hash) {
+  a = []
+  a.push('{')
+  hash.keys().each(fn(k) {
+    a.push(k)
+    a.push(': ')
+    type = typeof hash[k]
+    if (type == 'nil') {
+      a.push('null')
+    } else if (['number', 'string', 'boolean']) {
+      a.push(hash[k])
+    } else if (type == 'hash') {
+      a.push(stringify(hash[k]))
+    } else if (type == 'array') {
+      a.push(hash[k].toString())
+    }
+    a.push(', ')
+  })
+
+  // a[a.length - 1] = '}'
+  last = a.length - 1
+  a[last] = '}'
+  a.join('')
+}
+
+JSON = {
+  parse: parse,
+  stringify: stringify
+}
+
+// function testFunc() {
+//   const array = [1, "2", {a: 10}, [3, 4], null, false, true]
+//   const object = {name: "hello", age: 100, prop: { a: 1, b: 2 }, arr: array}
+//   const number = 2
+//   const n = null
+//   const f = false
+//   const t = true
+
+//   const oldObj = { array, object, n, f, t}
+//   const o = JSON.stringify(oldObj)
+//   const newObj = CJSON.parse(o)
+//   console.log(oldObj)
+//   console.log(newObj)
+// }
+// }
+
+// testFunc()
+c = JSON.parse('{"name": "lanzhiheng", "age": 28, "nice": [1, 2, 3, 4], "nil": null, "one": true, "two": false}')
+print(JSON.stringify(c))
