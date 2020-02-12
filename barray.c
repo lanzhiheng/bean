@@ -425,6 +425,14 @@ static TValue * primitive_Array_find(bean_State * B, TValue * this, TValue * arg
   return val;
 }
 
+static TValue * primitive_Array_length(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED) {
+  assert(ttisarray(this));
+  TValue * ret = malloc(sizeof(TValue));
+  Array * array = arrvalue(this);
+  setnvalue(ret, array->count);
+  return ret;
+}
+
 TValue * init_Array(bean_State * B) {
   global_State * G = B->l_G;
   TValue * proto = malloc(sizeof(TValue));
@@ -443,6 +451,8 @@ TValue * init_Array(bean_State * B) {
   set_prototype_function(B, "map", 3, primitive_Array_map, hhvalue(proto));
   set_prototype_function(B, "reduce", 6, primitive_Array_reduce, hhvalue(proto));
   set_prototype_function(B, "each", 4, primitive_Array_each, hhvalue(proto));
+
+  set_prototype_getter(B, "length", 6, primitive_Array_length, hhvalue(proto));
 
   TValue * array = malloc(sizeof(TValue));
   setsvalue(array, beanS_newlstr(B, "Array", 5));
