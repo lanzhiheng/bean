@@ -190,6 +190,28 @@ static TValue * primitive_Hash_toString(bean_State * B, TValue * this, TValue * 
   return string;
 }
 
+static TValue * primitive_Hash_keys(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
+  if (!ttishash(this)) {
+    runtime_error(B, "%s", "Do not support this method");
+  }
+  Hash * hash = hhvalue(this);
+  Array * array = init_array(B);
+
+  for (uint32_t i = 0; i < hash->capacity; i++) {
+    if (!hash->entries[i]) continue;
+
+    Entry * e = hash->entries[i];
+    while (e) {
+      TValue * key = tvalue_inspect(B, e->key);
+      array_push(B, array, key);
+      e = e -> next;
+    }
+  }
+  TValue * value = malloc(sizeof(TValue));
+  setarrvalue(value, array);
+  return value;
+}
+
 static TValue * primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
   char id[MAX_LEN_ID];
   TString * ts = NULL;
@@ -230,6 +252,7 @@ TValue * init_Hash(bean_State * B) {
   set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto));
   set_prototype_function(B, "clone", 5, primitive_Hash_clone, hhvalue(proto));
   set_prototype_function(B, "toString", 8, primitive_Hash_toString, hhvalue(proto));
+  set_prototype_function(B, "keys", 4, primitive_Hash_keys, hhvalue(proto));
   set_prototype_getter(B, "__proto__", 9, primitive_Hash_proto, hhvalue(proto));
 
   TValue * hash = malloc(sizeof(TValue));
