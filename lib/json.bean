@@ -63,9 +63,10 @@ fn parse(input) {
     return num.toNum()
   }
 
-  fn string() { // 用于解析字符串
+  fn string(escape) { // 用于解析字符串
     str = ''
 
+    if (escape) { next(escape) }
     next('"')
 
     if (ch == '"') {
@@ -77,6 +78,7 @@ fn parse(input) {
       next()
     }
 
+    if (escape) { next(escape) }
     next('"')
     return str
   }
@@ -122,6 +124,8 @@ fn parse(input) {
   fn value() { // 统一入口，里面可能会有递归调用
     if (ch == '"') {
       return string()
+    } else if (ch == '\\' and input.charAt(ch + 1) == '"')  {
+      return string('\\')
     } else if (ch == '[') {
       return array()
     } else if (ch == '{') {
@@ -168,13 +172,15 @@ fn stringify(hash) {
   a = []
   a.push('{')
   hash.keys().each(fn(k) {
-    a.push(k)
+    a.push('"' + k + '"')
     a.push(': ')
     type = typeof hash[k]
     if (type == 'nil') {
       a.push('null')
-    } else if (['number', 'string', 'boolean']) {
+    } else if (['number', 'boolean'].includes(type)) {
       a.push(hash[k])
+    } else if (type == 'string') {
+      a.push('"' + hash[k] + '"')
     } else if (type == 'hash') {
       a.push(stringify(hash[k]))
     } else if (type == 'array') {
@@ -193,23 +199,3 @@ JSON = {
   parse: parse,
   stringify: stringify
 }
-
-// function testFunc() {
-//   const array = [1, "2", {a: 10}, [3, 4], null, false, true]
-//   const object = {name: "hello", age: 100, prop: { a: 1, b: 2 }, arr: array}
-//   const number = 2
-//   const n = null
-//   const f = false
-//   const t = true
-
-//   const oldObj = { array, object, n, f, t}
-//   const o = JSON.stringify(oldObj)
-//   const newObj = CJSON.parse(o)
-//   console.log(oldObj)
-//   console.log(newObj)
-// }
-// }
-
-// testFunc()
-c = JSON.parse('{"name": "lanzhiheng", "age": 28, "nice": [1, 2, 3, 4], "nil": null, "one": true, "two": false}')
-print(JSON.stringify(c))

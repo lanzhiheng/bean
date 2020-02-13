@@ -376,6 +376,20 @@ static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * arg
   return this;
 }
 
+static TValue * primitive_Array_includes(bean_State * B, TValue * this, TValue * args, int argc) {
+  assert(ttisarray(this));
+  assert(argc >= 1);
+  TValue target = args[0];
+  Array * arr = arrvalue(this);
+
+  for (uint32_t i = 0; i < arr->count; i++) {
+    if (check_equal(&target, array_get(B, arr, i))) {
+      return G(B)->tVal;
+    }
+  }
+  return G(B)->fVal;
+}
+
 static TValue * primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc) {
   assert(ttisarray(this));
   assert(argc == 1);
@@ -451,6 +465,7 @@ TValue * init_Array(bean_State * B) {
   set_prototype_function(B, "map", 3, primitive_Array_map, hhvalue(proto));
   set_prototype_function(B, "reduce", 6, primitive_Array_reduce, hhvalue(proto));
   set_prototype_function(B, "each", 4, primitive_Array_each, hhvalue(proto));
+  set_prototype_function(B, "includes", 8, primitive_Array_includes, hhvalue(proto));
 
   set_prototype_getter(B, "length", 6, primitive_Array_length, hhvalue(proto));
 

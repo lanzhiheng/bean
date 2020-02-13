@@ -655,6 +655,12 @@ static TValue * hash_key_eval(bean_State * B UNUSED, struct expr * expression) {
       setsvalue(n, name);
       return n;
     }
+    case(EXPR_STRING): {
+      TString * name = expression->sval;
+      TValue * str = malloc(sizeof(TValue));
+      setsvalue(str, name);
+      return str;
+    }
     default: {
       eval_error(B, "%s", "Invalid key.");
       return G(B)->nil;
@@ -738,6 +744,12 @@ static char * read_source_file(bean_State * B, const char * path) {
   return fileContent;
 }
 
+static void preload_library(bean_State * B) {
+  char * json = read_source_file(B, "lib/json.bean");
+  beanX_setinput(B, json, beanS_newliteral(B, "json"), *json);
+  bparser(B->ls);
+}
+
 static struct Scope * create_scope(bean_State * B, struct Scope * previous) {
   Scope * scope = malloc(sizeof(Scope));
   scope->previous = previous;
@@ -782,6 +794,8 @@ void run_file(const char * path) {
   bean_State * B = bean_State_init();
   TString * e = beanS_newlstr(B, filename, strlen(filename));
   printf("Source file name is %s.\n", getstr(e));
+
+  preload_library(B);
   char* source = read_source_file(B, path);
   beanX_setinput(B, source, e, *source);
 
@@ -802,6 +816,8 @@ void run() {
 
   bean_State * B = bean_State_init();
   TString * e = beanS_newlstr(B, "REPL", 4);
+
+  preload_library(B);
 
   while(true) {
     setjmp(buf);
