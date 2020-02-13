@@ -2,96 +2,93 @@
 
 array = ["lanzhiheng", "zhiheng", "lan"]
 
-print(array.join("-"))
-print(array.join(",    "))
-print(array.join())
+assert(array.join("-"), "lanzhiheng-zhiheng-lan")
+assert(array.join(",    "), "lanzhiheng,    zhiheng,    lan")
+assert(array.join(), "lanzhiheng,zhiheng,lan")
 
 popArray = ["lanzhiheng", "zhiheng", "lan"]
-print(popArray.pop())
-print(popArray)
+assert(popArray.pop(), "lan")
+assert(popArray, ["lanzhiheng", "zhiheng"])
 
 pushArray = ["lanzhiheng", "zhiheng", "lan"]
-print(pushArray.push("1234"))
-print(pushArray)
+assert(pushArray.push("1234"), 4)
+assert(pushArray, ["lanzhiheng", "zhiheng", "lan", "1234"])
 
 shiftArray = ["lanzhiheng", "zhiheng", "lan"]
-print(shiftArray.shift())
-print(shiftArray)
+assert(shiftArray.shift(), "lanzhiheng")
+assert(shiftArray, ["zhiheng", "lan"])
 
 unshiftArray = ["lanzhiheng", "zhiheng", "lan"]
-print(unshiftArray.unshift("1233"))
-print(unshiftArray)
+assert(unshiftArray.unshift("1233"), 4)
+assert(unshiftArray, ["1233", "lanzhiheng", "zhiheng", "lan"])
 
 findArray = [1, 2, 3, "lanzhiheng"]
-print(findArray.find(fn(a) {
+findResult = findArray.find(fn(a) {
   a == 2
-}))
+})
+assert(findResult, 2)
 
-print(findArray.find(fn(a) {
+findResult = findArray.find(fn(a) {
   a == "lanzhiheng"
-}))
-
-// Have some issue
-findArrayStr = ["lanzhiheng", "string"]
-print(findArrayStr.find(fn cb(a) {
-  a.equal("lan")
-  // print(cb)
-}))
+})
+assert(findResult, "lanzhiheng")
 
 
 mapArray = [1, 2, 3, 4]
-print(mapArray.map(fn(a) {
+mapResult = mapArray.map(fn(a) {
  a * 300
-}))
+})
+assert(mapResult, [300, 600, 900, 1200])
 
-print(mapArray.map(fn(a, b) { // all is nil
+mapResult = mapArray.map(fn(a, b) { // TODO Support the index
  b
-}))
+})
+assert(mapResult, [nil, nil, nil, nil])
 
 reduceArray = [1, 2, 3, 4]
 
-print(reduceArray.reduce(fn(a, b) {
+reduceResult = reduceArray.reduce(fn(a, b) {
   return a + b
-}, 0))
+}, 0)
 
-print(reduceArray.reduce(fn(a, b) {
+assert(reduceResult, 10)
+
+reduceResult = reduceArray.reduce(fn(a, b) {
   return a * b
-}, 1))
+}, 1)
+assert(reduceResult, 24)
 
 reduceStrArray = ["lanzhiheng", "zhiheng"]
-print(reduceStrArray.reduce(fn(a,b) {
+reduceResult = reduceStrArray.reduce(fn(a,b) {
   return b.concat(a)
-}, ""))
-
-// reduceStrArray.a = 1
-print(reduceStrArray.__proto__)
+}, "")
+assert(reduceResult, "lanzhihengzhiheng")
 
 reverseArray = [1, 2, 3, 4, "string"]
-print(reverseArray.reverse())
+assert(reverseArray.reverse(), ["string", 4, 3, 2, 1])
+assert(reverseArray, ["string", 4, 3, 2, 1])
+
 reverseArray = []
-print(reverseArray.reverse())
+assert(reverseArray.reverse(), [])
 
 // join different type
 joinDiff = [1,2,3,4,5,"lanzhiheng"]
-print(joinDiff)
-print(joinDiff.join(","))
-
+assert(joinDiff.join(","), "1,2,3,4,5,lanzhiheng")
 
 // each
-
-eachArr = [1,2,3,4,6]
+eachArr = [1,2,3,4,5]
 
 eachArr.each(fn (i, c) {
-  print(i, c)
+ assert(i, c+1)
 })
 
 eachArr.each(fn (i) {
-fn hello() {
-print(self)
-}
-print(self)
+ fn hello() {
+   assert(self, eachArr)
+ }
+ assert(self, eachArr)
 
-hello()
+ hello()
 })
 
 b = {
@@ -111,5 +108,5 @@ a = {
   }
 }
 
-print(a.hello(true))
-print(a.hello(false))
+assert(a.hello(true), a)
+assert(a.hello(false), nil)
