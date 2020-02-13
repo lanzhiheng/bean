@@ -289,6 +289,19 @@ static TValue * primitive_throw(bean_State * B UNUSED, TValue * this UNUSED, TVa
   return G(B)->nil;
 }
 
+static TValue * primitive_assert(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int argc) {
+  assert(argc >= 2);
+  TValue * v1 = tvalue_inspect(B, &args[0]);
+  TValue * v2 = tvalue_inspect(B, &args[1]);
+
+  if (!check_equal(v1, v2)) {
+    char * left = getstr(svalue(v1));
+    char * right = getstr(svalue(v2));
+    runtime_error(B, "%s not equal to %s\n", left, right);
+  }
+  return G(B)->nil;
+}
+
 void add_tool_by_name(bean_State * B, char * str, size_t len, primitive_Fn fn) {
   Hash * variables = B -> l_G -> globalScope -> variables;
   TValue * name = malloc(sizeof(TValue));
@@ -306,6 +319,7 @@ void add_tool_by_name(bean_State * B, char * str, size_t len, primitive_Fn fn) {
 void add_tools(bean_State * B) {
   add_tool_by_name(B, "print", 5, primitive_print);
   add_tool_by_name(B, "throw", 5, primitive_throw);
+  add_tool_by_name(B, "assert", 6, primitive_assert);
 }
 
 TValue * type_statement(bean_State * B UNUSED, TValue * target) {
