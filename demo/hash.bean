@@ -2,9 +2,9 @@ hash = {}
 string = ""
 array = []
 
-print(string.__proto__.__proto__.__proto__)
-print(array.__proto__.__proto__)
-print(hash.__proto__)
+assert(string.__proto__, String)
+assert(array.__proto__, Array)
+assert(hash.__proto__, Hash)
 
 // test clone
 
@@ -13,9 +13,5 @@ new1.name = 'new1'
 new2 = new1.clone()
 new2.name = 'new2'
 
-print(new2)
-print(new2.__proto__)
-print(new2.__proto__.__proto__)
-
-// Raise error.
-// nil.id
+assert(new2.__proto__, new1)
+assert(new2.__proto__.__proto__, hash)

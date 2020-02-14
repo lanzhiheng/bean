@@ -12,11 +12,10 @@ c = fn name() {} // Not effect the variable name
 str = "lanzhiheng"
 
 // print(a.lan())
-print(a.lan)
-print(a['lan'])
-print(c)
-print(name)
-print(str['id'])
+assert(a.lan, a['lan'])
+assert(name, 100)
+assert(typeof c, 'function')
+assert(str.id, str['id'])
 
 fn thisA() {
   return self.a
@@ -43,15 +42,10 @@ temp = {
 temp['getA'] = thisA
 temp['getB'] = thisB
 temp.printA = printA
-print(thisObj.retThis())
-print(temp.getA())
-print(temp.getB())
-// print(self)
-temp.printA()
+assert(thisObj.retThis(), thisObj)
+assert(temp.getA(), 1)
+assert(temp.getB(), 2)
 
-
-
-// global variable
 fn globalSetting() {
   fn a() {
     global a = 100
@@ -60,8 +54,27 @@ fn globalSetting() {
 }
 
 fn globalGetting() {
- print(global a)
+ assert(global a, 100)
 }
 
 globalSetting()
 globalGetting()
+
+// print("Test call stack")
+fn breakfn() {
+ i = 40
+
+ while (i > 10) {
+   i = i - 1
+
+if (i < 30) {
+     if (i == 20) {
+       5000
+     } else {
+       return 3000
+     }
+   }
+ }
+}
+
+assert(breakfn(), 3000)

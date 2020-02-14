@@ -1,19 +1,15 @@
-nil
-123123
-
-true
-false;
-(- 1000);
-(-233.33);
-(100 + 200123)
-100 - 29 * 0
+assert(!true, false)
+assert(- (1000), -1000);
+assert(100 + 200, 300)
+assert(100 - 29 * 0, 100)
 
 fn a() {
-   100 + 100000
+  100 + 100000
 }
 
+assert(typeof a, 'function')
 a = 10
-a = 100
+assert(a, 10)
 
 fn a() {
   return self
@@ -23,48 +19,24 @@ fn b() {
   return self
 }
 
-// print(a() == b())
-print(a)
-print(b)
+c = { a: a, b: b }
+assert(a() == b(), true)
+
 i = 0;
 
 while(i < 10) {
-  print(i)
   i = i + 1
 }
 
-if (i > 100) {
- print("less than 100")
+assert(i, 10)
+
+c = if (i > 100) {
+  "more than 100"
 } else {
- print("large than 100")
+  "less than 100"
 }
 
-print([1,2,3,3,4,"lanzhiheng"])
-print({
- a: 100,
- b: fn() {
-   return self
- }
-})
-
-hash = {
-  this: fn() {
-    self
-  },
-  a: 1000
-}
-
-// // hash.this
-print(hash)
-print(hash.this())
-a = hash.this()
-print(a)
-print(a.this())
-print(nil)
-print(12312)
-print(nil)
-
-print(hash.this())
+assert(c, "less than 100")
 
 fn abc() {
   i = 100
@@ -74,4 +46,4 @@ fn abc() {
   300
 }
 
-print(abc())
+assert(abc(), 3100)

@@ -1,59 +1,46 @@
 a = 10.22
-print("To Fixed: " + a.toFixed(2))
-print("To String: " + a.toString())
+assert(a.toFixed(1), '10.2')
+assert(a.toString(), '10.220000')
 
 b = 10000000
-print("To Fixed: " + b.toFixed(4))
-print("To String: " + a.toString())
+assert(b.toFixed(4), '10000000.0000')
+assert(b.toString(), '10000000')
 
 c = 999.00999
-print("To Fixed: " + c.toFixed())
-print("To String: " + a.toString())
-
-d = 999.00999
-print("To Fixed: " + d.toFixed(50))
-print("To String: " + a.toString())
+assert(c.toFixed(), '999.01')
 
 e = 999.00999
-print("To Fixed: " + e.toFixed(300))
-
-e = 999.00999
-print("To Fixed: " + e.toFixed(600))
-
-e = 999.00999
-print("To Exponential: " + e.toExponential())
-
+assert(e.toExponential(), '9.990100e+02')
 
 plusplusA = 100
-print(++plusplusA)
-print(plusplusA++)
-print(plusplusA)
+assert(++plusplusA, 101)
+assert(plusplusA++, 101)
+assert(plusplusA, 102)
 
 subsubA = 200
-print(--subsubA)
-print(subsubA--)
-print(subsubA)
-
+assert(--subsubA, 199)
+assert(subsubA--, 199)
+assert(subsubA, 198)
 
 a = 100
 a += 10
-print(a)
+assert(a, 110)
 a -= 10
-print(a)
+assert(a, 100)
 a *= 10
-print(a)
+assert(a, 1000)
 a /= 10
-print(a)
+assert(a, 100)
 
 a = 2
 a |= 10
-print(a)
+assert(a, 10)
 a = 2
 a &= 10
-print(a)
+assert(a, 2)
 a = 2
 a %= 10
-print(a)
+assert(a, 2)
 a = 2
 a ^= 10
-print(a)
+assert(a, 8)
