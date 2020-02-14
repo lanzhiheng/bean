@@ -216,22 +216,36 @@ static TValue * primitive_Array_map(bean_State * B, TValue * this, TValue * args
   TValue callback = args[0];
   TValue * ret = malloc(sizeof(TValue));
   assert(ttisfunction(&callback));
+  assert(fcvalue(&callback)->p->arity >= 1);
 
   Array * arr = arrvalue(this);
   Array * newarr = init_array(B);
   Function * f = fcvalue(&callback);
   TValue * key = malloc(sizeof(TValue));
 
-  setsvalue(key, f->p->args[0]);
+  uint32_t argIdx = 0;
+  setsvalue(key, f->p->args[argIdx++]);
+
+  TValue * idxName = NULL;
+  if (f->p->arity == 2) {
+    idxName = malloc(sizeof(TValue));
+    setsvalue(idxName, f->p->args[argIdx++]);
+  }
 
   for (uint32_t i = 0; i < arr->count; i++) {
+    TValue * index = malloc(sizeof(TValue));
     TValue * item = NULL;
     call_stack_create_frame(B, this);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
 
-    for (int m = 1; m < f->p->arity; m++) { // All extra is nil
+    if (f->p->arity == 2) {
+      setnvalue(index, i);
+      SCSV(B, idxName, index);
+    }
+
+    for (int m = argIdx; m < f->p->arity; m++) { // All extra is nil
       TValue * extra = malloc(sizeof(TValue));
       setsvalue(extra, f->p->args[m]);
       SCSV(B, extra, G(B)->nil);
@@ -328,7 +342,6 @@ static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * arg
   Function * f = fcvalue(&callback);
 
   uint32_t argIdx = 0;
-  TValue * index = malloc(sizeof(TValue));
 
   TValue * item = malloc(sizeof(TValue));
   setsvalue(item, f->p->args[argIdx++]);
@@ -341,8 +354,9 @@ static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * arg
   }
 
   for (uint32_t i = 0; i < arr->count; i++) {
-    enter_scope(B);
+    TValue * index = malloc(sizeof(TValue));
     call_stack_create_frame(B, this);
+    enter_scope(B);
 
     SCSV(B, item, arr->entries[i]);
 

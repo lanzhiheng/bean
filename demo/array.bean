@@ -40,10 +40,15 @@ mapResult = mapArray.map(fn(a) {
 })
 assert(mapResult, [300, 600, 900, 1200])
 
-mapResult = mapArray.map(fn(a, b) { // TODO Support the index
+mapResult = mapArray.map(fn(a, b) {
+ b * a
+})
+assert(mapResult, [0, 2, 6, 12])
+
+mapResult = mapArray.map(fn(a, b) {
  b
 })
-assert(mapResult, [nil, nil, nil, nil])
+assert(mapResult, [0, 1, 2, 3])
 
 reduceArray = [1, 2, 3, 4]
 
