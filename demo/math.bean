@@ -1,26 +1,25 @@
-a = 10.22
-print("To Ceil By Math: " + Math.ceil(a))
-print("To Floor By Math: " + Math.floor(a))
-print("To Round By Math: " + Math.round(a))
+a = 10.20
+assert(Math.ceil(a), 11)
+assert(Math.floor(a), 10)
+assert(Math.round(a), 10)
+assert(Math.round(a + 0.5), 11)
 
 b = 30
-print("PI is " + Math.PI)
-print("To sin By Math: " + Math.sin(b * Math.PI / 180))
-print("To cos By Math: " + Math.cos(b * Math.PI / 180))
+assert(Math.PI, 3.141593)
+assert(Math.sin(b * Math.PI / 180), Math.cos(b * 2 * Math.PI / 180))
 
 c = -100
-print("To abs By Math: " + Math.abs(c))
+assert(Math.abs(c), 100)
 
 d = 256
-print("To sqrt By Math: " + Math.sqrt(d))
+assert(Math.sqrt(d), 16)
 
 e = Math.exp(1)
-print("To log By Math: " + Math.log(e))
-print("To exp By Math: " + Math.exp(2))
-print("To rand By Math: " + Math.random())
+assert(Math.log(e), 1)
+assert(Math.random() > 0 and Math.random() < 1, true)
 
 val1 = 100
 val2 = 200
-print("To log By Math: " + Math.max(val1, val2))
-print("To log By Math: " + Math.min(val1, val2))
-print("To log By Math: " + Math.pow(val1, 2))
+assert(Math.max(val1, val2), 200)
+assert(Math.min(val1, val2), 100)
+assert(Math.pow(val1, 2), 10000)

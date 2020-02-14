@@ -186,7 +186,7 @@ static TValue * change_eval (bean_State * B UNUSED, struct expr * expression) {
     case(TK_ADD): {
       double res = expression->change.prefix ? nvalue(value) + 1 : nvalue(value);
       setnvalue(retVal, res);
-      setnvalue(value, res + 1);
+      setnvalue(value, nvalue(value) + 1);
       break;
     }
     case(TK_SUB): {
@@ -394,14 +394,14 @@ static TValue * binary_eval (bean_State * B, struct expr * expression) {
 
       EXPR_TYPE type = right->type;
 
-      if (ttishash(object)) {
-        assert(type == EXPR_STRING || type == EXPR_GVAR);
-        TValue * key = eval(B, expression -> infix.right);
-        value = search_from_prototype_link(B, object, key);
-      } else if (ttisarray(object)) {
+      if (ttisarray(object)) {
         assert(type == EXPR_NUM || type == EXPR_GVAR);
         TValue * index = eval(B, expression -> infix.right);
         value = array_get(B, arrvalue(object), nvalue(index));
+      } else { // Attribute of the string, hash, number, etc
+        assert(type == EXPR_STRING || type == EXPR_GVAR);
+        TValue * key = eval(B, expression -> infix.right);
+        value = search_from_prototype_link(B, object, key);
       }
 
       return value;

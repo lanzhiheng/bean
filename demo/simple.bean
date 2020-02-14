@@ -2,62 +2,39 @@
 
 // Nil testing
 lan = nil
-print(lan)
+assert(lan == nil, true)
 
 // Hash testing
 c = {}
 c["lan"] = 100
 c["lan333"] = "lanzhiheng"
 c.lan = 333
-c.jab = 123123
-print(c)
-print(c.lan)
-print([])
+assert(c["lan"], 333)
+assert(c.lan333, "lanzhiheng")
 
 // Array testing
 a = [1,2,3,4,5,6,7]
 a[0] = 100
 a[1] = 1
 a[11] = "lanzhiheng"
-a[2] = 2
 a[0] = 3
-print(a)
-print(a[0], a[1], a[3])
-print(a["id"]())
+assert(a, [3, 1, 3, 4, 5, 6, 7, nil, nil, nil, nil, "lanzhiheng"])
+assert(a[0], 3)
+assert(a[1], 1)
+assert(a[10], nil)
+assert(a[11], "lanzhiheng")
 
 // Function testing
 c.say = fn add(a, b) {
   return a + b
 }
-print(c.say(40000, 3))
+assert(c.say(40000, 3), 40003)
 
-print(100 * (1000 - 1 + (100 + 0 - 99)))
-print(c["say"](100, 300))
-print(c['say'](100, 300))
-print(c.say(100, 300))
-print(c.say)
+assert(100 * (1000 - 1 + (100 + 0 - 99)), 100000)
+assert(c["say"](100, 300), 400)
 c['hello'] = 12882
-print(c)
-
+assert(c.hello, 12882)
 
 str = "lanzhiheng"
-print(str.id())
-// print(str['id']) // TODO: need to implement
-print(str.concat(" nihao"))
-print(str.equal("lanzhg"))
-
-array = [1,2,3,4,5,6,7]
-print(array)
-print(array.id())
-
-fn a() {
-  return "lanzhiheng"
-}
-
-hash = { a: 1, b: 2, c: 3, d: { g: a } }
-hash.lan = a
-print(hash)
-print(hash['lan'])
-print(hash.id())
-print(hash.lan())
-print(hash['id']())
+assert(str.concat(" nihao"), "lanzhiheng nihao")
+assert(str.equal("lanzhg"), false)

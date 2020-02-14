@@ -6,7 +6,7 @@ fn sum1(i) {
   }
 }
 
-print(sum1(4000))
+assert(sum1(4000), 8002000)
 
 fn sum2(i) {
   if (i > 1) {
@@ -15,7 +15,7 @@ fn sum2(i) {
   return i
 }
 
-print(sum2(4000))
+assert(sum2(4000), 8002000)
 
 a = [1,2,3,4,5,6]
 
@@ -25,4 +25,4 @@ g = a.map(fn a(i) {
   }
   i * 2
 })
-print(g)
+assert(g, [2,2,2,2,2,2])
