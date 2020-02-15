@@ -405,7 +405,7 @@ static expr * infix (LexState *ls, expr * left) {
 }
 
 static expr * parse_branch(struct LexState *ls, bindpower rbp) {
-  checknext(ls, TK_IF);
+  if (ls->t.type == TK_IF || ls->t.type == TK_ELSEIF) beanX_next(ls);
   expr * tree = malloc(sizeof(expr));
   tree -> type = EXPR_BRANCH;
   tree -> branch.condition = parse_statement(ls, rbp);
@@ -417,20 +417,17 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   }
   testnext(ls, TK_RIGHT_BRACE);
 
-  if (ls->t.type == TK_ELSE) {
-    testnext(ls, TK_ELSE);
-
-    if (ls -> t.type == TK_IF) { // else if ... => else { if ... }
-      tree -> branch.else_body = init_dynamic_expr(ls->B);
-      add_element(ls->B, tree -> branch.else_body, parse_branch(ls, rbp));
-    } else {
-      tree -> branch.else_body = init_dynamic_expr(ls->B);
-      testnext(ls, TK_LEFT_BRACE);
-      while (ls->t.type != TK_RIGHT_BRACE) {
-        add_element(ls->B, tree -> branch.else_body, parse_statement(ls, rbp));
-      }
-      testnext(ls, TK_RIGHT_BRACE);
+  if (ls->t.type == TK_ELSEIF) { // elseif() {}  => else { if()  }
+    tree -> branch.else_body = init_dynamic_expr(ls->B);
+    add_element(ls->B, tree -> branch.else_body, parse_branch(ls, rbp));
+  } else if (ls->t.type == TK_ELSE) {
+    checknext(ls, TK_ELSE);
+    tree -> branch.else_body = init_dynamic_expr(ls->B);
+    testnext(ls, TK_LEFT_BRACE);
+    while (ls->t.type != TK_RIGHT_BRACE) {
+      add_element(ls->B, tree -> branch.else_body, parse_statement(ls, rbp));
     }
+    testnext(ls, TK_RIGHT_BRACE);
   } else {
     tree -> branch.else_body = NULL;
   }
