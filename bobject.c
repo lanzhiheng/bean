@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "bean.h"
 #include "bobject.h"
+#include "bregex.h"
 #include "barray.h"
 #include "bstring.h"
 #include "berror.h"
@@ -253,6 +254,13 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
     case BEAN_TTOOL: {
       Tool * t = tlvalue(value);
       string = t->getter ? "[Primitive getter]" : "[Primitive function]";
+      break;
+    }
+    case BEAN_TREGEX: {
+      TValue * match = get_match(B, value);
+      char * matchStr = getstr(svalue(match));
+      string = malloc(sizeof(char) * strlen(matchStr) + 2);
+      sprintf(string, "/%s/", matchStr);
       break;
     }
     default:

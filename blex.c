@@ -15,7 +15,7 @@ const char *const beanX_tokens [] = {
     "return", "true", "do", "while",
     "==", "=", ">=", ">", "<=", "<", "!=",
     "<<", ">>", "<eof>",
-    "<number>", "<name>", "<string>"
+    "<number>", "<name>", "<string>", "<regex>"
 };
 
 #define save_and_next(ls) (save(ls, ls->current), next(ls))
@@ -374,6 +374,10 @@ static int llex(LexState * ls, SemInfo * seminfo) {
           return TK_DIV;
         }
         break;
+      }
+      case '`': {
+        read_string(ls, ls -> current, seminfo);
+        return TK_REGEX;
       }
       case '"':
       case '\'': {

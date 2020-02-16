@@ -1,0 +1,5 @@
+a = `aa*`
+
+assert(a.test("aaaa"), true)
+assert(a.test("addd"), true)
+assert(a.test("ddd"), false)
