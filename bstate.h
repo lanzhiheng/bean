@@ -63,6 +63,7 @@ typedef struct global_State {
   TValue * aproto; // Prototype for Array
   TValue * hproto; // Prototype for Hash
   TValue * mproto; // Prototype for Math
+  TValue * rproto; // Prototype for Regex
   TValue * dproto; // Prototype for Date
   Mbuffer * callStack;
 } global_State;
@@ -112,6 +113,7 @@ typedef enum {
   EXPR_BRANCH,
   EXPR_ARRAY,
   EXPR_HASH,
+  EXPR_REGEX,
   EXPR_BREAK
 } EXPR_TYPE;
 
@@ -132,10 +134,15 @@ typedef struct expr {
     } unary;
 
     struct {
+      TString * match;
+      int flag;
+    } regex;
+
+    struct {
       int op;
       struct expr * val;
       int prefix;
-    }  change;
+    } change;
 
     struct {
       int op; // Store the TokenType

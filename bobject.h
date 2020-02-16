@@ -98,10 +98,13 @@ typedef struct TValue {
 #define setarrvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).ar=(x); settt_(io, BEAN_TLIST); io->prototype=G(B)->aproto; }
 
+#define BEAN_TREGEX	(BEAN_THASH | (1 << 4))  /* regex */
 #define ttishash(o)           checktype((o), BEAN_THASH)
-#define sethashvalue(obj,x)                                                \
+#define ttisregex(o)           checktag((o), BEAN_TREGEX)
+#define sethashvalue(obj,x)                                             \
   { TValue *io = obj; val_(io).hh=(x); settt_(io, BEAN_THASH); io->prototype=G(B)->hproto; }
-
+#define setregexvalue(obj,x)                                                \
+  { TValue *io = obj; val_(io).hh=(x); settt_(io, BEAN_TREGEX); io->prototype=G(B)->rproto; }
 /*
 ** {==================================================================
 ** Numbers
@@ -128,7 +131,7 @@ typedef struct TValue {
 #define setsvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).s=(x); settt_(io, BEAN_TSTRING); io->prototype=G(B)->sproto; }
 
-#define setfcvalue(obj,x)                                                \
+#define setfcvalue(obj,x)                                               \
   { TValue *io = obj; val_(io).fc=(x); settt_(io, BEAN_TFUNCTION); }
 
 #define settlvalue(obj,x)                                                \
@@ -138,6 +141,7 @@ typedef struct TValue {
 #define tlvalue(o)       check_exp(ttistool(o), val_(o).tl)
 #define arrvalue(o)       check_exp(ttisarray(o), val_(o).ar)
 #define hhvalue(o)       check_exp(ttishash(o), val_(o).hh)
+#define regexvalue(o)       check_exp(ttisregex(o), val_(o).hh)
 
 TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value);
 TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value);

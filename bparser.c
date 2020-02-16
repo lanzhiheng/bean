@@ -72,10 +72,20 @@ static void testnext (LexState *ls, int c) {
 static expr * parse_statement(LexState *ls, bindpower rbp);
 static expr * infix (LexState *ls, expr * left);
 static expr * function_call (LexState *ls, expr * left);
+
 static expr * string (LexState *ls, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   ep -> type = EXPR_STRING;
   ep -> sval = ls->t.seminfo.ts;
+  beanX_next(ls);
+  return ep;
+}
+
+static expr * regex(LexState * ls, expr * exp UNUSED) {
+  expr * ep = malloc(sizeof(expr));
+  ep -> type = EXPR_REGEX;
+  ep -> regex.match = ls->t.seminfo.ts;
+  ep -> regex.flag = 0;
   beanX_next(ls);
   return ep;
 }
@@ -215,7 +225,7 @@ static expr * parse_definition(LexState *ls) {
   Function * f = malloc(sizeof(Function));
   f -> p = parse_prototype(ls);
   f -> body = init_dynamic_expr(ls->B);
-  testnext(ls, TK_LEFT_BRACE);
+  checknext(ls, TK_LEFT_BRACE);
 
   while (ls->t.type != TK_RIGHT_BRACE) {
     add_element(ls->B, f->body, parse_statement(ls, BP_LOWEST));
@@ -344,6 +354,7 @@ symbol symbol_table[] = {
   { "<number>", BP_NONE, num, NULL },
   { "<name>", BP_NONE, variable, NULL },
   { "<string>", BP_NONE, string, NULL },
+  { "<regex>", BP_NONE, regex, NULL },
 };
 
 static expr * function_call (LexState *ls, expr * left) {

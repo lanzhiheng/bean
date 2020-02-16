@@ -8,6 +8,7 @@
 #include "bdate.h"
 #include "berror.h"
 #include "barray.h"
+#include "bregex.h"
 #include "bobject.h"
 #include "bstate.h"
 #include "bparser.h"
@@ -627,6 +628,13 @@ static TValue * branch_eval(bean_State * B, struct expr * expression) {
   return retVal;
 }
 
+static TValue * regex_eval(bean_State * B UNUSED, struct expr * expression) {
+  TValue * ret = malloc(sizeof(TValue));
+  Hash * regex = init_regex(B, expression->regex.match);
+  setregexvalue(ret, regex);
+  return ret;
+}
+
 static TValue * string_eval(bean_State * B UNUSED, struct expr * expression) {
   TValue * ret = malloc(sizeof(TValue));
   TString * str = expression->sval;
@@ -704,7 +712,8 @@ eval_func fn[] = {
    loop_eval,
    branch_eval,
    array_eval,
-   hash_eval
+   hash_eval,
+   regex_eval
 };
 
 
@@ -884,12 +893,14 @@ void global_init(bean_State * B) {
   G -> aproto = init_Array(B);
   G -> hproto = init_Hash(B);
   G -> mproto = init_Math(B);
+  G -> rproto = init_Regex(B);
   G -> dproto = init_Date(B);
 
   G -> nproto -> prototype = G -> hproto;
   G -> sproto -> prototype = G -> hproto;
   G -> aproto -> prototype = G -> hproto;
   G -> dproto -> prototype = G -> hproto;
+  G -> rproto -> prototype = G -> hproto;
   G -> hproto -> prototype = G -> nil;
   G -> mproto -> prototype = G -> nil;
 
