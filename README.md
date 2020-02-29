@@ -10,9 +10,11 @@
 
 
 
-## Regex Expression
+## Regular Expression
 
-For using the regex expression feature in bean, you should build the regex instance like this
+### Simple demo
+
+For using the regular expression feature in bean, you should build the regex instance like this
 
 ```
 > regex = Regex.build('aa+')
@@ -43,4 +45,24 @@ So simple, right? For convenience if you don't need to set the mode, you can bui
 ```
 > `aaa+`
 => /aaa+/
+```
+
+### Subexpression
+
+Some time we want to handle subexpression in regular expression. we just need to involve the `exec` method, it will return an array to us.
+
+```
+> c = Regex.build('(Hello) (Ruby)')
+=> /(Hello) (Ruby)/
+> c.exec("Hello Ruby, You are the best.")
+=> ["Hello Ruby", "Hello", "Ruby"]
+```
+
+Otherwise, If the regular expression can not match any part of the string, we will get an empty array.
+
+```
+> c = Regex.build('(Hello) (Ruby)')
+=> /(Hello) (Ruby)/
+> c.exec("Hello Python, You are the best.")
+=> []
 ```

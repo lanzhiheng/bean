@@ -63,6 +63,43 @@ static TValue * primitive_Regex_test(bean_State * B, TValue * this, TValue * arg
   return ers ? G(B)->fVal : G(B)->tVal;
 }
 
+static TValue * primitive_Regex_exec(bean_State * B, TValue * this, TValue * args UNUSED, int argc) {
+  assert(ttisregex(this));
+  assert(argc == 1);
+  Regex * regex = regexvalue(this);
+  regex_t r = regex -> rr;
+
+  TValue * target = &args[0];
+  char * targetStr = getstr(svalue(target));
+  size_t total = r.re_nsub + 1;
+  int ers;
+  regmatch_t * ptr = malloc(sizeof(regmatch_t) * total);
+  ers = regexec(&r, targetStr, total, ptr, REG_NOTBOL);
+
+  Array * array = init_array(B);
+  for (size_t i = 0; i < total; i++) {
+    size_t start = ptr[i].rm_so;
+    size_t end = ptr[i].rm_eo;
+    if (start == end) continue;
+
+    char * str = malloc(sizeof(char) * (end - start + 1));
+    size_t j;
+
+    for (j = 0; j < end - start; j ++) {
+      str[j] = targetStr[j + start];
+    }
+    str[j] = '\0';
+
+    TString * ts = beanS_newlstr(B, str, end - start);
+    TValue * value = malloc(sizeof(TValue));
+    setsvalue(value, ts);
+    array_push(B, array, value);
+  }
+  TValue * result = malloc(sizeof(TValue));
+  setarrvalue(result, array);
+  return result;
+}
+
 TValue * init_Regex(bean_State * B) {
   global_State * G = B->l_G;
   TValue * proto = malloc(sizeof(TValue));
@@ -70,6 +107,7 @@ TValue * init_Regex(bean_State * B) {
 
   sethashvalue(proto, h);
   set_prototype_function(B, "test", 4, primitive_Regex_test, hhvalue(proto));
+  set_prototype_function(B, "exec", 4, primitive_Regex_exec, hhvalue(proto));
   set_prototype_function(B, "build", 5, primitive_Regex_build, hhvalue(proto));
 
   TValue * regex = malloc(sizeof(TValue));
