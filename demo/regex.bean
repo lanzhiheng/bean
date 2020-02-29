@@ -11,3 +11,12 @@ assert(b.test("AA"), true)
 assert(b.test("AAAAAAA"), true)
 assert(b.test("ABABABABA"), true)
 assert(b.test("bbbbbbb"), false)
+
+c = Regex.build('(Hello) (Ruby)')
+result = c.exec("Hello Ruby, You are the best.")
+assert(typeof result, "array")
+assert(result.length, 3)
+
+result = c.exec("hello")
+assert(typeof result, "array")
+assert(result.length, 0)
