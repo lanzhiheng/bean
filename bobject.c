@@ -257,10 +257,9 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
       break;
     }
     case BEAN_TREGEX: {
-      TValue * match = get_match(B, value);
-      char * matchStr = getstr(svalue(match));
-      string = malloc(sizeof(char) * strlen(matchStr) + 2);
-      sprintf(string, "/%s/", matchStr);
+      Regex * rr = regexvalue(value);
+      string = malloc(sizeof(char) * strlen(rr->match) + 2);
+      sprintf(string, "/%s/", rr->match);
       break;
     }
     default:

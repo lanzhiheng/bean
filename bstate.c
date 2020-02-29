@@ -629,9 +629,8 @@ static TValue * branch_eval(bean_State * B, struct expr * expression) {
 }
 
 static TValue * regex_eval(bean_State * B UNUSED, struct expr * expression) {
-  TValue * ret = malloc(sizeof(TValue));
-  Hash * regex = init_regex(B, expression->regex.match);
-  setregexvalue(ret, regex);
+  char * matchStr = getstr(expression->regex.match);
+  TValue * ret = init_regex(B, matchStr, ""); // TODO: Not support mode in syntax sugar
   return ret;
 }
 

@@ -1,5 +1,13 @@
-a = `aa*`
+a = Regex.build('aa*')
 
 assert(a.test("aaaa"), true)
 assert(a.test("addd"), true)
 assert(a.test("ddd"), false)
+assert(a.test("Ab"), false)
+
+b = Regex.build('aa*', 'i')
+assert(b.test("Ab"), true)
+assert(b.test("AA"), true)
+assert(b.test("AAAAAAA"), true)
+assert(b.test("ABABABABA"), true)
+assert(b.test("bbbbbbb"), false)

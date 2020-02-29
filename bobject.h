@@ -2,7 +2,9 @@
 #define _BEAN_OBJECT_H
 
 #include <stdlib.h>
+#include <regex.h>
 #include "common.h"
+
 
 #define MAX_STRING_BUFFER 256
 
@@ -28,10 +30,18 @@ typedef struct TString {
   struct TString *hnext;  /* linked list for hash table */
 } TString;
 
+typedef struct Regex {
+  CommonHeader;
+  regex_t rr;
+  char * match;
+  int mode;
+} Regex;
+
 typedef union Value {
   struct GCObject * gc;
   bean_Number n;
   TString * s;
+  Regex * rr;
   struct Function * fc;
   struct Tool * tl;
   struct Array * ar;
@@ -99,12 +109,12 @@ typedef struct TValue {
   { TValue *io = obj; val_(io).ar=(x); settt_(io, BEAN_TLIST); io->prototype=G(B)->aproto; }
 
 #define BEAN_TREGEX	(BEAN_THASH | (1 << 4))  /* regex */
-#define ttishash(o)           checktype((o), BEAN_THASH)
+#define ttishash(o)           checktag((o), BEAN_THASH)
 #define ttisregex(o)           checktag((o), BEAN_TREGEX)
 #define sethashvalue(obj,x)                                             \
   { TValue *io = obj; val_(io).hh=(x); settt_(io, BEAN_THASH); io->prototype=G(B)->hproto; }
 #define setregexvalue(obj,x)                                                \
-  { TValue *io = obj; val_(io).hh=(x); settt_(io, BEAN_TREGEX); io->prototype=G(B)->rproto; }
+  { TValue *io = obj; val_(io).rr=(x); settt_(io, BEAN_TREGEX); io->prototype=G(B)->rproto; }
 /*
 ** {==================================================================
 ** Numbers
@@ -141,7 +151,7 @@ typedef struct TValue {
 #define tlvalue(o)       check_exp(ttistool(o), val_(o).tl)
 #define arrvalue(o)       check_exp(ttisarray(o), val_(o).ar)
 #define hhvalue(o)       check_exp(ttishash(o), val_(o).hh)
-#define regexvalue(o)       check_exp(ttisregex(o), val_(o).hh)
+#define regexvalue(o)       check_exp(ttisregex(o), val_(o).rr)
 
 TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value);
 TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value);
