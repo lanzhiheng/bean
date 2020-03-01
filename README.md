@@ -66,3 +66,14 @@ Otherwise, If the regular expression can not match any part of the string, we wi
 > c.exec("Hello Python, You are the best.")
 => []
 ```
+
+### Shorthand Character Classes
+
+Similar to javascript we can support the Shorthand Character Classes now. for example, `\s` for space characters, `\w` for a-z, A-Z, 0-9, _ characters and `\d` for 0-9 characters. (Unfortunately, it is not very perfect now, I don't have enough time to handle the escaped issue). You can define a regex expression like this. I will make it better later.
+
+```
+> c = Regex.build("\\w+")
+=> /[A-Za-z0-9_]+/
+> c.test("hello world")
+=> true
+```

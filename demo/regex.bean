@@ -20,3 +20,18 @@ assert(result.length, 3)
 result = c.exec("hello")
 assert(typeof result, "array")
 assert(result.length, 0)
+
+d = Regex.build('^hello$')
+assert(d.test("hello"), true)
+
+e = Regex.build('\\w+\\s+')
+assert(e.test('d '), true)
+
+f = Regex.build('(Ruby|Python)')
+assert(f.test("Ruby"), true)
+
+g = Regex.build('^a[[:alnum:]]')
+assert(g.test('ab'), true)
+
+h = Regex.build('[0-9a-fA-F]')
+assert(h.test('f'), true)
