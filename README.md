@@ -73,7 +73,7 @@ Similar to javascript we can support the Shorthand Character Classes now. for ex
 
 ```
 > c = Regex.build("\\w+")
-=> /[A-Za-z0-9_]+/
+=> /\w+/
 > c.test("hello world")
 => true
 ```

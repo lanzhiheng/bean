@@ -19,10 +19,6 @@ static char * precompile(char * target) {
   size_t i = 0; size_t j = 0;
   size_t len = strlen(target);
   while (i < len) {
-    if (target[i] == '\w') {
-      printf("%s", "hello");
-    }
-
     if (target[i] == '\\') {
       char next = target[i+1];
 
@@ -51,11 +47,11 @@ TValue * init_regex(bean_State * B, char * matchStr, char * modeStr) {
     if (modeStr[i] == 'i') m = m | REG_ICASE;
   }
 
-  matchStr = precompile(matchStr);
+  char * compiledStr = precompile(matchStr);
 
   regex_t r;
   int crs;
-  crs = regcomp(&r, matchStr, m);
+  crs = regcomp(&r, compiledStr, m);
 
   if (crs != 0) {
     runtime_error(B, "%s", "The regex expression is invalid.");
