@@ -82,3 +82,18 @@ Similar to javascript we can support the Shorthand Character Classes now. for ex
 > c.test('Hello Ruby')
 => true
 ```
+
+## HTTP Request
+
+You also can use bean to send requests to servers. Let's begin with the simply example. I you want to download the page content from my website, you just need to send the `GET` request like this
+
+```
+HTTP.fetch("http://www.lanzhiheng.com", { method: "get" })
+=> "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Step By Step</title>\n    <meta name=\"csrf-param\" content=\"authenticity_token\" />\n<meta name=\"csrf-token\" content=\"m0yy3sD7cWur0E3SmV0ZpufoGGhCInyrfoRED3m74v3B6YbEhXKWWOTeNWyBQjxECS514Oy1Lx35uczz0rIo2Q==\" />\n......
+```
+
+The default method of `fetch` method is `GET`, so you can omit it.
+
+```
+HTTP.fetch("http://www.lanzhiheng.com")
+```
