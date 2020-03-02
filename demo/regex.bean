@@ -24,14 +24,17 @@ assert(result.length, 0)
 d = Regex.build('^hello$')
 assert(d.test("hello"), true)
 
-e = Regex.build('\\w+\\s+')
-assert(e.test('d '), true)
+e = Regex.build('\w+\s\d+\sRuby')
+assert(e.test('Hello 1024 Ruby'), true)
 
-f = Regex.build('(Ruby|Python)')
-assert(f.test("Ruby"), true)
+f = Regex.build('\D+\W\S+')
+assert(f.test('Hello Ruby'), true)
 
-g = Regex.build('^a[[:alnum:]]')
-assert(g.test('ab'), true)
+g = Regex.build('(Ruby|Python)')
+assert(g.test("Ruby"), true)
 
-h = Regex.build('[0-9a-fA-F]')
-assert(h.test('f'), true)
+h = Regex.build('^a[[:alnum:]]')
+assert(h.test('ab'), true)
+
+i = Regex.build('[0-9a-fA-F]')
+assert(i.test('f'), true)
