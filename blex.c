@@ -133,9 +133,6 @@ static void read_string(LexState *ls, int del, SemInfo *seminfo) {
           case 'r': c = '\r'; goto read_save;
           case 't': c = '\t'; goto read_save;
           case 'v': c = '\v'; goto read_save;
-          /* TODO: May be we can remove it. */
-          /* case 'x': c = readhexaesc(ls); goto read_save; */
-          /* case 'u': utf8esc(ls);  goto no_save; */
           case '\n': case '\r':
             inclinenumber(ls); c = '\n'; goto only_save;
           case '\\': case '\"': case '\'':
@@ -150,12 +147,16 @@ static void read_string(LexState *ls, int del, SemInfo *seminfo) {
             }
             goto no_save;
           }
-          /* TODO: May be we can remove it. */
-          /* default: { */
-          /*   esccheck(ls, lisdigit(ls->current), "invalid escape sequence"); */
-          /*   c = readdecesc(ls);  /\* digital escape '\ddd' *\/ */
-          /*   goto only_save; */
-          /* } */
+          case 'S':
+          case 'D':
+          case 'W':
+          case 's':
+          case 'd':
+          case 'w': { // Just for regex expression `\s`, `\w`, `\d`, `\S`, `\W`, `\D`
+            c = ls->current;
+            save_and_next(ls);
+            goto no_save;
+          }
         }
         read_save:
           next(ls);

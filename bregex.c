@@ -5,7 +5,6 @@
 #include "berror.h"
 #include "bstate.h"
 
-
 static void common_replace(char * container, char * replace, size_t * j) {
   for (size_t k = 0; k < strlen(replace); k++) {
     container[*j] = replace[k];
@@ -13,8 +12,9 @@ static void common_replace(char * container, char * replace, size_t * j) {
   }
 }
 
+// For supporting the Shorthand Character Classes https://www.regular-expressions.info/shorthand.html
 static char * precompile(char * target) {
-  char * a = malloc(100); // TODO: Auto reallocated
+  char * a = malloc(250); // TODO: Auto reallocated
 
   size_t i = 0; size_t j = 0;
   size_t len = strlen(target);
@@ -30,6 +30,15 @@ static char * precompile(char * target) {
         i += 2;
       } else if (next == 's') {
         common_replace(a, "[ \t\r\n\f]", &j);
+        i += 2;
+      } else if (next == 'D') {
+        common_replace(a, "[^0-9]", &j);
+        i += 2;
+      } else if (next == 'W') {
+        common_replace(a, "[^A-Za-z0-9_]", &j);
+        i += 2;
+      } else if (next == 'S') {
+        common_replace(a, "[^ \t\r\n\f]", &j);
         i += 2;
       }
       continue;

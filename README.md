@@ -69,11 +69,16 @@ Otherwise, If the regular expression can not match any part of the string, we wi
 
 ### Shorthand Character Classes
 
-Similar to javascript we can support the Shorthand Character Classes now. for example, `\s` for space characters, `\w` for a-z, A-Z, 0-9, _ characters and `\d` for 0-9 characters. (Unfortunately, it is not very perfect now, I don't have enough time to handle the escaped issue). You can define a regex expression like this. I will make it better later.
+Similar to javascript we can support the Shorthand Character Classes now. for example, `\s` for space characters, `\w` for a-z, A-Z, 0-9, _ characters and `\d` for 0-9 characters. You can define a regex expression like this. Also supported the opposite of them, `\W`, `\D` and `\S`.
 
 ```
-> c = Regex.build("\\w+")
-=> /\w+/
-> c.test("hello world")
+> c = Regex.build('\w+\s\d+\sRuby')
+=> /\w+\s\d+\sRuby/
+> c.test('Hello 1024 Ruby')
+=> true
+
+> c = Regex.build('\D+\W\S+')
+=> /\D+\W\S+/
+> c.test('Hello Ruby')
 => true
 ```
