@@ -12,6 +12,7 @@
 #include "bobject.h"
 #include "bstate.h"
 #include "bparser.h"
+#include "bhttp.h"
 #include "blex.h"
 #include "mem.h"
 
@@ -894,6 +895,7 @@ void global_init(bean_State * B) {
   G -> mproto = init_Math(B);
   G -> rproto = init_Regex(B);
   G -> dproto = init_Date(B);
+  G -> netproto = init_Http(B);
 
   G -> nproto -> prototype = G -> hproto;
   G -> sproto -> prototype = G -> hproto;
@@ -901,7 +903,10 @@ void global_init(bean_State * B) {
   G -> dproto -> prototype = G -> hproto;
   G -> rproto -> prototype = G -> hproto;
   G -> hproto -> prototype = G -> nil;
+
+  // Can't create the instance
   G -> mproto -> prototype = G -> nil;
+  G -> netproto -> prototype = G -> nil;
 
   beanZ_initbuffer(G->callStack);
 

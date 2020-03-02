@@ -22,7 +22,6 @@ typedef struct Mbuffer {
 #define beanZ_buffer(buff)	((buff)->buffer)
 #define beanZ_sizebuffer(buff)	((buff)->buffsize)
 #define beanZ_bufflen(buff)	((buff)->n)
-
 #define beanZ_buffremove(buff,i)	((buff)->n -= (i))
 #define beanZ_resetbuffer(buff) ((buff)->n = 0)
 
@@ -32,5 +31,10 @@ typedef struct Mbuffer {
 
 #define beanZ_freebuffer(B, buff)	beanZ_resizebuffer(B, buff, 0)
 
-
+/* #define beanZ_append(B, buff, c) do {                \ */
+/*     if (buff->n >= buff->buffsize) {                 \ */
+/*       beanZ_resizebuff(B, buff, buff->buffsize * 2); \ */
+/*     }                                                \ */
+/*     buff->buffer[buff->n++] = c;                     \ */
+/*   } while(0); */
 #endif
