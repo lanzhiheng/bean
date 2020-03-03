@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include "ccgi.h"
 #include "bhttp.h"
 #include "bstring.h"
 #include "bobject.h"
@@ -53,6 +54,50 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdat
 /*   printf("hello"); */
 /*   return 100; */
 /* } */
+static char * application_x_www_form_urlencoded_form(bean_State * B, TValue * data) {
+  assert(ttishash(data));
+  Hash * hash = hhvalue(data);
+
+  CGI_varlist * list = NULL;
+  for (uint32_t i = 0; i < hash->capacity; i++) {
+    if (!hash->entries[i]) continue;
+
+    Entry * e = hash->entries[i];
+    while (e) {
+      TValue * k = tvalue_inspect(B, e->key);
+      TValue * v = tvalue_inspect(B, e->value);
+      char * key = getstr(svalue(k));
+      char * value = getstr(svalue(v));
+      list = CGI_add_var(list, key, value);
+      e = e -> next;
+    }
+  }
+
+  return CGI_encode_varlist(list, NULL);
+}
+
+static struct curl_slist * build_header(bean_State * B, TValue * headers) {
+  assert(ttishash(headers));
+  struct curl_slist *list = NULL;
+  Hash * hash = hhvalue(headers);
+
+  for (uint32_t i = 0; i < hash->capacity; i++) {
+    if (!hash->entries[i]) continue;
+
+    Entry * e = hash->entries[i];
+    while (e) {
+      TValue * k = tvalue_inspect(B, e->key);
+      TValue * v = tvalue_inspect(B, e->value);
+      char * key = getstr(svalue(k));
+      char * value = getstr(svalue(v));
+      char * content = malloc(sizeof(key) + sizeof(value) + 2); // : and space
+      sprintf(content, "%s: %s", key, value);
+      list = curl_slist_append(list, content);
+      e = e -> next;
+    }
+  }
+  return list;
+}
 
 
 static void fetch_data(bean_State *B, char * url, Hash * params, char ** result) {
@@ -69,21 +114,28 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
     /* curl_easy_setopt(curl, CURLOPT_HEADER, 1L); */
 
     if (params) {
-      TValue * key = malloc(sizeof(TValue));
+      TValue * m = malloc(sizeof(TValue));
       TString * tsMethod = beanS_newlstr(B, "method", 6);
-      setsvalue(key, tsMethod);
-      TValue * tvMethod = hash_get(B, params, key);
+      setsvalue(m, tsMethod);
+      TValue * tvMethod = hash_get(B, params, m);
 
+      TValue * h = malloc(sizeof(TValue));
       TString * tsHeader = beanS_newlstr(B, "header", 6);
-      setsvalue(key, tsHeader);
-      TValue * tvHeader = hash_get(B, params, key);
+      setsvalue(h, tsHeader);
+      TValue * tvHeader = hash_get(B, params, h);
+
+      TValue * d = malloc(sizeof(TValue));
+      TString * tsData = beanS_newlstr(B, "data", 4);
+      setsvalue(d, tsData);
+      TValue * tvData = hash_get(B, params, d);
+
+      char * data = NULL;
 
       if (ttishash(tvHeader)) {
-        struct curl_slist *list = NULL;
-        list = curl_slist_append(list, "Content-Type: multipart/form-data;boundary=\"boundary\"");
+        struct curl_slist *list = build_header(B, tvHeader);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+        /* data = application_x_www_form_urlencoded_form(B, tvData); */
       }
-
 
       if (ttisstring(tvMethod)) {
         char * method = getstr(svalue(tvMethod));
@@ -94,7 +146,7 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
           /* curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback); */
           /* curl_easy_setopt(curl, CURLOPT_READDATA, (void *)params); */
           // TODO: Need to make more flexible
-          curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "--boundary\nContent-Disposition: form-data; name=\"name\"\n\nlanzhiheng\n--boundary\nContent-Disposition: form-data; name=\"email\"\n\nlanzhihengrj@gmail.com");
+          curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
         } else if (strcmp(method, "put") == 0) {
           curl_easy_setopt(curl, CURLOPT_PUT, 1L);
         } else { // GET_METHOD

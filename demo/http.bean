@@ -7,5 +7,6 @@ HTTP.fetch("https://getform.io/f/72667064-8826-42a0-9adb-b8bda2ceaaa8", {
     content: "Hello World"
   },
   header: {
+    'Content-Type': 'multipart/form-data'
   }
 })
