@@ -1,6 +1,9 @@
 #include <assert.h>
+#include <stdio.h>
+#include <string.h>
 #include "bhttp.h"
 #include "bstring.h"
+#include "bobject.h"
 
 typedef struct HttpData {
   char *buffer;
@@ -8,13 +11,13 @@ typedef struct HttpData {
   size_t buffsize;
 } HttpData;
 
-void init_result(HttpData * data) {
+static void init_result(HttpData * data) {
   data -> buffer = malloc(CURL_MAX_WRITE_SIZE);
   data -> n = 0;
   data -> buffsize = CURL_MAX_WRITE_SIZE;
 }
 
-void result_add(HttpData * data, char c) {
+static void result_add(HttpData * data, char c) {
   if (data -> n >= data -> buffsize) {
     size_t newSize = data -> buffsize * 2;
     data -> buffer = realloc(data -> buffer, newSize);
@@ -28,6 +31,15 @@ void result_add(HttpData * data, char c) {
   data -> buffer[data -> n++] = c;
 }
 
+static void strlwr(char * str) {
+  for(int i=0; str[i]!='\0'; i++) {
+    if(str[i]>='A' && str[i]<='Z')
+      {
+        str[i] = str[i] + 32;
+      }
+  }
+}
+
 static size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
   HttpData * data = (HttpData*) userdata;
   size_t i;
@@ -37,7 +49,13 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdat
   return nmemb;
 }
 
-void fetch(char * url, char * method, char ** result) {
+/* static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userdata) { */
+/*   printf("hello"); */
+/*   return 100; */
+/* } */
+
+
+static void fetch_data(bean_State *B, char * url, Hash * params, char ** result) {
   CURL *curl;
   CURLcode res;
 
@@ -47,13 +65,46 @@ void fetch(char * url, char * method, char ** result) {
     init_result(&httpdata);
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Bean Programming Language/1");
-    /* curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback); */
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
-    /* example.com is redirected, so we tell libcurl to follow redirection */
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    /* curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); */
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     /* curl_easy_setopt(curl, CURLOPT_HEADER, 1L); */
+
+    if (params) {
+      TValue * key = malloc(sizeof(TValue));
+      TString * tsMethod = beanS_newlstr(B, "method", 6);
+      setsvalue(key, tsMethod);
+      TValue * tvMethod = hash_get(B, params, key);
+
+      TString * tsHeader = beanS_newlstr(B, "header", 6);
+      setsvalue(key, tsHeader);
+      TValue * tvHeader = hash_get(B, params, key);
+
+      if (ttishash(tvHeader)) {
+        struct curl_slist *list = NULL;
+        list = curl_slist_append(list, "Content-Type: multipart/form-data;boundary=\"boundary\"");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+      }
+
+
+      if (ttisstring(tvMethod)) {
+        char * method = getstr(svalue(tvMethod));
+        strlwr(method);
+
+        if (strcmp(method, "post") == 0) {
+          curl_easy_setopt(curl, CURLOPT_POST, 1L);
+          /* curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback); */
+          /* curl_easy_setopt(curl, CURLOPT_READDATA, (void *)params); */
+          // TODO: Need to make more flexible
+          curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "--boundary\nContent-Disposition: form-data; name=\"name\"\n\nlanzhiheng\n--boundary\nContent-Disposition: form-data; name=\"email\"\n\nlanzhihengrj@gmail.com");
+        } else if (strcmp(method, "put") == 0) {
+          curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+        } else { // GET_METHOD
+          curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+          curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
+          /* example.com is redirected, so we tell libcurl to follow redirection */
+          curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        }
+      }
+    }
 
     /* Perform the request, res will get the return code */
     res = curl_easy_perform(curl);
@@ -71,13 +122,22 @@ void fetch(char * url, char * method, char ** result) {
   }
 }
 
-static TValue * primitive_Http_fetch(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(argc == 1);
+static TValue * primitive_Http_fetch(bean_State * B, TValue * this UNUSED, TValue * args, int argc) {
+  assert(argc >= 1);
   TValue * address = &args[0];
   assert(ttisstring(address));
+  Hash * hash = NULL;
+
+  if (argc >= 2) { // TODO: Handle the params
+    TValue * params = &args[1];
+    /* TValue * str = tvalue_inspect(B, params); */
+    /* printf("%s", getstr(svalue(str))); */
+    hash = hhvalue(params);
+  }
+
   char * url = getstr(svalue(address));
   char * result = NULL;
-  fetch(url, "GET", &result);
+  fetch_data(B, url, hash, &result);
   TString * ts = beanS_newlstr(B, result, strlen(result));
   TValue * value = malloc(sizeof(TValue));
   setsvalue(value, ts);
