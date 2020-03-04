@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include "ccgi.h"
 #include "bhttp.h"
 #include "bstring.h"
 #include "bobject.h"
@@ -50,15 +49,13 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdat
   return nmemb;
 }
 
-/* static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userdata) { */
-/*   printf("hello"); */
-/*   return 100; */
-/* } */
 static char * application_x_www_form_urlencoded_form(bean_State * B, TValue * data) {
   assert(ttishash(data));
   Hash * hash = hhvalue(data);
 
-  CGI_varlist * list = NULL;
+  char ** list = (char **)malloc(hash->count * sizeof(char*));
+  uint32_t index = 0;
+  uint32_t totalSize = 0;
   for (uint32_t i = 0; i < hash->capacity; i++) {
     if (!hash->entries[i]) continue;
 
@@ -68,12 +65,25 @@ static char * application_x_www_form_urlencoded_form(bean_State * B, TValue * da
       TValue * v = tvalue_inspect(B, e->value);
       char * key = getstr(svalue(k));
       char * value = getstr(svalue(v));
-      list = CGI_add_var(list, key, value);
+      uint32_t size = sizeof(key) + sizeof(value);
+      totalSize += size + 1; // for & and end of '\0'
+      char * content = malloc(size + 2); // equal and '\0'
+      sprintf(content, "%s=%s", key, value);
+      list[index++] = content;
       e = e -> next;
     }
   }
 
-  return CGI_encode_varlist(list, NULL);
+  char * result = calloc(sizeof(totalSize), '\0');
+
+  for (uint32_t j = 0; j < hash->count; j++) {
+    strcat(result, list[j]);
+    strcat(result, "&");
+  }
+
+  result[strlen(result) - 1] = '\0'; // Remove the last &
+
+  return result;
 }
 
 static struct curl_slist * build_header(bean_State * B, TValue * headers) {
@@ -90,7 +100,7 @@ static struct curl_slist * build_header(bean_State * B, TValue * headers) {
       TValue * v = tvalue_inspect(B, e->value);
       char * key = getstr(svalue(k));
       char * value = getstr(svalue(v));
-      char * content = malloc(sizeof(key) + sizeof(value) + 2); // : and space
+      char * content = malloc(sizeof(key) + sizeof(value) + 3); // :, space and \0
       sprintf(content, "%s: %s", key, value);
       list = curl_slist_append(list, content);
       e = e -> next;
@@ -99,6 +109,27 @@ static struct curl_slist * build_header(bean_State * B, TValue * headers) {
   return list;
 }
 
+static bool isFormData(bean_State *B, TValue * header) {
+  bool formData = false;
+  if (header && ttishash(header)) {
+    Hash * hash = hhvalue(header);
+    for (uint32_t i = 0; i < hash->capacity; i++) {
+      if (!hash->entries[i]) continue;
+
+      Entry * e = hash->entries[i];
+      while (e) {
+        TValue * k = tvalue_inspect(B, e->key);
+        TValue * v = tvalue_inspect(B, e->value);
+        char * key = getstr(svalue(k));
+        char * value = getstr(svalue(v));
+        strlwr(key); strlwr(value);
+        if (strcmp(key, "content-type") == 0 && strcmp(key, "form-data") == 0) formData = true;
+        e = e -> next;
+      }
+    }
+  }
+  return formData;
+}
 
 static void fetch_data(bean_State *B, char * url, Hash * params, char ** result) {
   CURL *curl;
@@ -112,6 +143,7 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Bean Programming Language/1");
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     /* curl_easy_setopt(curl, CURLOPT_HEADER, 1L); */
+    struct curl_slist * headerList = NULL;
 
     if (params) {
       TValue * m = malloc(sizeof(TValue));
@@ -131,10 +163,9 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
 
       char * data = NULL;
 
-      if (ttishash(tvHeader)) {
-        struct curl_slist *list = build_header(B, tvHeader);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
-        /* data = application_x_www_form_urlencoded_form(B, tvData); */
+      if (tvHeader && ttishash(tvHeader)) {
+        headerList = build_header(B, tvHeader);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
       }
 
       if (ttisstring(tvMethod)) {
@@ -142,10 +173,16 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
         strlwr(method);
 
         if (strcmp(method, "post") == 0) {
+          bool formData = isFormData(B, tvHeader);
+
           curl_easy_setopt(curl, CURLOPT_POST, 1L);
-          /* curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback); */
-          /* curl_easy_setopt(curl, CURLOPT_READDATA, (void *)params); */
-          // TODO: Need to make more flexible
+          if (formData) {
+
+          } else {
+            // application/x-www-form-urlencoded
+            // If length is set to 0 (zero), curl_easy_escape uses strlen() on the input string to find out the size.
+            data = curl_easy_escape(curl, application_x_www_form_urlencoded_form(B, tvData), 0);
+          }
           curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
         } else if (strcmp(method, "put") == 0) {
           curl_easy_setopt(curl, CURLOPT_PUT, 1L);
@@ -170,6 +207,7 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
 
     /* always cleanup */
     curl_easy_cleanup(curl);
+    curl_slist_free_all(headerList);
     *result = httpdata.buffer;
   }
 }
@@ -182,8 +220,6 @@ static TValue * primitive_Http_fetch(bean_State * B, TValue * this UNUSED, TValu
 
   if (argc >= 2) { // TODO: Handle the params
     TValue * params = &args[1];
-    /* TValue * str = tvalue_inspect(B, params); */
-    /* printf("%s", getstr(svalue(str))); */
     hash = hhvalue(params);
   }
 
