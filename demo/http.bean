@@ -1,5 +1,7 @@
-// HTTP.fetch("https://lanzhiheng.com")
-HTTP.fetch("https://getform.io/f/72667064-8826-42a0-9adb-b8bda2ceaaa8", {
+getResult = HTTP.fetch("https://lanzhiheng.com")
+print(getResult)
+
+HTTP.fetch("http://127.0.0.1:4000/contact-me", {
   method: "POST",
   data: {
     name: "lan",
@@ -10,3 +12,19 @@ HTTP.fetch("https://getform.io/f/72667064-8826-42a0-9adb-b8bda2ceaaa8", {
     'Content-Type': 'multipart/form-data'
   }
 })
+
+putResult = HTTP.fetch("http://127.0.0.1:4000/contact-me/100", {
+  method: "PUT",
+  data: {
+    name: "lan",
+    email: "lanzhihengrj@gmail.com",
+    content: ""
+  },
+  header: {
+    'content-type': 'application/json'
+  }
+})
+
+print(putResult)
+
+getResult = HTTP.fetch("https://lanzhiheng.com", { method: 'delete' })
