@@ -49,6 +49,28 @@ static size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdat
   return nmemb;
 }
 
+static void multi_part_form_data(bean_State * B, TValue * data, curl_mime * mime) {
+  assert(ttishash(data));
+  Hash * hash = hhvalue(data);
+  curl_mimepart *part;
+
+  for (uint32_t i = 0; i < hash->capacity; i++) {
+    if (!hash->entries[i]) continue;
+
+    Entry * e = hash->entries[i];
+    while (e) {
+      TValue * k = tvalue_inspect(B, e->key);
+      TValue * v = tvalue_inspect(B, e->value);
+      char * key = getstr(svalue(k));
+      char * value = getstr(svalue(v));
+      part = curl_mime_addpart(mime);
+      curl_mime_data(part, value, CURL_ZERO_TERMINATED);
+      curl_mime_name(part, key);
+      e = e -> next;
+    }
+  }
+}
+
 static char * application_x_www_form_urlencoded_form(bean_State * B, TValue * data) {
   assert(ttishash(data));
   Hash * hash = hhvalue(data);
@@ -65,7 +87,7 @@ static char * application_x_www_form_urlencoded_form(bean_State * B, TValue * da
       TValue * v = tvalue_inspect(B, e->value);
       char * key = getstr(svalue(k));
       char * value = getstr(svalue(v));
-      uint32_t size = sizeof(key) + sizeof(value);
+      uint32_t size = strlen(key) + strlen(value);
       totalSize += size + 1; // for & and end of '\0'
       char * content = malloc(size + 2); // equal and '\0'
       sprintf(content, "%s=%s", key, value);
@@ -91,6 +113,7 @@ static struct curl_slist * build_header(bean_State * B, TValue * headers) {
   struct curl_slist *list = NULL;
   Hash * hash = hhvalue(headers);
 
+  list = curl_slist_append(list, "Expect:");
   for (uint32_t i = 0; i < hash->capacity; i++) {
     if (!hash->entries[i]) continue;
 
@@ -123,7 +146,7 @@ static bool isFormData(bean_State *B, TValue * header) {
         char * key = getstr(svalue(k));
         char * value = getstr(svalue(v));
         strlwr(key); strlwr(value);
-        if (strcmp(key, "content-type") == 0 && strcmp(key, "form-data") == 0) formData = true;
+        if (strcmp(key, "content-type") == 0 && strcmp(value, "multipart/form-data") == 0) formData = true;
         e = e -> next;
       }
     }
@@ -133,7 +156,7 @@ static bool isFormData(bean_State *B, TValue * header) {
 
 static void fetch_data(bean_State *B, char * url, Hash * params, char ** result) {
   CURL *curl;
-  CURLcode res;
+  CURLcode res = CURLE_OK;
 
   curl = curl_easy_init();
   if(curl) {
@@ -175,28 +198,125 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
         if (strcmp(method, "post") == 0) {
           bool formData = isFormData(B, tvHeader);
 
-          curl_easy_setopt(curl, CURLOPT_POST, 1L);
           if (formData) {
+            CURLM *multi_handle;
+            int still_running = 0;
+            multi_handle = curl_multi_init();
 
+            curl_mime *mime = curl_mime_init(curl);
+            multi_part_form_data(B, tvData, mime);
+            curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
+            curl_multi_add_handle(multi_handle, curl);
+            curl_multi_perform(multi_handle, &still_running);
+
+            // Copy from https://curl.haxx.se/libcurl/c/multi-post.html
+            while(still_running) {
+              struct timeval timeout;
+              int rc; /* select() return code */
+              CURLMcode mc; /* curl_multi_fdset() return code */
+
+              fd_set fdread;
+              fd_set fdwrite;
+              fd_set fdexcep;
+              int maxfd = -1;
+
+              long curl_timeo = -1;
+
+              FD_ZERO(&fdread);
+              FD_ZERO(&fdwrite);
+              FD_ZERO(&fdexcep);
+
+              /* set a suitable timeout to play around with */
+              timeout.tv_sec = 1;
+              timeout.tv_usec = 0;
+
+              curl_multi_timeout(multi_handle, &curl_timeo);
+              if(curl_timeo >= 0) {
+                timeout.tv_sec = curl_timeo / 1000;
+                if(timeout.tv_sec > 1)
+                  timeout.tv_sec = 1;
+                else
+                  timeout.tv_usec = (curl_timeo % 1000) * 1000;
+              }
+
+              /* get file descriptors from the transfers */
+              mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
+
+              if(mc != CURLM_OK) {
+                fprintf(stderr, "curl_multi_fdset() failed, code %d.\n", mc);
+                break;
+              }
+
+              /* On success the value of maxfd is guaranteed to be >= -1. We call
+                 select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
+                 no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
+                 to sleep 100ms, which is the minimum suggested value in the
+                 curl_multi_fdset() doc. */
+
+              if(maxfd == -1) {
+#ifdef _WIN32
+                Sleep(100);
+                rc = 0;
+#else
+                /* Portable sleep for platforms other than Windows. */
+                struct timeval wait = { 0, 100 * 1000 }; /* 100ms */
+                rc = select(0, NULL, NULL, NULL, &wait);
+#endif
+              }
+              else {
+                /* Note that on some platforms 'timeout' may be modified by select().
+                   If you need access to the original value save a copy beforehand. */
+                rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+              }
+
+              switch(rc) {
+                case -1:
+                  /* select error */
+                  break;
+                case 0:
+                default:
+                  /* timeout or readable/writable sockets */
+                  printf("perform!\n");
+                  curl_multi_perform(multi_handle, &still_running);
+                  printf("running: %d!\n", still_running);
+                  break;
+              }
+            }
+            curl_multi_cleanup(multi_handle);
           } else {
             // application/x-www-form-urlencoded
             // If length is set to 0 (zero), curl_easy_escape uses strlen() on the input string to find out the size.
+            curl_easy_setopt(curl, CURLOPT_POST, 1L);
             data = curl_easy_escape(curl, application_x_www_form_urlencoded_form(B, tvData), 0);
+            /* Perform the request, res will get the return code */
+            res = curl_easy_perform(curl);
           }
           curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
         } else if (strcmp(method, "put") == 0) {
-          curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+          /* HTTP PUT please */
+          curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+          // Need to construct the json string.
+          curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{ \"name\": \"lan\", \"age\": \"28\" }");
+
+          curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+          curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
+          res = curl_easy_perform(curl);
+        } else if (strcmp(method, "delete") == 0) {
+          curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+          curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+          curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
+          res = curl_easy_perform(curl);
         } else { // GET_METHOD
           curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
           curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
           /* example.com is redirected, so we tell libcurl to follow redirection */
           curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+          /* Perform the request, res will get the return code */
+          res = curl_easy_perform(curl);
         }
       }
     }
 
-    /* Perform the request, res will get the return code */
-    res = curl_easy_perform(curl);
     /* Check for errors */
     if(res != CURLE_OK) {
       fprintf(stderr, "curl_easy_perform() failed: %s\n",
@@ -207,6 +327,8 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
 
     /* always cleanup */
     curl_easy_cleanup(curl);
+
+    /* then cleanup the formpost chain */
     curl_slist_free_all(headerList);
     *result = httpdata.buffer;
   }
