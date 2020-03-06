@@ -155,6 +155,7 @@ typedef struct TValue {
 
 TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value);
 TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value);
+TValue * tvalue_inspect_all(bean_State * B UNUSED, TValue * value);
 void add_tools(bean_State * B);
 bool check_equal(TValue * v1, TValue * v2);
 TValue * type_statement(bean_State * B UNUSED, TValue * target);

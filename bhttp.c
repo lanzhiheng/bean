@@ -296,8 +296,9 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
           /* HTTP PUT please */
           curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
           // Need to construct the json string.
-          curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{ \"name\": \"lan\", \"age\": \"28\" }");
-
+          TValue * jsonString = tvalue_inspect_all(B, tvData);
+          char * str = getstr(svalue(jsonString));
+          curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
           curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
           curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
           res = curl_easy_perform(curl);

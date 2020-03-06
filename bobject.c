@@ -6,6 +6,12 @@
 #include "bstring.h"
 #include "berror.h"
 
+typedef enum {
+  ORIGINAL,
+  DOUBLE_QUOTE_STRING,
+  DOUBLE_QUOTE_ALL
+} PARSER_TYPE;
+
 // Copy from https://github.com/cesanta/mjs/blob/master/mjs/src/mjs_json.c#L44
 static const char *hex_digits = "0123456789abcdef";
 static char *append_hex(char *buf, char *limit, uint8_t c) {
@@ -91,7 +97,7 @@ bool check_equal(TValue * v1, TValue * v2) {
   return false;
 }
 
-static char * hash_inspect(bean_State * B, Hash * hash) {
+static char * hash_inspect(bean_State * B, Hash * hash, bool wrapKey) {
   uint32_t total = 0;
   char * colon = ": ";
   char * comma = ", ";
@@ -105,7 +111,7 @@ static char * hash_inspect(bean_State * B, Hash * hash) {
 
     Entry * e = hash->entries[i];
     while (e) {
-      TValue * key = tvalue_inspect(B, e->key);
+      TValue * key = wrapKey ? tvalue_inspect_pure(B, e->key) : tvalue_inspect(B, e->key);
       TValue * value = tvalue_inspect_pure(B, e->value);
       total += tslen(svalue(key)) + tslen(svalue(value)) + colon_Len + comma_Len;
       e = e -> next;
@@ -122,7 +128,7 @@ static char * hash_inspect(bean_State * B, Hash * hash) {
 
     Entry * e = hash->entries[i];
     while (e) {
-      TValue * key = tvalue_inspect(B, e->key);
+      TValue * key = wrapKey ? tvalue_inspect_pure(B, e->key) : tvalue_inspect(B, e->key);
       TValue * value = tvalue_inspect_pure(B, e->value);
       char * key_Str = getstr(svalue(key));
       char * value_Str = getstr(svalue(value));
@@ -192,7 +198,7 @@ static char * array_inspect(bean_State * B, Array * array) {
   return resStr;
 }
 
-static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
+static TValue * inspect(bean_State * B UNUSED, TValue * value, PARSER_TYPE mode) {
   TValue * inspect = malloc(sizeof(TValue));
   char * string;
 
@@ -218,7 +224,7 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
       TString * ts = svalue(value);
       uint32_t len = tslen(ts);
 
-      if (pure) {
+      if (mode >= DOUBLE_QUOTE_STRING) {
         /* Auto enlarge if space not enough */
         size_t size = MAX_STRING_BUFFER;
         size_t i = 0;
@@ -240,7 +246,11 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
       break;
     }
     case BEAN_THASH: {
-      string = hash_inspect(B, hhvalue(value));
+      if (mode == DOUBLE_QUOTE_ALL) {
+        string = hash_inspect(B, hhvalue(value), true);
+      } else {
+        string = hash_inspect(B, hhvalue(value), false);
+      }
       break;
     }
     case BEAN_TFUNCTION: {
@@ -272,11 +282,15 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, bool pure) {
 }
 
 TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value) {
-  return inspect(B, value, false);
+  return inspect(B, value, ORIGINAL);
+}
+
+TValue * tvalue_inspect_all(bean_State * B UNUSED, TValue * value) { // For generate json string
+  return inspect(B, value, DOUBLE_QUOTE_ALL);
 }
 
 TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value) {
-  return inspect(B, value, true);
+  return inspect(B, value, DOUBLE_QUOTE_STRING);
 }
 
 static TValue * primitive_print(bean_State * B UNUSED, TValue * this UNUSED, TValue * args, int argc) {
