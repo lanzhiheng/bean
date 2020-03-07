@@ -111,8 +111,8 @@ static char * hash_inspect(bean_State * B, Hash * hash, bool wrapKey) {
 
     Entry * e = hash->entries[i];
     while (e) {
-      TValue * key = wrapKey ? tvalue_inspect_pure(B, e->key) : tvalue_inspect(B, e->key);
-      TValue * value = tvalue_inspect_pure(B, e->value);
+      TValue * key = wrapKey ? tvalue_inspect_all(B, e->key) : tvalue_inspect(B, e->key);
+      TValue * value = tvalue_inspect_all(B, e->value);
       total += tslen(svalue(key)) + tslen(svalue(value)) + colon_Len + comma_Len;
       e = e -> next;
     }
@@ -128,8 +128,8 @@ static char * hash_inspect(bean_State * B, Hash * hash, bool wrapKey) {
 
     Entry * e = hash->entries[i];
     while (e) {
-      TValue * key = wrapKey ? tvalue_inspect_pure(B, e->key) : tvalue_inspect(B, e->key);
-      TValue * value = tvalue_inspect_pure(B, e->value);
+      TValue * key = wrapKey ? tvalue_inspect_all(B, e->key) : tvalue_inspect(B, e->key);
+      TValue * value = tvalue_inspect_all(B, e->value);
       char * key_Str = getstr(svalue(key));
       char * value_Str = getstr(svalue(value));
 
