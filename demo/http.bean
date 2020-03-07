@@ -1,24 +1,47 @@
-getResult = HTTP.fetch("https://lanzhiheng.com")
+getResult = HTTP.fetch("http://127.0.0.1:4000")
 print(getResult)
 
-HTTP.fetch("http://127.0.0.1:4000/contact-me", {
+postResult = HTTP.fetch("http://127.0.0.1:4000/contact-me", {
   method: "POST",
   data: {
     name: "lan",
     email: "lanzhihengrj@gmail.com",
-    content: "Hello World"
+    content: "Hello World",
+    params: {
+     age: 1,
+     age: '100'
+    }
+  }
+})
+print(postResult)
+
+mpostResult = HTTP.fetch("http://127.0.0.1:4000/contact-me", {
+  method: "POST",
+  data: {
+    name: "lan",
+    email: "lanzhihengrj@gmail.com",
+    content: "Hello World",
+    params: {
+     age: 1,
+     age: '100'
+    }
   },
   header: {
     'Content-Type': 'multipart/form-data'
   }
 })
+print(mpostResult)
 
-putResult = HTTP.fetch("http://127.0.0.1:4000/contact-me/100", {
+putResult = HTTP.fetch("http://127.0.0.1:4000/test/100", {
   method: "PUT",
   data: {
     name: "lan",
     email: "lanzhihengrj@gmail.com",
-    content: ""
+    content: "Hello World",
+    params: {
+      p1: 1,
+      p2: "hello"
+    }
   },
   header: {
     'content-type': 'application/json'
@@ -27,4 +50,5 @@ putResult = HTTP.fetch("http://127.0.0.1:4000/contact-me/100", {
 
 print(putResult)
 
-getResult = HTTP.fetch("https://lanzhiheng.com", { method: 'delete' })
+deleteResult = HTTP.fetch("http://127.0.0.1:4000", { method: 'delete' })
+print(deleteResult)

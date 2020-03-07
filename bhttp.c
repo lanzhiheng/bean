@@ -84,11 +84,11 @@ static char * application_x_www_form_urlencoded_form(bean_State * B, TValue * da
     Entry * e = hash->entries[i];
     while (e) {
       TValue * k = tvalue_inspect(B, e->key);
-      TValue * v = tvalue_inspect(B, e->value);
+      TValue * v = ttisstring(e->value) ? tvalue_inspect(B, e->value):  tvalue_inspect_all(B, e->value);
       char * key = getstr(svalue(k));
       char * value = getstr(svalue(v));
       uint32_t size = strlen(key) + strlen(value);
-      totalSize += size + 1; // for & and end of '\0'
+      totalSize += size + 3; // for & and end of '\0'
       char * content = malloc(size + 2); // equal and '\0'
       sprintf(content, "%s=%s", key, value);
       list[index++] = content;
@@ -96,8 +96,8 @@ static char * application_x_www_form_urlencoded_form(bean_State * B, TValue * da
     }
   }
 
-  char * result = calloc(sizeof(totalSize), '\0');
-
+  char * result = malloc(totalSize * sizeof(char));
+  result[0] = '\0';
   for (uint32_t j = 0; j < hash->count; j++) {
     strcat(result, list[j]);
     strcat(result, "&");
@@ -113,7 +113,7 @@ static struct curl_slist * build_header(bean_State * B, TValue * headers) {
   struct curl_slist *list = NULL;
   Hash * hash = hhvalue(headers);
 
-  list = curl_slist_append(list, "Expect:");
+  list = curl_slist_append(list, "Expect:"); // Remove the Expect header.
   for (uint32_t i = 0; i < hash->capacity; i++) {
     if (!hash->entries[i]) continue;
 
@@ -142,7 +142,7 @@ static bool isFormData(bean_State *B, TValue * header) {
       Entry * e = hash->entries[i];
       while (e) {
         TValue * k = tvalue_inspect(B, e->key);
-        TValue * v = tvalue_inspect(B, e->value);
+        TValue * v = ttisstring(v) ? tvalue_inspect(B, e->value) : tvalue_inspect_all(B, e->value);
         char * key = getstr(svalue(k));
         char * value = getstr(svalue(v));
         strlwr(key); strlwr(value);
@@ -152,6 +152,40 @@ static bool isFormData(bean_State *B, TValue * header) {
     }
   }
   return formData;
+}
+
+static CURLcode http_get_method(CURL *curl, HttpData * httpdata) {
+  CURLcode res;
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
+  /* example.com is redirected, so we tell libcurl to follow redirection */
+  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+  /* Perform the request, res will get the return code */
+  res = curl_easy_perform(curl);
+  return res;
+}
+
+static CURLcode http_put_method(bean_State * B, CURL *curl, HttpData * httpdata, TValue * tvData) {
+  CURLcode res;
+  /* HTTP PUT please */
+  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+  // Need to construct the json string.
+  TValue * jsonString = tvalue_inspect_all(B, tvData);
+  char * str = getstr(svalue(jsonString));
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
+  res = curl_easy_perform(curl);
+  return res;
+}
+
+static CURLcode http_delete_method(CURL *curl, HttpData * httpdata) {
+  CURLcode res;
+  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
+  res = curl_easy_perform(curl);
+  return res;
 }
 
 static void fetch_data(bean_State *B, char * url, Hash * params, char ** result) {
@@ -164,8 +198,7 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
     init_result(&httpdata);
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Bean Programming Language/1");
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-    /* curl_easy_setopt(curl, CURLOPT_HEADER, 1L); */
+    /* curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); */
     struct curl_slist * headerList = NULL;
 
     if (params) {
@@ -199,123 +232,35 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
           bool formData = isFormData(B, tvHeader);
 
           if (formData) {
-            CURLM *multi_handle;
-            int still_running = 0;
-            multi_handle = curl_multi_init();
-
+            // multipart/form-data
             curl_mime *mime = curl_mime_init(curl);
             multi_part_form_data(B, tvData, mime);
             curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
-            curl_multi_add_handle(multi_handle, curl);
-            curl_multi_perform(multi_handle, &still_running);
-
-            // Copy from https://curl.haxx.se/libcurl/c/multi-post.html
-            while(still_running) {
-              struct timeval timeout;
-              int rc; /* select() return code */
-              CURLMcode mc; /* curl_multi_fdset() return code */
-
-              fd_set fdread;
-              fd_set fdwrite;
-              fd_set fdexcep;
-              int maxfd = -1;
-
-              long curl_timeo = -1;
-
-              FD_ZERO(&fdread);
-              FD_ZERO(&fdwrite);
-              FD_ZERO(&fdexcep);
-
-              /* set a suitable timeout to play around with */
-              timeout.tv_sec = 1;
-              timeout.tv_usec = 0;
-
-              curl_multi_timeout(multi_handle, &curl_timeo);
-              if(curl_timeo >= 0) {
-                timeout.tv_sec = curl_timeo / 1000;
-                if(timeout.tv_sec > 1)
-                  timeout.tv_sec = 1;
-                else
-                  timeout.tv_usec = (curl_timeo % 1000) * 1000;
-              }
-
-              /* get file descriptors from the transfers */
-              mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
-
-              if(mc != CURLM_OK) {
-                fprintf(stderr, "curl_multi_fdset() failed, code %d.\n", mc);
-                break;
-              }
-
-              /* On success the value of maxfd is guaranteed to be >= -1. We call
-                 select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
-                 no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
-                 to sleep 100ms, which is the minimum suggested value in the
-                 curl_multi_fdset() doc. */
-
-              if(maxfd == -1) {
-#ifdef _WIN32
-                Sleep(100);
-                rc = 0;
-#else
-                /* Portable sleep for platforms other than Windows. */
-                struct timeval wait = { 0, 100 * 1000 }; /* 100ms */
-                rc = select(0, NULL, NULL, NULL, &wait);
-#endif
-              }
-              else {
-                /* Note that on some platforms 'timeout' may be modified by select().
-                   If you need access to the original value save a copy beforehand. */
-                rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
-              }
-
-              switch(rc) {
-                case -1:
-                  /* select error */
-                  break;
-                case 0:
-                default:
-                  /* timeout or readable/writable sockets */
-                  printf("perform!\n");
-                  curl_multi_perform(multi_handle, &still_running);
-                  printf("running: %d!\n", still_running);
-                  break;
-              }
-            }
-            curl_multi_cleanup(multi_handle);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
+            curl_easy_perform(curl);
           } else {
             // application/x-www-form-urlencoded
             // If length is set to 0 (zero), curl_easy_escape uses strlen() on the input string to find out the size.
             curl_easy_setopt(curl, CURLOPT_POST, 1L);
-            data = curl_easy_escape(curl, application_x_www_form_urlencoded_form(B, tvData), 0);
-            /* Perform the request, res will get the return code */
+            data = application_x_www_form_urlencoded_form(B, tvData);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
             res = curl_easy_perform(curl);
           }
-          curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
         } else if (strcmp(method, "put") == 0) {
-          /* HTTP PUT please */
-          curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-          // Need to construct the json string.
-          TValue * jsonString = tvalue_inspect_all(B, tvData);
-          char * str = getstr(svalue(jsonString));
-          curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
-          curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-          curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
-          res = curl_easy_perform(curl);
+          res = http_put_method(B, curl, &httpdata, tvData);
         } else if (strcmp(method, "delete") == 0) {
-          curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-          curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-          curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
-          res = curl_easy_perform(curl);
+          res = http_delete_method(curl, &httpdata);
         } else { // GET_METHOD
-          curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-          curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpdata);
-          /* example.com is redirected, so we tell libcurl to follow redirection */
-          curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-          /* Perform the request, res will get the return code */
-          res = curl_easy_perform(curl);
+          res = http_get_method(curl, &httpdata);
         }
+      } else { // with params but not method specified
+        res = http_get_method(curl, &httpdata);
       }
+    } else { // without params but not method specified
+      res = http_get_method(curl, &httpdata);
     }
 
     /* Check for errors */
