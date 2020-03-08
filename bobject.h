@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <regex.h>
+#include <time.h>
 #include "common.h"
 
 
@@ -37,6 +38,11 @@ typedef struct Regex {
   int mode;
 } Regex;
 
+typedef struct Date {
+  CommonHeader;
+  time_t time;
+} Date;
+
 typedef union Value {
   struct GCObject * gc;
   bean_Number n;
@@ -46,6 +52,7 @@ typedef union Value {
   struct Tool * tl;
   struct Array * ar;
   struct Hash * hh;
+  struct Date * dt;
   bu_byte b;
 } Value;
 
@@ -109,13 +116,18 @@ typedef struct TValue {
   { TValue *io = obj; val_(io).ar=(x); settt_(io, BEAN_TLIST); io->prototype=G(B)->aproto; }
 
 #define BEAN_TREGEX	(BEAN_THASH | (1 << 4))  /* regex */
+#define BEAN_TDATE	(BEAN_THASH | (2 << 4))  /* date */
 #define ttishash(o)           checktag((o), BEAN_THASH)
 #define ttisregex(o)           checktag((o), BEAN_TREGEX)
+#define ttisdate(o)           checktag((o), BEAN_TDATE)
 #define sethashvalue(obj,x)                                             \
   { TValue *io = obj; val_(io).hh=(x); settt_(io, BEAN_THASH); io->prototype=G(B)->hproto; }
 #define setregexvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).rr=(x); settt_(io, BEAN_TREGEX); io->prototype=G(B)->rproto; }
-/*
+#define setdatevalue(obj,x)                                            \
+  { TValue *io = obj; val_(io).dt=(x); settt_(io, BEAN_TDATE); io->prototype=G(B)->dproto; }
+
+  /*
 ** {==================================================================
 ** Numbers
 ** ===================================================================
@@ -152,6 +164,7 @@ typedef struct TValue {
 #define arrvalue(o)       check_exp(ttisarray(o), val_(o).ar)
 #define hhvalue(o)       check_exp(ttishash(o), val_(o).hh)
 #define regexvalue(o)       check_exp(ttisregex(o), val_(o).rr)
+#define datevalue(o)       check_exp(ttisregex(o), val_(o).dt)
 
 TValue * tvalue_inspect(bean_State * B UNUSED, TValue * value);
 TValue * tvalue_inspect_pure(bean_State * B UNUSED, TValue * value);
