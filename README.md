@@ -8,6 +8,66 @@
 6. The basic data type include `Number`, `String`, `Bool`, `Array`, `Hash`.
 7. Stack-based virtual Machine.
 
+## Date
+
+### Basic
+
+In general, most of programming language will include the date-handling library. So I decide to add some simple feature to Bean.
+
+If we want to get current timestamp we can use `Date.now` like this.
+
+```
+> Date.now()
+=> 1583666189
+```
+
+Otherwise, we can make an instance by using `Date.build`, then we will have a batch of methods for this instance.
+
+```
+> c = Date.build()
+=> Sun Mar  8 19:26:59 2020
+> c.getYear()
+=> 2020
+> c.getMonth()
+=> 2
+> c.getDate()
+=> 8
+> c.getHours()
+=> 19
+> c.getMinutes()
+=> 26
+> c.getSeconds()
+=> 59
+> c.getWeekDay()
+=> 0
+```
+
+## Parser
+
+I provide a method named `Date.parse` to parse the time from time string. By default the formatter for parsing is `%Y-%m-%d %H:%M:%S %z`. So you can got the date instance like this
+
+```
+> c = Date.parse("2020-3-30 10:30:00 +0800")
+=> Mon Mar 30 10:30:00 2020
+```
+
+The time of printed string is equal to the params which in `Date.parse` method. Because I run this script in china, the timezone for my computer is `Asia/Shanghai`. If you wat to parse an UTC time. you can pass the parameter like this
+
+```
+> c = Date.parse("2020-3-30 10:30:00 +0000")
+=> Mon Mar 30 18:30:00 2020
+```
+
+Now, the parser think the string as UTC time. If you want to display it in Chinese timezone, it will become `18:30:00`.
+
+Also, you can define the formatter by your self. You can customize it by passing second parameter to `Date.parse`. Let't see the example, below.
+
+```
+> c = Date.parse("10:30:00++++2020-3-30 +0000", "%H:%M:%S++++%Y-%m-%d %z")
+=> Mon Mar 30 18:30:00 2020
+```
+
+OK, as you can see the result is right with the new formatter and new string which matched to it.
 
 ## Regular Expression
 

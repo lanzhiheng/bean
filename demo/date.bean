@@ -1,0 +1,31 @@
+print(Date.now())
+
+date1 = Date.build()
+print(date1)
+assert((typeof date1), 'hash')
+assert(date1.__proto__, Date)
+
+date2 = Date.build()
+print(date2.getYear())
+assert(date1.getYear(), 2020)
+assert(date1.getYear(), date2.getYear())
+print(date2.getMonth())
+assert(date1.getMonth(), date2.getMonth())
+print(date2.getDate())
+assert(date1.getDate(), date2.getDate())
+print(date2.getHours())
+assert(date1.getHours(), date2.getHours())
+print(date2.getMinutes())
+assert(date1.getMinutes(), date2.getMinutes())
+print(date2.getSeconds())
+assert(date1.getSeconds(), date2.getSeconds())
+print(date2.getWeekDay())
+assert(date1.getWeekDay(), date2.getWeekDay())
+
+print("TimeZone offset: " + date1.getTimezoneOffset())
+
+
+print("================= time zone ======================")
+
+c = Date.parse("2020-3-30 10:30:00 +0200", "%Y-%M-%d %H:%M:%S %z")
+print(c)

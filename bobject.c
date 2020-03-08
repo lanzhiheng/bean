@@ -272,6 +272,12 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, PARSER_TYPE mode)
       sprintf(string, "/%s/", rr->match);
       break;
     }
+    case BEAN_TDATE: {
+      Date * dt = datevalue(value);
+      string = ctime(&(dt -> time));
+      string[strlen(string) - 1] = '\0'; // Remove the '\n' at the end
+      break;
+    }
     default:
       string = "invalid value";
       break;
