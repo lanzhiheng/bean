@@ -3,10 +3,11 @@ TARGET = bean
 CFLAGS = -g -Wall
 TFLAGS = -g -Wall -DTEST
 CFILES = $(wildcard *.c)
-LIBS = -L/usr/local/Cellar/curl/7.69.0/lib -lcurl -lldap -lz -I/usr/local/Cellar/curl/7.69.0/include
+GC = -Igc/include -lgc -Lgc/lib
+CURL = -Icurl/include -lcurl -lldap -lz -Lcurl/lib
 
 $(TARGET):$(OBJS)
-	$(CC) -o $(TARGET) $(CFILES) $(CFLAGS) $(LIBS)
+	$(CC) -o $(TARGET) $(CFILES) $(CFLAGS) $(LIBS) $(GC) $(CURL)
 
 test:
 	$(CC) -o $(TARGET) $(CFILES) $(TFLAGS) $(LIBS)
