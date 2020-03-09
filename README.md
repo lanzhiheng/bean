@@ -10,7 +10,7 @@
 
 ## Date
 
-### Basic
+### 1. Basic
 
 In general, most of programming language will include the date-handling library. So I decide to add some simple feature to Bean.
 
@@ -42,7 +42,7 @@ Otherwise, we can make an instance by using `Date.build`, then we will have a ba
 => 0
 ```
 
-## Parser
+### 2. Parser
 
 I provide a method named `Date.parse` to parse the time from time string. By default the formatter for parsing is `%Y-%m-%d %H:%M:%S %z`. So you can got the date instance like this
 
@@ -68,6 +68,52 @@ Also, you can define the formatter by your self. You can customize it by passing
 ```
 
 OK, as you can see the result is right with the new formatter and new string which matched to it.
+
+## 3. Stringify
+
+You can use instance method `format` to construct the Date string by the existing date instance. for example
+
+```
+> f =  Date.parse("2020-3-30 10:30:00 +0000", "%Y-%m-%d %H:%M:%S %z")
+=> Mon Mar 30 18:30:00 2020
+> f.format()
+=> "2020-03-30 18:30:00 +0800"
+```
+
+It is obvious that we parse the date string as the UTC time. If you format it later, you will get the result which tranformed by your current Timezone(Asia/Shanghai for me).
+
+You also can specify the format string by passing a parameter to `format` method.
+
+```
+> f.format("%Y-%m-%d")
+=> "2020-03-30"
+> f.format("%H:%M:%S")
+=> "18:30:00"
+```
+
+But the result of them will depended on your current Timezone. What should I do if I want to specify the timezone information when formatting the date instance? Just pass the timezone info as second parameter to `format` method.
+
+```
+> h = Date.parse("2020-3-30 10:30:00 +0800", "%Y-%m-%d %H:%M:%S %z")
+=> Mon Mar 30 10:30:00 2020
+> h.format("%Y-%m-%d %H:%M:%S %z", "Asia/Shanghai")
+=> "2020-03-30 10:30:00 +0800"
+>  h.format("%Y-%m-%d %H:%M:%S %z", "UTC")
+=> "2020-03-30 02:30:00 +0000"
+> h.format("%Y-%m-%d %H:%M:%S %z", "America/Toronto")
+=> "2020-03-29 22:30:00 -0400"
+```
+
+The timezone which you pass to the method must match the [tzfile](https://linux.die.net/man/5/tzfile) names. If you pass an invalid timezone info, system will treat it as UTC.
+
+```
+>  h.format("%Y-%m-%d %H:%M:%S %z", "UTC")
+=> "2020-03-30 02:30:00 +0000"
+>  h.format("%Y-%m-%d %H:%M:%S %z", "Invalid")
+=> "2020-03-30 02:30:00 +0000"
+```
+
+OK, I think that all about the date library for bean language. If I have some new idea, I will extend it.
 
 ## Regular Expression
 

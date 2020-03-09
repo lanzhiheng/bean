@@ -27,5 +27,26 @@ print("TimeZone offset: " + date1.getTimezoneOffset())
 
 print("================= time zone ======================")
 
-c = Date.parse("2020-3-30 10:30:00 +0200", "%Y-%M-%d %H:%M:%S %z")
+c = Date.parse("2020-3-30 10:30:00 +0200", "%Y-%m-%d %H:%M:%S %z")
 print(c)
+
+
+d = Date.parse("2020-3-30 10:30:00 +0800", "%Y-%m-%d %H:%M:%S %z")
+print(d.format("%Y-%m-%d"))
+
+
+f = Date.parse("2020-3-30 10:30:00 +0000", "%Y-%m-%d %H:%M:%S %z")
+print(f.format())
+assert(f.format(), "2020-03-30 18:30:00 +0800")
+g = Date.parse("2020-3-30 10:30:00 +0900", "%Y-%m-%d %H:%M:%S %z")
+print(g.format())
+assert(g.format('%Y-%m-%d %H:%M:%S %z'), "2020-03-30 09:30:00 +0800")
+assert(g.format('%Y-%m-%d %H:%M:%S %Z'), "2020-03-30 09:30:00 CST")
+assert(g.format('%Y-%m-%d %Z'), "2020-03-30 CST")
+
+
+h = Date.parse("2020-3-30 10:30:00 +0900", "%Y-%m-%d %H:%M:%S %z")
+assert(h.format('%Y-%m-%d %H:%M:%S %z', 'UTC'), "2020-03-30 01:30:00 +0000")
+
+i = Date.parse("2020-3-30 10:30:00 +0000", "%Y-%m-%d %H:%M:%S %z")
+assert(i.format('%Y-%m-%d %H:%M:%S %z', 'Asia/Shanghai'), "2020-03-30 18:30:00 +0800")
