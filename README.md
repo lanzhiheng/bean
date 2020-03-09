@@ -8,6 +8,13 @@
 6. The basic data type include `Number`, `String`, `Bool`, `Array`, `Hash`.
 7. Stack-based virtual Machine.
 
+## Dependencies
+
+1. [bdwgc](https://github.com/ivmai/bdwgc), providing Garbage Collector for Bean, because I don't have enough time to develop it by myself.
+2. [libcurl](https://curl.haxx.se/libcurl/), providing some convenience function to send all kinds of HTTP request.
+
+*I add the compiled version of them in my codebase, so now Bean just can run in MacOS.*
+
 ## Date
 
 ### 1. Basic
