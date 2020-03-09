@@ -53,7 +53,7 @@ static TValue * primitive_Date_format(bean_State * B, TValue * thisVal UNUSED, T
   TValue * ret = malloc(sizeof(TValue));
   Date * date = datevalue(thisVal);
   char * formatString = "%Y-%m-%d %H:%M:%S %z"; // default formater
-  char * timezone = "";
+  char * timezone = NULL;
   assert(argc >= 0);
 
   if (argc >= 1) {
@@ -68,17 +68,22 @@ static TValue * primitive_Date_format(bean_State * B, TValue * thisVal UNUSED, T
     sprintf(timezone, ":%s", string);
   }
 
-  char * tz = getenv("TZ");
-  setenv("TZ", timezone, 1);
+  char * tz = NULL;
+
+  if (timezone) {
+    tz = getenv("TZ");
+    setenv("TZ", timezone, 1);
+  }
+
   struct tm * tm = localtime(&date->time);
 
   char s[DEFAULT_FORMATTED_STRING_LENGTH];
   strftime(s, DEFAULT_FORMATTED_STRING_LENGTH, formatString, tm);
 
-  if (tz)
-    setenv("TZ", tz, 1);
-  else
-    unsetenv("TZ");
+  if (timezone) {
+    tz ? setenv("TZ", tz, 1) : unsetenv("TZ");
+  }
+
   TString * ts = beanS_newlstr(B, s, strlen(s));
   setsvalue(ret, ts);
   return ret;
