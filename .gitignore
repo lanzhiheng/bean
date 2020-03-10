@@ -8,3 +8,4 @@ autoscan.log
 config.log
 config.status
 configure.ac
+makefile
