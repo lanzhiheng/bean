@@ -2,4 +2,9 @@ a.out
 bean
 bean.dSYM/
 curl/
-gc/
+acsite.m4
+autom4te.cache/
+autoscan.log
+config.log
+config.status
+configure.ac

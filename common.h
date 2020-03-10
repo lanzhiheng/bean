@@ -2,7 +2,6 @@
 #define _BEAN_COMMON_H
 #include <stdlib.h>
 #include <limits.h>
-#include "gc.h" // Add auto gc https://www.hboehm.info/gc/simple_example.html
 #include "bean.h"
 
 #define bool char
