@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <math.h>
 #include <time.h>
 #include "bstring.h"
@@ -11,15 +10,15 @@ define M_PI 3.14159265358979323846
 #endif
 
 #define single(action, arg) do {                \
-    assert(argc >= 1);                          \
-    TValue * ret = malloc(sizeof(TValue));      \
+    assert_with_message(argc >= 1 && ttisnumber(&args[0]), "Please provide a number operand."); \
+    TValue * ret = malloc(sizeof(TValue));                              \
     double val = nvalue(arg);                   \
     setnvalue(ret, action(val));                \
     return ret;                                 \
   } while(0);
 
 #define binary(action, args) do {               \
-    assert(argc >= 2);                          \
+    assert_with_message(argc >= 2 && ttisnumber(&args[0]) && ttisnumber(&args[1]), "Please provide two number operand."); \
     TValue * ret = malloc(sizeof(TValue));      \
     double val1 = nvalue(&args[0]);              \
     double val2 = nvalue(&args[1]);              \

@@ -1,4 +1,3 @@
-#include <assert.h>
 #include "bstring.h"
 #include "berror.h"
 #include "bparser.h"

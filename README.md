@@ -173,6 +173,87 @@ Similar to javascript we also support `++`, `--` and something like `(*)=` which
 
 Sorry about that I don't have enough time to talk about them one by one.
 
+# Math
+
+Math is a special hash object, of cause the simplest one. It just contains some method, have not ability to create some new instances.
+
+There are the method list for Math, after that I will show you some demo.
+
+- `Math.ceil/1`
+- `Math.floor/1`
+- `Math.round/1`
+- `Math.sin/1`
+- `Math.cos/1`
+- `Math.abs/1`
+- `Math.sqrt/1`
+- `Math.log/1`
+- `Math.exp/1`
+- `Math.random/1`
+- `Math.min/1`
+- `Math.max/1`
+- `Math.pow/1`
+
+and also `Math.PI` equal to `3.14159265358979323846`
+
+There are some example for them.
+
+```
+> a = 11.1
+=> 11.100000
+> Math.ceil(a)
+=> 12
+
+> a = 11.9
+=> 11.900000
+> Math.floor(a)
+=> 11
+
+> a = 1000.3333
+=> 1000.333300
+> Math.round(a)
+=> 1000
+
+> a = 30
+=> 30
+> Math.sin(a * Math.PI / 180)
+=> 0.500000
+> Math.cos(a * 2 * Math.PI / 180)
+=> 0.500000
+
+> a = -10000
+=> -10000
+> Math.abs(a)
+=> 10000
+
+> a = 400
+=> 400
+> Math.sqrt(a)
+=> 20
+
+> a = Math.exp(1)
+=> 2.718282
+> Math.log(a)
+=> 1
+
+> a = Math.random()
+=> 0.473279
+> Math.round(Math.random() * 10 + 3)
+=> 11
+
+> a = 100
+=> 100
+> b = -100
+=> -100
+> Math.min(a,b)
+=> -100
+> Math.max(a,b)
+=> 100
+> Math.pow(a, 2)
+=> 10000
+```
+
+OK, that all for Math library, so easy right?
+
 # Date
 
 ## 1. Basic
