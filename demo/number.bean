@@ -1,3 +1,9 @@
+a = 10
+b = 10e3
+c = 11.111e3
+assert(b, 10000)
+assert(c, 11111)
+
 a = 10.22
 assert(a.toFixed(1), '10.2')
 assert(a.toString(), '10.220000')
@@ -8,6 +14,8 @@ assert(b.toString(), '10000000')
 
 c = 999.00999
 assert(c.toFixed(), '999.01')
+assert(c.toFixed(-1), '999.0')
+assert(c.toFixed(-10), '999.0099900000')
 
 e = 999.00999
 assert(e.toExponential(), '9.990100e+02')

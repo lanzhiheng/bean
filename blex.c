@@ -216,12 +216,20 @@ static const char *b_str2d (const char *s, bean_Number *result) {
   return ptr;
 }
 
-int beanO_str2num(bean_State * B, char * s, TValue *o) {
+int beanO_str2num(bean_State * B, const char * s, TValue *o) {
   bean_Number n;
   const char *e;
 
   if ((e = b_str2int(s, &n)) != NULL) {  /* try as an integer */
-    setnvalue(o, n);
+    if (e[0] == 'e' || e[0] == 'E') {
+      if ((e = b_str2d(s, &n)) != NULL) {
+        setnvalue(o, n);
+      } else {
+        return 0;
+      }
+    } else {
+      setnvalue(o, n);
+    }
   } else if ((e = b_str2d(s, &n)) != NULL) {
     setnvalue(o, n);
   } else {

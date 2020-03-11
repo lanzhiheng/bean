@@ -8,16 +8,174 @@
 6. The basic data type include `Number`, `String`, `Bool`, `Array`, `Hash`.
 7. Stack-based virtual Machine.
 
-## Dependencies
+# Dependencies
 
 1. [bdwgc](https://github.com/ivmai/bdwgc), providing Garbage Collector for Bean, because I don't have enough time to develop it by myself.
 2. [libcurl](https://curl.haxx.se/libcurl/), providing some convenience function to send all kinds of HTTP request.
 
 *I add the compiled version of them in my codebase, so now Bean just can run in MacOS.*
 
-## Date
+# Number
 
-### 1. Basic
+## Number value
+
+Not only in Bean, almost every programming language contains the number type. Similar to JavaScript, Bean store all the number value as float, even it has the integer schema. Let me so you some cases.
+
+```
+> a = 10
+=> 10
+> a = 1e3
+1e3
+=> 1000
+> a = 11.1
+=> 11.100000
+> a = 11.1e2
+=> 1110
+```
+
+Bean doesn't support the octal but hex. So you can define the number like below.
+
+```
+> 022
+=> 22
+> 018
+=> 18
+> 0x01
+=> 1
+> 0x10
+=> 16
+```
+
+## Number formatting
+
+We provide a few method to format the number. For example if you want to make a string which has fixed bits after the point. You can use `toFixed/1` method.
+
+```
+> a = 10.33333333
+=> 10.333333
+> a.toFixed(1)
+=> "10.3"
+>  a.toFixed(2)
+=> "10.33"
+> a.toFixed(100)
+=> "10.3333333300000003163177098031155765056610107421875000000000000000000000000000000000000000000000000000"
+```
+
+If you don't pass paramater, number `2` will be the default value.
+
+```
+> a = 100
+=> 100
+> a.toFixed()
+=> "100.00"
+> a.toFixed('100')
+The paramter which you passed must be a number.
+> a.toFixed(-10)
+=> "100.0000000000"
+> a.toFixed(2.3)
+=> "100.00"
+```
+
+Otherwse, As you can see in the example, above, The parameter which you are passing must be a number value. If you passed the positive float as the parameter we will convert it to integer as well as if you passed the negative one we will get the `abs` value of it.
+
+You also can get the string which formatted by Scientific Notation, by using `toExponential/0`. it doesn't accept any parameters.
+
+```
+> a.toExponential(100)
+=> "1.000000e+02"
+> a.toExponential()
+=> "1.000000e+02"
+```
+
+## Number operators
+
+I think if you have learned JavaScript or any other programming language you will be familiar to `+`, `-`, `*`, `/`, etc. I think for explaining them, code will be better than my words.
+
+```
+> a = 10
+=> 10
+> b = 100
+=> 100
+> a + b
+=> 110
+> a - b
+=> -90
+> a * b
+=> 1000
+> a / b
+=> 0.100000
+```
+
+Also support some bit operators.
+
+```
+> a = 10
+=> 10
+> b = 2
+=> 2
+> a | b
+=> 10
+> a & b
+=> 2
+> a % b
+=> 0
+> a ^ b
+=> 0
+```
+
+Similar to javascript we also support `++`, `--` and something like `(*)=` which between two operands.
+
+```
+> a = 10
+=> 10
+> a++
+=> 10
+> a
+=> 11
+> b = 11
+=> 11
+> --b
+=> 10
+> b
+=> 10
+```
+
+```
+# (*)= schema
+> a = 100
+=> 100
+> a += 10
+=> 110
+> a -= 10
+=> 100
+> a *= 10
+=> 1000
+> a /= 10
+=> 100
+
+> a = 2
+=> 2
+> a |= 10
+=> 10
+> a = 2
+=> 2
+> a &= 10
+=> 2
+> a = 2
+=> 2
+> a %= 10
+=> 2
+> a = 2
+=> 2
+> a ^= 10
+=> 8
+```
+
+Sorry about that I don't have enough time to talk about them one by one.
+
+# Date
+
+## 1. Basic
 
 In general, most of programming language will include the date-handling library. So I decide to add some simple feature to Bean.
 
@@ -49,7 +207,7 @@ Otherwise, we can make an instance by using `Date.build`, then we will have a ba
 => 0
 ```
 
-### 2. Parser
+## 2. Parser
 
 I provide a method named `Date.parse` to parse the time from time string. By default the formatter for parsing is `%Y-%m-%d %H:%M:%S %z`. So you can got the date instance like this
 
@@ -122,9 +280,9 @@ The timezone which you pass to the method must match the [tzfile](https://linux.
 
 OK, I think that all about the date library for bean language. If I have some new idea, I will extend it.
 
-## Regular Expression
+# Regular Expression
 
-### Simple demo
+## Simple demo
 
 For using the regular expression feature in bean, you should build the regex instance like this
 
@@ -150,7 +308,7 @@ You also can choose your favor mode. For example, you can specify the `ignore ca
 => true
 ```
 
-### Syntax sugar for building
+## Syntax sugar for building
 
 So simple, right? For convenience if you don't need to set the mode, you can build the regex expression by **``** syntax sugar.
 
@@ -159,7 +317,7 @@ So simple, right? For convenience if you don't need to set the mode, you can bui
 => /aaa+/
 ```
 
-### Subexpression
+## Subexpression
 
 Some time we want to handle subexpression in regular expression. we just need to involve the `exec` method, it will return an array to us.
 
@@ -179,7 +337,7 @@ Otherwise, If the regular expression can not match any part of the string, we wi
 => []
 ```
 
-### Shorthand Character Classes
+## Shorthand Character Classes
 
 Similar to javascript we can support the Shorthand Character Classes now. for example, `\s` for space characters, `\w` for a-z, A-Z, 0-9, _ characters and `\d` for 0-9 characters. You can define a regex expression like this. Also supported the opposite of them, `\W`, `\D` and `\S`.
 
@@ -195,9 +353,9 @@ Similar to javascript we can support the Shorthand Character Classes now. for ex
 => true
 ```
 
-## HTTP Request
+# HTTP Request
 
-### Get Request
+## Get Request
 
 You also can use bean to send requests to servers. Let's begin with the simply example. I you want to download the page content from my website, you just need to send the `GET` request like this
 
@@ -213,7 +371,7 @@ The default method of `fetch` method is `GET`, so you can omit it.
 => "<!DOCTYPE html>\n<html>\n  <head>\n    <title>Step By Step</title>\n    <meta name=\"csrf-param\" content=\"authenticity_token\" />\n<meta name=\"csrf-token\" content=\"m0yy3sD7cWur0E3SmV0ZpufoGGhCInyrfoRED3m74v3B6YbEhXKWWOTeNWyBQjxECS514Oy1Lx35uczz0rIo2Q==\" />\n......
 ```
 
-### POST Request
+## POST Request
 
 Basically, there are two format for post data. `application/x-www-form-urlencoded`and`multipart/form-data`。 You can special the `Content-Type` header to config them.
 
@@ -263,7 +421,7 @@ That all for POST request, not very diffcult, right?
 
 *PS: For simplicity the HTTP request for Bean doesn't support the file uploading now, Because I am so busy these time. Sorry about that if I have enough time I will add the file uploading feature later. Not Only for POST request but also PUT request.*
 
-### PUT Request
+## PUT Request
 
 The PUT Request is very similar to POST Request. But for better handle the PUT data, we better set the `Content-Type` to `application/json` explicitly. So you need to need to send the request like this
 
@@ -287,7 +445,7 @@ putResult = HTTP.fetch("http://127.0.0.1:4000/contact-me/100", {
 print(putResult) // => The result of PUT request
 ```
 
-### DELETE Request
+## DELETE Request
 
 If you what to send the DELETE, you just need to set the request method to `DELETE`
 

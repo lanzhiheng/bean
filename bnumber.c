@@ -1,12 +1,11 @@
-#include <assert.h>
+#include <math.h>
 #include "bstring.h"
 #include "berror.h"
 #include "bparser.h"
 #include "bnumber.h"
 
-static TValue * primitive_Number_toExponential(bean_State * B, TValue * thisVal, TValue * args UNUSED, int argc) {
-  assert(ttisnumber(thisVal));
-  assert(argc <= 1);
+static TValue * primitive_Number_toExponential(bean_State * B, TValue * thisVal, TValue * args UNUSED, int argc UNUSED) {
+  assert_with_message(ttisnumber(thisVal), "The calling object must be number.");
   char buff[MAX_STRING_BUFFER];
   TValue * ret = malloc(sizeof(TValue));
   bean_Number value = nvalue(thisVal);
@@ -18,13 +17,17 @@ static TValue * primitive_Number_toExponential(bean_State * B, TValue * thisVal,
 }
 
 static TValue * primitive_Number_toFixed(bean_State * B, TValue * thisVal, TValue * args, int argc) {
-  assert(ttisnumber(thisVal));
-  assert(argc <= 1);
+  assert_with_message(ttisnumber(thisVal), "The calling object must be number.");
+
   char * buff;
   char * template = "%%.%df";
   char * format = malloc(sizeof(char) * strlen(template));
-  long bit = argc > 0 ? nvalue(&args[0]) : 2;
-  assert(bit > 0);
+  if (argc >= 1) {
+    assert_with_message(ttisnumber(&args[0]), "The paramter which you passed must be a number.");
+  }
+
+  long bit = (long)fabs(argc > 0 ? nvalue(&args[0]) : 2);
+  assert_with_message(bit > 0, "The paramter which you passed must be a positive number.");
   TValue * ret = malloc(sizeof(TValue));
   sprintf(format, template, bit);
   bean_Number value = nvalue(thisVal);
