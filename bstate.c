@@ -924,6 +924,14 @@ void exception() {
   REPL ? longjmp(buf, 1) : abort();
 }
 
+void assert_with_message(bool condition, char * msg) {
+  if (condition) {
+  } else {                                      \
+    printf("%s\n", msg);
+    REPL ? longjmp(buf, 1) : abort();
+  }
+}
+
 TValue * eval(bean_State * B, struct expr * expression) {
   EXPR_TYPE t = expression -> type;
   return fn[t](B, expression);

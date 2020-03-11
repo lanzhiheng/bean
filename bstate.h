@@ -226,4 +226,5 @@ void set_prototype_function(bean_State *B, const char * method, uint32_t len, pr
 void set_prototype_getter(bean_State *B, const char * method, uint32_t len, primitive_Fn fn, Hash * h);
 void set_self_before_caling(bean_State * B, TValue * context);
 void exception();
+void assert_with_message(bool condition, char * message);
 #endif
