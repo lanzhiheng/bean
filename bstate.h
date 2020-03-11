@@ -24,6 +24,8 @@ typedef struct stringtable {
 
 #define SGSV(B, key, value)   (hash_set(B, GS(B)->variables, key, value))
 #define GGSV(B, key)   (hash_get(B, GS(B)->variables, key))
+
+#define TV_MALLOC malloc(sizeof(TValue))
 /*
 ** Union of all collectable objects (only for conversions)
 */

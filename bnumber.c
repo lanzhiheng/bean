@@ -7,7 +7,7 @@
 static TValue * primitive_Number_toExponential(bean_State * B, TValue * thisVal, TValue * args UNUSED, int argc UNUSED) {
   assert_with_message(ttisnumber(thisVal), "The calling object must be number.");
   char buff[MAX_STRING_BUFFER];
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   bean_Number value = nvalue(thisVal);
   sprintf(buff, "%e", value);
 
@@ -28,7 +28,7 @@ static TValue * primitive_Number_toFixed(bean_State * B, TValue * thisVal, TValu
 
   long bit = (long)fabs(argc > 0 ? nvalue(&args[0]) : 2);
   assert_with_message(bit > 0, "The paramter which you passed must be a positive number.");
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   sprintf(format, template, bit);
   bean_Number value = nvalue(thisVal);
 
@@ -50,13 +50,13 @@ static TValue * primitive_Number_toFixed(bean_State * B, TValue * thisVal, TValu
 
 TValue * init_Number(bean_State * B) {
   global_State * G = B->l_G;
-  TValue * proto = malloc(sizeof(TValue));
+  TValue * proto = TV_MALLOC;
   Hash * h = init_hash(B);
   sethashvalue(proto, h);
   set_prototype_function(B, "toFixed", 7, primitive_Number_toFixed, hhvalue(proto));
   set_prototype_function(B, "toExponential", 13, primitive_Number_toExponential, hhvalue(proto));
 
-  TValue * number = malloc(sizeof(TValue));
+  TValue * number = TV_MALLOC;
   setsvalue(number, beanS_newlstr(B, "Number", 6));
   hash_set(B, G->globalScope->variables, number, proto);
 
