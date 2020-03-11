@@ -9,21 +9,21 @@
 define M_PI 3.14159265358979323846
 #endif
 
-#define single(action, arg) do {                \
+#define single(action, arg) do {                                        \
     assert_with_message(argc >= 1 && ttisnumber(&args[0]), "Please provide a number operand."); \
-    TValue * ret = malloc(sizeof(TValue));                              \
-    double val = nvalue(arg);                   \
-    setnvalue(ret, action(val));                \
-    return ret;                                 \
+    TValue * ret = TV_MALLOC;                                           \
+    double val = nvalue(arg);                                           \
+    setnvalue(ret, action(val));                                        \
+    return ret;                                                         \
   } while(0);
 
-#define binary(action, args) do {               \
+#define binary(action, args) do {                                       \
     assert_with_message(argc >= 2 && ttisnumber(&args[0]) && ttisnumber(&args[1]), "Please provide two number operand."); \
-    TValue * ret = malloc(sizeof(TValue));      \
-    double val1 = nvalue(&args[0]);              \
-    double val2 = nvalue(&args[1]);              \
-    setnvalue(ret, action(val1, val2));         \
-    return ret;                                 \
+    TValue * ret = TV_MALLOC;                                           \
+    double val1 = nvalue(&args[0]);                                     \
+    double val2 = nvalue(&args[1]);                                     \
+    setnvalue(ret, action(val1, val2));                                 \
+    return ret;                                                         \
   } while(0);
 
 static TValue * primitive_Math_ceil(bean_State * B, TValue * thisVal UNUSED, TValue * args, int argc) {
@@ -63,7 +63,7 @@ static TValue * primitive_Math_exp(bean_State * B, TValue * thisVal UNUSED, TVal
 }
 
 static TValue * primitive_Math_random(bean_State * B, TValue * thisVal UNUSED, TValue * args UNUSED, int argc UNUSED) {
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   setnvalue(ret, (double)rand() / 0x7fffffff);
   return ret;
 }
@@ -83,7 +83,7 @@ static TValue * primitive_Math_pow(bean_State * B, TValue * thisVal UNUSED, TVal
 TValue * init_Math(bean_State * B) {
   srand(time(0));
   global_State * G = B->l_G;
-  TValue * proto = malloc(sizeof(TValue));
+  TValue * proto = TV_MALLOC;
   Hash * h = init_hash(B);
   sethashvalue(proto, h);
   set_prototype_function(B, "ceil", 4, primitive_Math_ceil, hhvalue(proto));
@@ -102,13 +102,13 @@ TValue * init_Math(bean_State * B) {
   set_prototype_function(B, "max", 3, primitive_Math_max, hhvalue(proto));
   set_prototype_function(B, "pow", 3, primitive_Math_pow, hhvalue(proto));
 
-  TValue * pi = malloc(sizeof(TValue));
+  TValue * pi = TV_MALLOC;
   setsvalue(pi, beanS_newlstr(B, "PI", 2));
-  TValue * pi_v = malloc(sizeof(TValue));
+  TValue * pi_v = TV_MALLOC;
   setnvalue(pi_v, M_PI);
   hash_set(B, hhvalue(proto), pi, pi_v);
 
-  TValue * math = malloc(sizeof(TValue));
+  TValue * math = TV_MALLOC;
   setsvalue(math, beanS_newlstr(B, "Math", 4));
   hash_set(B, G->globalScope->variables, math, proto);
 
