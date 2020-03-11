@@ -173,6 +173,29 @@ Similar to javascript we also support `++`, `--` and something like `(*)=` which
 
 Sorry about that I don't have enough time to talk about them one by one.
 
+# nil, true or false
+
+Different to JavaScript we don't have too mush falsy. In Bean, We just have `nil` and `false` will be seen as false value. Others are truly.
+
+```
+> if (0) { print("I am true value") }
+I am truly
+=> nil
+> if ("") { print("I am true value") }
+I am truly
+> if (true) { print("I am true value") }
+I am true value
+=> nil
+
+=> nil
+> if (false) { print("I am false value") }
+=> nil
+> if (nil) { print("I am false value") }
+=> nil
+```
+
+Similar to Ruby, Just the `false` and `nil` are false value, the print branch with them will never run.
+
 # Math
 
 Math is a special hash object, of cause the simplest one. It just contains some method, have not ability to create some new instances.
