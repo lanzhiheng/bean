@@ -1,4 +1,3 @@
-#include <assert.h>
 #include "bstring.h"
 #include "berror.h"
 #include "bparser.h"
@@ -182,7 +181,6 @@ bool beanS_equal(TString * ts1, TString * ts2) {
 }
 
 static TValue * primitive_String_equal(bean_State * B UNUSED, TValue * this, TValue * args, int argc) {
-  assert(argc == 1);
   assert_with_message(argc >= 1 && ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
   TValue arg1 = args[0];
   return beanS_equal(svalue(this), svalue(&arg1)) ? G(B)->tVal : G(B)->fVal;
@@ -283,7 +281,6 @@ static TValue * primitive_String_indexOf(bean_State * B UNUSED, TValue * this, T
 static TValue * primitive_String_includes(bean_State * B, TValue * this, TValue * args, int argc) {
   assert_with_message(argc >= 1 && ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
   TValue pattern = args[0];
-  assert(ttisstring(&pattern));
   TString * t = svalue(this);
   TString * p = svalue(&pattern);
   int iVal = brute_force_search_utf8(getstr(t), getstr(p), tslen(t), tslen(p));
