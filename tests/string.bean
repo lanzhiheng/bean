@@ -45,12 +45,12 @@ assert(strCodePoint1.codePoint(), 20320)
 strCodePoint2 = "好"
 assert(strCodePoint2.codePoint(), 22909)
 
-assert('a' < 'abc', true)
-assert('a' <= 'a', true)
-assert('A' <= 'a', true)
-assert(9 >= 'A', false)
 assert('9'.codePoint(), 57)
 assert('A'.codePoint(), 65)
 
 assert({} > 10, true)
 assert('{}' > '10', true)
+assert('a' < 'abc', true)
+assert('a' <= 'a', true)
+assert('A' <= 'a', true)
+assert(9 >= 'A', false)
