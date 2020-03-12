@@ -196,6 +196,241 @@ I am true value
 
 Similar to Ruby, Just the `false` and `nil` are false value, the print branch with them will never run.
 
+# String
+
+## Basic
+
+String must be a common data structure in modern programming language. When using Bean you can easy build a string literally.
+
+```
+> a = "I am a string"
+=> "I am a string"
+> b = "I am a string"
+=> "I am a string"
+> typeof a
+=> "string"
+> a == b
+=> true
+```
+
+Easily, You can compare two strings by `==` operator. Otherwise you also can use the special method `equal/1` to compare two strings.
+
+```
+> a = "hello"
+=> "hello"
+> a.equal("hi")
+=> false
+> a.equal("hello")
+=> true
+```
+
+The performance of `==` operator and `equal/1` method is equivalent.
+
+Bean also provide some common method to handle the string instance. If you want to transform the case of string, `upcase/0`, `downcase/0`, `capitalize/0` are your choices.
+
+```
+> a = "ruby is a Good programming language"
+=> "ruby is a Good programming language"
+> a.upcase()
+=> "RUBY IS A GOOD PROGRAMMING LANGUAGE"
+> a.downcase()
+=> "ruby is a good programming language"
+> a.capitalize()
+=> "Ruby is a Good programming language"
+```
+
+What if you want to concat two string? You can use `concat/1` method to do it.
+
+```
+> a = "Bean"
+=> "Bean"
+> a.concat(" Ruby")
+=> "Bean Ruby"
+> a.concat(1)
+Please pass a valid string instance as parameter.
+```
+
+As you can see. `contact/1` just accepts string instance as parameter. If you want to concat others data type with a string, `+` operator may be a good choice.
+
+```
+> a = "Bean"
+=> "Bean"
+> a + " 1"
+=> "Bean 1"
+> 1 + 1
+=> 2
+> "1 " + a
+=> "1 Bean"
+```
+
+You can see that if one side of the `+` operator is a string instance, other side's instance will auto convert to string, and they will be contacted later.
+
+In addition, We can use `trim/0` method to clear the whitespace of the string both right side and left side.
+
+```
+>  "     Bean Language   ".trim()
+=> "Bean Language"
+```
+
+## slice and split
+
+What should you do if you want to get slice of a sting? `slice/2` can help you. That is a flexible method. It accepts 0~2 parameters.
+
+if you don't pass any parameters, it will return the same string as target string.
+
+```
+> a = "hello"
+=> "hello"
+> a.slice() == a
+=> true
+```
+
+if you just pass one parameter, it will set the other one equals to  the length of the string.
+
+```
+> a = "hello world"
+=> "hello world"
+> a.slice(0)
+=> "hello world"
+> a.slice(1)
+=> "ello world"
+> a.slice(2)
+=> "llo world"
+```
+
+It is obvious that what will happen if you pass two parameters.
+
+```
+> a = "hello"
+=> "hello"
+> a.slice(0, 2)
+=> "he"
+> a.slice(3, 4)
+=> "l"
+```
+
+Some tricks in `slice/2` is that you can pass negative number as the index of the string. I will handle them by plus it with the length of the sting. You also use `length` attribute to get the string's length.
+
+```
+> a = "hello world"
+=> "hello world"
+> a.slice(-3, -1)
+=> "rld"
+> a.slice(a.length - 3, a.length - 1)
+=> "rl"
+> a.slice(10, 4)
+End index must greater than start index.
+```
+
+The last example will raise the exception, the end index must greater that start index.
+
+The method similar to `slice/2` is `split/2`. I will you some code, I think you will know what it can do.
+
+```
+> a = "lan, zhi, heng"
+=> "lan, zhi, heng"
+> a.split(", ")
+=> ["lan", "zhi", "heng"]
+> a = "蓝，智，恒"
+=> "蓝，智，恒"
+> a.split("，")
+=> ["蓝", "智", "恒"]
+```
+
+Split the string and store the result to an array.
+
+## UTF-8 Support
+
+Bean not only supports the ASCII characters, also can handle the string which contain UTF-8 Characters. I will make some string contain Chinese, they will tell you the work of `charAt/1`, `IndexOf/1`, `includes/1` and `codePoint/0`.
+
+### chartAt
+
+```
+> a = "hello world"
+=> "hello world"
+> a.charAt(3)
+=> "l"
+> a = "你好，世界"
+=> "你好，世界"
+> a.charAt(2)
+=> "，"
+```
+
+### indexOf
+
+```
+> a = "hello world"
+=> "hello world"
+>  a.indexOf(" ")
+=> 5
+> a = "你好，世界"
+=> "你好，世界"
+> a.indexOf("，")
+=> 2
+```
+
+### includes
+
+```
+> a = "hello world"
+=> "hello world"
+>  a.includes(" ")
+=> true
+> a = "你好，世界"
+=> "你好，世界"
+> a.includes("ha")
+=> false
+```
+
+### codePoint
+
+```
+> a = 'hello'
+=> "hello"
+> a.codePoint()
+=> 104
+> a = 'h'
+=> "h"
+> a.codePoint()
+=> 104
+> a = "你好"
+=> "你好"
+> a.codePoint()
+=> 20320
+> a = "你"
+=> "你"
+> a.codePoint()
+=> 20320
+```
+
+At last, I will show you the performance of `length` attribute and `toNum` method.
+
+```
+> a  = "hello world"
+=> "hello world"
+> a.length
+=> 11
+> a = "蓝智恒"
+=> "蓝智恒"
+> a.length
+=> 3
+```
+
+As you can see, the `length` attribute will return the count of UTF-8 characters to you not just the count of bytes.
+
+```
+> a = "hello"
+=> "hello"
+> a.toNum()
+=> 0
+> a = "212.333"
+=> "212.333"
+> a.toNum()
+=> 212.333000
+```
+
+Finally, the `toNum` method is similar to Ruby's `Number#to_i` of `Number#to_f` methods. if the string can not convert to number they will return `0` to the caller.
+
 # Math
 
 Math is a special hash object, of cause the simplest one. It just contains some method, have not ability to create some new instances.
