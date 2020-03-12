@@ -104,6 +104,7 @@ static int brute_force_search(char * text, char * pattern, uint32_t n, uint32_t 
     }
     if(j == m) {
       ret = i;
+      break;
     }
   }
 
@@ -122,12 +123,12 @@ static TString * slice(bean_State * B, TString * origin, uint32_t start, uint32_
   return result;
 }
 
-static TString * case_transform(bean_State * B, TValue * this, char begin, char diff) {
-  assert(ttisstring(this));
-  uint32_t total = tslen(svalue(this));
+static TString * case_transform(bean_State * B, TValue * target, char begin, char diff) {
+  assert_with_message(ttisstring(target), "You must provide the string instance to transform.");
+  uint32_t total = tslen(svalue(target));
 
   TString * result = beanS_newlstr(B, "", total);
-  char * origin = getstr(svalue(this));
+  char * origin = getstr(svalue(target));
   char * pointer = getstr(result);
 
   for (uint32_t i = 0; i < total; i++) {
@@ -181,16 +182,15 @@ bool beanS_equal(TString * ts1, TString * ts2) {
 }
 
 static TValue * primitive_String_equal(bean_State * B UNUSED, TValue * this, TValue * args, int argc) {
-  assert(ttisstring(this));
   assert(argc == 1);
+  assert_with_message(argc >= 1 && ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
   TValue arg1 = args[0];
   return beanS_equal(svalue(this), svalue(&arg1)) ? G(B)->tVal : G(B)->fVal;
 }
 
 static TValue * primitive_String_concat(bean_State * B, TValue * this, TValue * args, int argc) {
-  TValue * ret = malloc(sizeof(TValue));
-  assert(ttisstring(this));
-  assert(argc == 1);
+  TValue * ret = TV_MALLOC;
+  assert_with_message(argc >= 1 && ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
   TValue arg1 = args[0];
   uint32_t argLen = tslen(svalue(&arg1));
   char * argp = getstr(svalue(&arg1));
@@ -220,8 +220,7 @@ TValue * concat(bean_State * B, TValue * left, TValue * right) {
 }
 
 static TValue * primitive_String_trim(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  assert(ttisstring(this));
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   uint32_t start = 0, end = tslen(svalue(this)) - 1;
   TString * origin = svalue(this);
   char * charp = getstr(origin);
@@ -232,18 +231,18 @@ static TValue * primitive_String_trim(bean_State * B, TValue * this, TValue * ar
 }
 
 static TValue * primitive_String_downcase(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   setsvalue(ret, case_transform(B, this, 'A', 'a' - 'A'));
   return ret;
 }
 static TValue * primitive_String_upcase(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   setsvalue(ret, case_transform(B, this, 'a', 'A' - 'a'));
   return ret;
 }
 
 static TValue * primitive_String_capitalize(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   TString * ts = case_transform(B, this, 'A', 0);
   char * c = getstr(ts);
   char diff = 'A' - 'a';
@@ -253,8 +252,7 @@ static TValue * primitive_String_capitalize(bean_State * B, TValue * this, TValu
 }
 
 static TValue * primitive_String_codePoint(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  assert(ttisstring(this));
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   TString * ts = svalue(this);
   char * string = getstr(ts);
   int i = 0;
@@ -264,8 +262,7 @@ static TValue * primitive_String_codePoint(bean_State * B UNUSED, TValue * this,
 }
 
 static TValue * primitive_String_length(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  assert(ttisstring(this));
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   TString * ts = svalue(this);
   char * string = getstr(ts);
   setnvalue(ret, u8_strlen(string));
@@ -273,11 +270,9 @@ static TValue * primitive_String_length(bean_State * B UNUSED, TValue * this, TV
 }
 
 static TValue * primitive_String_indexOf(bean_State * B UNUSED, TValue * this, TValue * args, int argc) {
-  TValue * ret = malloc(sizeof(TValue));
-  assert(ttisstring(this));
-  assert(argc == 1);
+  TValue * ret = TV_MALLOC;
+  assert_with_message(argc >= 1 && ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
   TValue pattern = args[0];
-  assert(ttisstring(&pattern));
   TString * t = svalue(this);
   TString * p = svalue(&pattern);
   int iVal = brute_force_search_utf8(getstr(t), getstr(p), tslen(t), tslen(p));
@@ -286,8 +281,7 @@ static TValue * primitive_String_indexOf(bean_State * B UNUSED, TValue * this, T
 }
 
 static TValue * primitive_String_includes(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisstring(this));
-  assert(argc == 1);
+  assert_with_message(argc >= 1 && ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
   TValue pattern = args[0];
   assert(ttisstring(&pattern));
   TString * t = svalue(this);
@@ -297,9 +291,11 @@ static TValue * primitive_String_includes(bean_State * B, TValue * this, TValue 
 }
 
 static TValue * primitive_String_split(bean_State * B UNUSED, TValue * this, TValue * args, int argc) {
-  assert(ttisstring(this));
-  assert(argc < 2);
-  TValue * ret = malloc(sizeof(TValue));
+  if (argc >= 1) {
+    assert_with_message(ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
+  }
+
+  TValue * ret = TV_MALLOC;
   Array * arr = init_array(B);
   TString * ts = svalue(this);
   int len = tslen(ts);
@@ -317,8 +313,8 @@ static TValue * primitive_String_split(bean_State * B UNUSED, TValue * this, TVa
 
       if (dslen == 0) u8_nextchar(res, &iVal);
 
-      if (iVal > 0) {
-        TValue * newObj = malloc(sizeof(TValue));
+      if (iVal >= 0) {
+        TValue * newObj = TV_MALLOC;
         TString * newStr = beanS_newlstr(B, res, iVal);
         setsvalue(newObj, newStr);
         array_push(B, arr, newObj);
@@ -327,7 +323,7 @@ static TValue * primitive_String_split(bean_State * B UNUSED, TValue * this, TVa
       len = len - dslen - iVal;
     }
   } else {
-    TValue * str = malloc(sizeof(TValue));
+    TValue * str = TV_MALLOC;
     setsvalue(str, ts);
     array_push(B, arr, str);
   }
@@ -337,14 +333,9 @@ static TValue * primitive_String_split(bean_State * B UNUSED, TValue * this, TVa
 }
 
 static TValue * primitive_String_charAt(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisstring(this));
-  assert(argc);
-  TValue * ret = malloc(sizeof(TValue));
+  assert_with_message(argc >= 1 && ttisnumber(&args[0]), "Please pass a number as parameter.");
+  TValue * ret = TV_MALLOC;
   TValue indexVal = args[0];
-
-  if (!ttisinteger(&indexVal)) {
-    eval_error(B, "%s", "The first arguments must be integer");
-  }
 
   int index = nvalue(&indexVal);
   char * string = getstr(svalue(this));
@@ -369,39 +360,40 @@ static TValue * primitive_String_charAt(bean_State * B, TValue * this, TValue * 
 }
 
 static TValue * primitive_String_toNumber(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  assert(ttisstring(this));
   char * string = getstr(svalue(this));
-  TValue * ret = malloc(sizeof(TValue));
-
+  TValue * ret = TV_MALLOC;
   double number = strtod(string, NULL);
   setnvalue(ret, number);
   return ret;
 }
 
-
 static TValue * primitive_String_slice(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisstring(this));
-  assert(argc);
-  TValue * ret = malloc(sizeof(TValue));
-  if (argc != 2) {
-    eval_error(B, "%s", "You must pass two arguments to call the slice method.");
+  TValue * ret = TV_MALLOC;
+
+  if (!argc) {
+    TString * ts = svalue(this);
+    setsvalue(ret, ts);
+    return ret;
   }
 
-  TValue sVal = args[0];
-  TValue eVal = args[1];
-
-  if (!ttisinteger(&sVal)) {
-    eval_error(B, "%s", "The first arguments must be integer");
-  }
-
-  if (!ttisinteger(&eVal)) {
-    eval_error(B, "%s", "The second arguments must be integer");
-  }
-
-  int start = nvalue(&sVal);
-  int end = nvalue(&eVal);
   char * string = getstr(svalue(this));
   int len = u8_strlen(string);
+  int start = 0;
+  int end = len;
+
+  if (argc >= 1) {
+    assert_with_message(ttisnumber(&args[0]), "Please pass a number as first parameter.");
+
+    TValue sVal = args[0];
+    start = nvalue(&sVal);
+  }
+
+  if (argc >= 2) {
+    assert_with_message(ttisnumber(&args[1]), "Please pass a number as second parameter.");
+
+    TValue eVal = args[1];
+    end = nvalue(&eVal);
+  }
 
   if (start >= len) start = len;
   if (end >= len) end = len;
@@ -409,7 +401,7 @@ static TValue * primitive_String_slice(bean_State * B, TValue * this, TValue * a
   if (start < 0) start = start + len;
   if (end < 0) end = end + len + 1;
 
-  assert(start <= end);
+  assert_with_message(start <= end, "End index must greater than start index.");
 
   int startIndex = 0;
   int endIndex = 0;
@@ -427,7 +419,7 @@ static TValue * primitive_String_slice(bean_State * B, TValue * this, TValue * a
 }
 
 TValue * init_String(bean_State * B) {
-  TValue * proto = malloc(sizeof(TValue));
+  TValue * proto = TV_MALLOC;
   Hash * h = init_hash(B);
   global_State * G = B->l_G;
 
@@ -447,7 +439,7 @@ TValue * init_String(bean_State * B) {
   set_prototype_function(B, "codePoint", 9, primitive_String_codePoint, hhvalue(proto));
   set_prototype_function(B, "toNum", 5, primitive_String_toNumber, hhvalue(proto));
 
-  TValue * string = malloc(sizeof(TValue));
+  TValue * string = TV_MALLOC;
   setsvalue(string, beanS_newlstr(B, "String", 6));
   hash_set(B, G->globalScope->variables, string, proto);
   return proto;
