@@ -431,6 +431,192 @@ As you can see, the `length` attribute will return the count of UTF-8 characters
 
 Finally, the `toNum` method is similar to Ruby's `Number#to_i` of `Number#to_f` methods. if the string can not convert to number they will return `0` to the caller.
 
+# Array
+
+## Basic methods
+
+Let's talk about array data structure in Bean. As begining I will show you some basic method of array. They are `pop/0`, `push/1`, `unshift/1`, `shift/0`, `join/1`, `reverse/0` and `includes/1`, respectively.
+
+When you see the name of the method, you can guess what their work. 
+
+```
+> a = [1, "a", "b", true]
+=> [1, "a", "b", true]
+> a.pop()
+=> true
+> a
+=> [1, "a", "b"]
+> a.pop()
+=> "b"
+> a
+=> [1, "a"]
+```
+
+As you can see, `pop/0` method will pop the last item from the array. The fist one be poped is `true` value, the second is string `"b"`.
+
+`push/1` method is opposite to `pop/0`, you can push items back like this.
+
+```
+> a
+=> [1, "a"]
+> a.push("b")
+=> 3
+> a.push(true)
+=> 4
+> a
+=> [1, "a", "b", true]
+```
+
+Another thing you need to notice is when push successfully, it will return the size of current array.
+
+`shift/0` and `unshift/1` are similar to `pop/0` and `push/1`. The difference is that they handle the item at the head of the array, not tail.
+
+```
+> a = [1, "a", "b", true]
+=> [1, "a", "b", true]
+> a.shift()
+=> 1
+> a.shift()
+=> "a"
+```
+
+OK, at this case, the first item be "pop" is number `1`, the second is string `"a"`. Let's use `unshift/1` to "push" back them.
+
+```
+> a
+=> [1, "a"]
+> a.unshift("a")
+=> 3
+> a.unshift(1)
+=> 4
+> a
+=> [1, "a", "b", true]
+```
+
+Otherwise, you can reverse the array by using `reverse/1` method.
+
+```
+> a = [1, 2, 3, 4, 6]
+=> [1, 2, 3, 4, 6]
+> a.reverse()
+=> [6, 4, 3, 2, 1]
+> a
+=> [6, 4, 3, 2, 1]
+```
+
+It will change the original order of the array, and return it back. And if you want to check if array contains the expect item, `includes/1` is your choice.
+
+```
+> a = [1, "lan", "ruby"]
+=> [1, "lan", "ruby"]
+> a.includes(false)
+=> false
+> a.includes("lan")
+=> true
+```
+
+Almost, there are all the basic of array. Oh, leak one, the `length` attribute.
+
+```
+> a
+=> [1, "a", "b", true]
+> a.length
+=> 4
+> b = [1,2]
+=> [1, 2]
+> b.length
+=> 2
+```
+
+## Methods with callback
+
+Bean also provides some functional methods which can accept callback. They are `map/1`, ``reduce/1`, `each/1`, `filter/1` and `find/1`.
+
+The `map/1` method accept a callback function as parameter, and then use this call back method to handle all items in array. Finally base of each return value from function's calling it will build a new array.
+
+```
+> a= [1,2,3,4,5,6]
+=> [1, 2, 3, 4, 5, 6]
+> a.map(fn(x) { x * 2 })
+=> [2, 4, 6, 8, 10, 12]
+> a.map(fn(x, y) { x * y })
+=> [0, 2, 6, 12, 20, 30]
+```
+
+You may notice two things. The first is that the keyword to define a function in Bean is `fn`. The second is that the first argument for the callback method is the item in array, the second is the index of the relevent item. This mechanism similar to JavaScript.
+
+Next, Let's check `each/1` method. it is similar to `map/1`, the difference is that it will not build a new array. it will return the original one. You can use it to finish some complex logic if you do not want to build a new array.
+
+```
+> a= [1,2,3,4,5,6].reverse()
+> a.each(fn(x, y) { print(y) })
+0
+1
+2
+3
+4
+5
+=> [6, 5, 4, 3, 2, 1]
+> a.each(fn(x, y) { print(x) })
+6
+5
+4
+3
+2
+1
+=> [6, 5, 4, 3, 2, 1]
+```
+
+Next, Let's try to find item by `find/1` with condition from the result of the callback. If you want to find item which greater than number `3` in the array, you can use this code.
+
+```
+> a = [1,2,3,4,5,6]
+=> [1, 2, 3, 4, 5, 6]
+> a.find(fn (x, y) { x > 3 })
+=> 4
+```
+
+But, `find/1` method just can return only one item which match the condition. If you want to get all of them, please use `filter/1`.
+
+```
+> a
+=> [1, 2, 3, 4, 5, 6]
+> a.filter(fn (x, y) { x > 3 })
+=> [4, 5, 6]
+```
+
+That's all? No. we need to talk about the last one, `reduce/1` method. it will accept two parameter, first is callback, second is the initial value of the flow. what flow? if you want to add from 1 to 10, you can do it by `reduce/1`.
+
+```
+> a = [1,2,3,4,5,6,7,8,9,10]
+=> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+> a.reduce(fn(a,b) { a + b }, 0)
+=> 55
+> a.reduce(fn(a,b) { print(b); a + b }, 0)
+0
+1
+3
+6
+10
+15
+21
+28
+36
+45
+=> 55
+```
+
+You can see that the second parameter in callback will be the result of previous result of the callback. In the first round it will use the initial value.
+
+No, You can simpily multiply from 1 to 10 by seting number `1` as the initial value.
+
+```
+> a = [1,2,3,4,5,6,7,8,9,10]
+=> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+> a.reduce(fn(a,b) { a * b }, 1)
+=> 3628800
+```
+
 # Math
 
 Math is a special hash object, of cause the simplest one. It just contains some method, have not ability to create some new instances.

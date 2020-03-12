@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <assert.h>
 #include "mem.h"
 #include "barray.h"
 #include "bstate.h"
@@ -117,63 +116,76 @@ bool array_unshift(bean_State * B, Array * arr, TValue * value) {
   return true;
 }
 
-TValue * primitive_Array_shift(bean_State * B, TValue * this, TValue * args UNUSED, int argc) {
-  assert(ttisarray(this));
-  assert(argc == 0);
+TValue * primitive_Array_shift(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
   Array * array = arrvalue(this);
   return array_shift(B, array);
 }
 
-static TValue * primitive_Array_pop(bean_State * B, TValue * this, TValue * args UNUSED, int argc) {
-  assert(ttisarray(this));
-  assert(argc == 0);
+static TValue * primitive_Array_pop(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
   Array * array = arrvalue(this);
   return array_pop(B, array);
 }
 
 static TValue * primitive_Array_push(bean_State * B, TValue * this, TValue * args, int argc) {
-  TValue * ret = malloc(sizeof(TValue));
-  assert(ttisarray(this));
-  assert(argc < 2);
+  TValue * ret = TV_MALLOC;
+  assert_with_message(argc >= 1, "Please pass a value as parameter");
 
   Array * array = arrvalue(this);
-  if (argc) {
-    TValue * element = &args[0];
-    array_push(B, array, element);
-  }
-
+  TValue * element = &args[0];
+  array_push(B, array, element);
   uint32_t count = array->count;
   setnvalue(ret, count);
   return ret;
 }
 
 static TValue * primitive_Array_unshift(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisarray(this));
-  assert(argc < 2);
-  TValue * ret = malloc(sizeof(TValue));
-
+  assert_with_message(argc >= 1, "Please pass a value as parameter");
+  TValue * ret = TV_MALLOC;
   Array * array = arrvalue(this);
-  if (argc) {
-    TValue * element = &args[0];
-    array_unshift(B, array, element);
-  }
-
+  TValue * element = &args[0];
+  array_unshift(B, array, element);
   uint32_t count = array->count;
   setnvalue(ret, count);
   return ret;
 }
 
+static TValue * primitive_Array_includes(bean_State * B, TValue * this, TValue * args, int argc) {
+  assert_with_message(argc >= 1, "Please pass a value as parameter");
+  TValue target = args[0];
+  Array * arr = arrvalue(this);
+
+  for (uint32_t i = 0; i < arr->count; i++) {
+    if (check_equal(&target, array_get(B, arr, i))) {
+      return G(B)->tVal;
+    }
+  }
+  return G(B)->fVal;
+}
+
+static TValue * primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED) {
+  Array * arr = arrvalue(this);
+
+  for (uint32_t i = 0; i < arr->count / 2; i++) {
+    TValue * temp = arr->entries[i];
+    arr->entries[i] = arr->entries[arr->count-i-1];
+    arr->entries[arr->count-i-1] = temp;
+  }
+
+  return this;
+}
+
 static TValue * primitive_Array_join(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisarray(this));
-  assert(argc < 2);
-  TValue * ret = malloc(sizeof(TValue));
+  if (argc >= 1) {
+    assert_with_message(ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
+  }
+
+  TValue * ret = TV_MALLOC;
   Array * array = arrvalue(this);
   uint32_t total = 0;
   TString * dts;
 
   if (argc) {
     TValue delimiter = args[0];
-    assert(ttisstring(&delimiter));
     dts = svalue(&delimiter);
   } else {
     dts = beanS_newlstr(B, ",", 1);
@@ -209,31 +221,34 @@ static TValue * primitive_Array_join(bean_State * B, TValue * this, TValue * arg
   return ret;
 }
 
-static TValue * primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisarray(this));
-  assert(argc == 1);
+static TValue * primitive_Array_length(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED) {
+  TValue * ret = TV_MALLOC;
+  Array * array = arrvalue(this);
+  setnvalue(ret, array->count);
+  return ret;
+}
 
+static TValue * primitive_Array_map(bean_State * B, TValue * this, TValue * args, int argc) {
+  assert_with_message(argc >= 1 && ttisfunction(&args[0]), "Please pass a function as parameter");
   TValue callback = args[0];
-  TValue * ret = malloc(sizeof(TValue));
-  assert(ttisfunction(&callback));
-  assert(fcvalue(&callback)->p->arity >= 1);
+  TValue * ret = TV_MALLOC;
 
   Array * arr = arrvalue(this);
   Array * newarr = init_array(B);
   Function * f = fcvalue(&callback);
-  TValue * key = malloc(sizeof(TValue));
+  TValue * key = TV_MALLOC;
 
   uint32_t argIdx = 0;
   setsvalue(key, f->p->args[argIdx++]);
 
   TValue * idxName = NULL;
   if (f->p->arity == 2) {
-    idxName = malloc(sizeof(TValue));
+    idxName = TV_MALLOC;
     setsvalue(idxName, f->p->args[argIdx++]);
   }
 
   for (uint32_t i = 0; i < arr->count; i++) {
-    TValue * index = malloc(sizeof(TValue));
+    TValue * index = TV_MALLOC;
     TValue * item = NULL;
     call_stack_create_frame(B, this);
     enter_scope(B);
@@ -246,7 +261,7 @@ static TValue * primitive_Array_map(bean_State * B, TValue * this, TValue * args
     }
 
     for (int m = argIdx; m < f->p->arity; m++) { // All extra is nil
-      TValue * extra = malloc(sizeof(TValue));
+      TValue * extra = TV_MALLOC;
       setsvalue(extra, f->p->args[m]);
       SCSV(B, extra, G(B)->nil);
     }
@@ -271,34 +286,79 @@ static TValue * primitive_Array_map(bean_State * B, TValue * this, TValue * args
   return ret;
 }
 
-static TValue * primitive_Array_reverse(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc) {
-  assert(ttisarray(this));
-  assert(argc == 0);
+static TValue * primitive_Array_filter(bean_State * B, TValue * this, TValue * args, int argc) {
+  assert_with_message(argc >= 1 && ttisfunction(&args[0]), "Please pass a function as parameter");
+  TValue callback = args[0];
+  TValue * ret = TV_MALLOC;
 
   Array * arr = arrvalue(this);
+  Array * newarr = init_array(B);
+  Function * f = fcvalue(&callback);
+  TValue * key = TV_MALLOC;
 
-  for (uint32_t i = 0; i < arr->count / 2; i++) {
-    TValue * temp = arr->entries[i];
-    arr->entries[i] = arr->entries[arr->count-i-1];
-    arr->entries[arr->count-i-1] = temp;
+  uint32_t argIdx = 0;
+  setsvalue(key, f->p->args[argIdx++]);
+
+  TValue * idxName = NULL;
+  if (f->p->arity == 2) {
+    idxName = TV_MALLOC;
+    setsvalue(idxName, f->p->args[argIdx++]);
   }
 
-  return this;
+  for (uint32_t i = 0; i < arr->count; i++) {
+    TValue * index = TV_MALLOC;
+    TValue * item = NULL;
+    call_stack_create_frame(B, this);
+    enter_scope(B);
+
+    SCSV(B, key, arr->entries[i]);
+
+    if (f->p->arity == 2) {
+      setnvalue(index, i);
+      SCSV(B, idxName, index);
+    }
+
+    for (int m = argIdx; m < f->p->arity; m++) { // All extra is nil
+      TValue * extra = TV_MALLOC;
+      setsvalue(extra, f->p->args[m]);
+      SCSV(B, extra, G(B)->nil);
+    }
+
+    set_self_before_caling(B, this);
+    for (int j = 0; j < f->body->count; j++) {
+      expr * ex = f->body->es[j];
+      item = eval(B, ex);
+
+      if (call_stack_peek(B)) {
+        item = call_stack_peek_return(B);
+        break;
+      };
+    }
+
+    if (truthvalue(item)) {
+      array_push(B, newarr, arr->entries[i]);
+    }
+
+    leave_scope(B);
+    call_stack_restore_frame(B);
+  }
+
+  setarrvalue(ret, newarr);
+  return ret;
 }
 
 static TValue * primitive_Array_reduce(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisarray(this));
-  assert(argc == 2);
+  assert_with_message(argc >= 2, "Please pass two parameters for this method, first as callback, second as initial value");
+  assert_with_message(ttisfunction(&args[0]), "Please pass a function as parameter");
 
   TValue callback = args[0];
-  assert(ttisfunction(&callback));
 
   Array * arr = arrvalue(this);
   TValue * val = &args[1];
   Function * f = fcvalue(&callback);
-  TValue * elem = malloc(sizeof(TValue));
+  TValue * elem = TV_MALLOC;
   setsvalue(elem, f->p->args[0]);
-  TValue * acc = malloc(sizeof(TValue));
+  TValue * acc = TV_MALLOC;
   setsvalue(acc, f->p->args[1]);
 
   for (uint32_t i = 0; i < arr->count; i++) {
@@ -309,7 +369,7 @@ static TValue * primitive_Array_reduce(bean_State * B, TValue * this, TValue * a
     SCSV(B, acc, val);
 
     for (int m = 2; m < f->p->arity; m++) { // All extra is nil
-      TValue * extra = malloc(sizeof(TValue));
+      TValue * extra = TV_MALLOC;
       setsvalue(extra, f->p->args[m]);
       SCSV(B, extra, G(B)->nil);
     }
@@ -331,30 +391,27 @@ static TValue * primitive_Array_reduce(bean_State * B, TValue * this, TValue * a
 }
 
 static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisarray(this));
-  assert(argc == 1);
+  assert_with_message(argc >= 1 && ttisfunction(&args[0]), "Please pass a function as parameter");
 
   TValue callback = args[0];
-  assert(ttisfunction(&callback));
-  assert(fcvalue(&callback)->p->arity >= 1);
 
   Array * arr = arrvalue(this);
   Function * f = fcvalue(&callback);
 
   uint32_t argIdx = 0;
 
-  TValue * item = malloc(sizeof(TValue));
+  TValue * item = TV_MALLOC;
   setsvalue(item, f->p->args[argIdx++]);
-  TValue * retVal = malloc(sizeof(TValue));
+  TValue * retVal = TV_MALLOC;
 
   TValue * idxName = NULL;
   if (f->p->arity == 2) {
-    idxName = malloc(sizeof(TValue));
+    idxName = TV_MALLOC;
     setsvalue(idxName, f->p->args[argIdx++]);
   }
 
   for (uint32_t i = 0; i < arr->count; i++) {
-    TValue * index = malloc(sizeof(TValue));
+    TValue * index = TV_MALLOC;
     call_stack_create_frame(B, this);
     enter_scope(B);
 
@@ -366,7 +423,7 @@ static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * arg
     }
 
     for (int m = argIdx; m < f->p->arity; m++) { // All extra is nil
-      TValue * extra = malloc(sizeof(TValue));
+      TValue * extra = TV_MALLOC;
       setsvalue(extra, f->p->args[m]);
       SCSV(B, extra, G(B)->nil);
     }
@@ -390,32 +447,15 @@ static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * arg
   return this;
 }
 
-static TValue * primitive_Array_includes(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisarray(this));
-  assert(argc >= 1);
-  TValue target = args[0];
-  Array * arr = arrvalue(this);
-
-  for (uint32_t i = 0; i < arr->count; i++) {
-    if (check_equal(&target, array_get(B, arr, i))) {
-      return G(B)->tVal;
-    }
-  }
-  return G(B)->fVal;
-}
-
 static TValue * primitive_Array_find(bean_State * B, TValue * this, TValue * args, int argc) {
-  assert(ttisarray(this));
-  assert(argc == 1);
+  assert_with_message(argc >= 1 && ttisfunction(&args[0]), "Please pass a function as parameter");
 
   TValue callback = args[0];
-  assert(ttisfunction(&callback));
-  assert(fcvalue(&callback)->p->arity >= 1);
 
   Array * arr = arrvalue(this);
   TValue * val = G(B)->nil;
   Function * f = fcvalue(&callback);
-  TValue * key = malloc(sizeof(TValue));
+  TValue * key = TV_MALLOC;
   setsvalue(key, f->p->args[0]);
 
   TValue * retVal = NULL;
@@ -426,7 +466,7 @@ static TValue * primitive_Array_find(bean_State * B, TValue * this, TValue * arg
     SCSV(B, key, arr->entries[i]);
 
     for (int m = 1; m < f->p->arity; m++) { // All extra is nil
-      TValue * extra = malloc(sizeof(TValue));
+      TValue * extra = TV_MALLOC;
       setsvalue(extra, f->p->args[m]);
       SCSV(B, extra, G(B)->nil);
     }
@@ -453,17 +493,9 @@ static TValue * primitive_Array_find(bean_State * B, TValue * this, TValue * arg
   return val;
 }
 
-static TValue * primitive_Array_length(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  assert(ttisarray(this));
-  TValue * ret = malloc(sizeof(TValue));
-  Array * array = arrvalue(this);
-  setnvalue(ret, array->count);
-  return ret;
-}
-
 TValue * init_Array(bean_State * B) {
   global_State * G = B->l_G;
-  TValue * proto = malloc(sizeof(TValue));
+  TValue * proto = TV_MALLOC;
   Hash * h = init_hash(B);
 
   sethashvalue(proto, h);
@@ -473,17 +505,18 @@ TValue * init_Array(bean_State * B) {
   set_prototype_function(B, "shift", 5, primitive_Array_shift, hhvalue(proto));
   set_prototype_function(B, "unshift", 7, primitive_Array_unshift, hhvalue(proto));
   set_prototype_function(B, "reverse", 7, primitive_Array_reverse, hhvalue(proto));
+  set_prototype_function(B, "includes", 8, primitive_Array_includes, hhvalue(proto));
 
   // Need callback
   set_prototype_function(B, "find", 4, primitive_Array_find, hhvalue(proto));
   set_prototype_function(B, "map", 3, primitive_Array_map, hhvalue(proto));
   set_prototype_function(B, "reduce", 6, primitive_Array_reduce, hhvalue(proto));
   set_prototype_function(B, "each", 4, primitive_Array_each, hhvalue(proto));
-  set_prototype_function(B, "includes", 8, primitive_Array_includes, hhvalue(proto));
+  set_prototype_function(B, "filter", 6, primitive_Array_filter, hhvalue(proto));
 
   set_prototype_getter(B, "length", 6, primitive_Array_length, hhvalue(proto));
 
-  TValue * array = malloc(sizeof(TValue));
+  TValue * array = TV_MALLOC;
   setsvalue(array, beanS_newlstr(B, "Array", 5));
   hash_set(B, G->globalScope->variables, array, proto);
   return proto;
