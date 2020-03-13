@@ -6,7 +6,6 @@
 #include "bstate.h"
 #include "bobject.h"
 #include "blex.h"
-#include "lgc.h"
 
 #define MEMERRMSG       "not enough memory"
 #define HASHLIMIT		5

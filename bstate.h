@@ -26,19 +26,6 @@ typedef struct stringtable {
 #define GGSV(B, key)   (hash_get(B, GS(B)->variables, key))
 
 #define TV_MALLOC malloc(sizeof(TValue))
-/*
-** Union of all collectable objects (only for conversions)
-*/
-union GCUnion {
-  GCObject gc;  /* common header */
-  struct TString ts;
-  /* struct Udata u; */
-  /* union Closure cl; */
-  /* struct Table h; */
-  /* struct Proto p; */
-  /* struct lua_State th;  /\* thread *\/ */
-  /* struct UpVal upv; */
-};
 
 typedef struct bean_State {
   size_t allocateBytes;
@@ -183,13 +170,6 @@ typedef struct expr {
     } branch;
   };
 } expr;
-
-
-#define cast_u(o)	cast(union GCUnion *, (o))
-
-/* macros to convert a GCObject into a specific value */
-#define gco2ts(o)  \
-        check_exp(novariant((o)->tt) == BEAN_TSTRING, &((cast_u(o))->ts))
 
 #define add(a, b) (a + b)
 #define sub(a, b) (a - b)

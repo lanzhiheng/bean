@@ -6,8 +6,6 @@
 
 typedef struct bean_State bean_State;
 
-#define beanM_newobject(B,tag,s)	old_beanM_malloc_(B, (s), tag)
-
 #define beanM_limitN(n, t) \
   ((cast_sizet(n) <= MAX_SIZET/sizeof(t)) ? (n) : cast_uint((MAX_SIZET/sizeof(t))))
 
@@ -31,6 +29,5 @@ typedef struct bean_State bean_State;
 
 void * beanM_realloc_(bean_State * B, void *ptr, size_t oldSize, size_t newSize);
 void * beanM_grow_(bean_State * B, void * block, int n, int *psize, int size_elems, int limit, const char * what);
-void * old_beanM_malloc_ (bean_State *B UNUSED, size_t size, int tag UNUSED);
 
 #endif
