@@ -3,16 +3,6 @@
 #include "bparser.h"
 #include "utf8.h"
 
-static TString *createstrobj (bean_State * B, size_t l, int tag, unsigned int h) {
-  size_t totalsize = sizeofstring(l);
-  GCObject * gc = beanC_newobj(B, tag, totalsize);
-  TString *ts = gco2ts(gc);
-  ts->hash = h;
-  ts->reserved = 0;
-  getstr(ts)[l] = '\0';
-  return ts;
-}
-
 static void tablerehash (TString **vect, int osize, int nsize) {
   int i;
 
@@ -166,7 +156,11 @@ TString * beanS_newlstr (bean_State * B, const char *str, size_t l) {
     list = &tb->hash[bmod(h, tb->size)];  /* rehash with new size */
   }
 
-  ts = createstrobj(B, l, BEAN_TSTRING, h);
+  ts = malloc(sizeofstring(l));
+  ts->hash = h;
+  ts->reserved = 0;
+  getstr(ts)[l] = '\0';
+  ts -> tt = BEAN_TSTRING;
   memcpy(getstr(ts), str, l);
   ts -> len = l;
   ts -> hnext = *list;

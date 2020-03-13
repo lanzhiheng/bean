@@ -8,12 +8,6 @@
 */
 #define MINSIZEARRAY	4
 
-// TODO: Remove it later
-void * old_beanM_malloc_ (bean_State *B UNUSED, size_t size, int tag UNUSED) {
-  void * ptr = malloc(size);
-  return ptr;
-}
-
 void * beanM_realloc_(bean_State * B, void *ptr, size_t oldSize, size_t newSize) {
   B -> allocateBytes += newSize - oldSize;
 
