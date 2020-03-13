@@ -1,5 +1,0 @@
-assert(JSON.__proto__, Hash)
-assert(Array.__proto__, Hash)
-assert(Hash.__proto__, nil)
-assert(String.__proto__, Hash)
-assert(Number.__proto__, Hash)

@@ -69,6 +69,12 @@ reduceResult = reduceStrArray.reduce(fn(a,b) {
 }, "")
 assert(reduceResult, "lanzhihengzhiheng")
 
+filterArray = [1, 2, 3, 4, 5]
+filterResult = filterArray.filter(fn(a,b) {
+  a > 3
+})
+assert(filterResult, [4, 5])
+
 reverseArray = [1, 2, 3, 4, "string"]
 assert(reverseArray.reverse(), ["string", 4, 3, 2, 1])
 assert(reverseArray, ["string", 4, 3, 2, 1])

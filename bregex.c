@@ -77,8 +77,7 @@ TValue * init_regex(bean_State * B, char * matchStr, char * modeStr) {
 
 // Build the regex
 static TValue * primitive_Regex_build(bean_State * B, TValue * this, TValue * args UNUSED, int argc) {
-  assert(ttishash(this));
-  assert(argc >= 1);
+  assert_with_message(this == G(B)->rproto, "Just the Regex instance can call this method.");
   TValue * match = &args[0];
   assert(ttisstring(match));
 
@@ -97,8 +96,7 @@ static TValue * primitive_Regex_build(bean_State * B, TValue * this, TValue * ar
 }
 
 static TValue * primitive_Regex_test(bean_State * B, TValue * this, TValue * args UNUSED, int argc) {
-  assert(ttisregex(this));
-  assert(argc == 1);
+  assert_with_message(argc >= 1 && ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
   Regex * regex = regexvalue(this);
   regex_t r = regex -> rr;
 
@@ -111,8 +109,7 @@ static TValue * primitive_Regex_test(bean_State * B, TValue * this, TValue * arg
 }
 
 static TValue * primitive_Regex_exec(bean_State * B, TValue * this, TValue * args UNUSED, int argc) {
-  assert(ttisregex(this));
-  assert(argc == 1);
+  assert_with_message(argc >= 1 && ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
   Regex * regex = regexvalue(this);
   regex_t r = regex -> rr;
 

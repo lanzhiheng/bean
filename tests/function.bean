@@ -1,3 +1,11 @@
+fn simple(a, b) {
+  return b
+}
+
+assert(simple(1, 2), 2)
+assert(simple(1, 3), 3)
+assert(simple(1), nil)
+
 fn sum1(i) {
   if (i > 1) {
     return sum1(i - 1) + i

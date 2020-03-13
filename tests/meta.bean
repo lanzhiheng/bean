@@ -6,3 +6,15 @@ assert(Math.__proto__, Meta)
 assert(Regex.__proto__, Meta)
 assert(Date.__proto__, Meta)
 assert(HTTP.__proto__, Meta)
+assert(Meta.__proto__, nil)
+
+a = 1
+assert(a.__proto__, Number)
+a = "lan"
+assert(a.__proto__, String)
+a = []
+assert(a.__proto__, Array)
+a = {}
+assert(a.__proto__, Hash)
+a = Regex.build("hello")
+assert(a.__proto__, Regex)
