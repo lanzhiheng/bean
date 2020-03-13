@@ -698,6 +698,34 @@ There are some example for them.
 
 OK, that all for Math library, so easy right?
 
+# Hash
+
+Hash data structure in Bean, is similar to the Object in JavaScript. For simplicity, it is the only data structure can be inherited.
+
+Hash is a key-value system. so sometime you want to get all the key of it. We can use `keys/0` to get the result, the keys will be included in an array.
+
+```
+> a = {name: "lanzhiheng", age: "xx"}
+=> {name: "lanzhiheng", age: "xx"}
+> a.keys()
+=> ["name", "age"]
+```
+
+If you what to create a new Hash which can call the methods from current Hash, just using the `clone/0` method.
+
+```
+> a = { hi: fn() { print(self) }, sayHello: fn() { print("Hello") }}
+=> {sayHello: [Function sayHello], hi: [Function hi]}
+> b = a.clone()
+=> {}
+> b.sayHello()
+Hello
+=> nil
+> b.hi()
+{}
+=> nil
+```
+
 # Date
 
 ## 1. Basic

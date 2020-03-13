@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <sys/stat.h>
+#include "bmeta.h"
 #include "bstring.h"
 #include "bnumber.h"
 #include "bmath.h"
@@ -888,6 +889,7 @@ void global_init(bean_State * B) {
   add_tools(B);
 
   G -> nil = init_Nil(B);
+  G -> meta = init_Meta(B);
   G -> nproto = init_Number(B);
   G -> sproto = init_String(B);
   G -> aproto = init_Array(B);
@@ -897,17 +899,16 @@ void global_init(bean_State * B) {
   G -> dproto = init_Date(B);
   G -> netproto = init_Http(B);
 
-  G -> nproto -> prototype = G -> hproto;
-  G -> sproto -> prototype = G -> hproto;
-  G -> aproto -> prototype = G -> hproto;
-  G -> dproto -> prototype = G -> hproto;
-  G -> rproto -> prototype = G -> hproto;
-  G -> hproto -> prototype = G -> nil;
+  G -> nproto -> prototype = G -> meta;
+  G -> sproto -> prototype = G -> meta;
+  G -> aproto -> prototype = G -> meta;
+  G -> hproto -> prototype = G -> meta;
+  G -> mproto -> prototype = G -> meta;
+  G -> rproto -> prototype = G -> meta;
+  G -> dproto -> prototype = G -> meta;
+  G -> netproto -> prototype = G -> meta;
 
-  // Can't create the instance
-  G -> mproto -> prototype = G -> nil;
-  G -> netproto -> prototype = G -> nil;
-
+  G -> meta -> prototype = G->nil;
   beanZ_initbuffer(G->callStack);
 
   TValue * self = TV_MALLOC;

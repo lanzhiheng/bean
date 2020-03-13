@@ -1,0 +1,8 @@
+assert(Number.__proto__, Meta)
+assert(String.__proto__, Meta)
+assert(Array.__proto__, Meta)
+assert(Hash.__proto__, Meta)
+assert(Math.__proto__, Meta)
+assert(Regex.__proto__, Meta)
+assert(Date.__proto__, Meta)
+assert(HTTP.__proto__, Meta)
