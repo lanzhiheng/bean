@@ -170,30 +170,15 @@ TValue * hash_remove(bean_State * B, Hash * hash, TValue * key) {
 }
 
 static TValue * primitive_Hash_clone(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   Hash * h = init_hash(B);
 
-  if (!ttishash(this)) {
-    runtime_error(B, "%s", "Just the hash can be clone!");
-  }
   sethashvalue(ret, h);
   ret->prototype = this;// reset the prototype
   return ret;
 }
 
-static TValue * primitive_Hash_proto(bean_State * B UNUSED, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  return this->prototype;
-}
-
-static TValue * primitive_Hash_toString(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  TValue * string = tvalue_inspect_pure(B, this);
-  return string;
-}
-
 static TValue * primitive_Hash_keys(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  if (!ttishash(this)) {
-    runtime_error(B, "%s", "Do not support this method");
-  }
   Hash * hash = hhvalue(this);
   Array * array = init_array(B);
 
@@ -207,55 +192,21 @@ static TValue * primitive_Hash_keys(bean_State * B, TValue * this, TValue * args
       e = e -> next;
     }
   }
-  TValue * value = malloc(sizeof(TValue));
+  TValue * value = TV_MALLOC;
   setarrvalue(value, array);
   return value;
-}
-
-static TValue * primitive_Hash_id(bean_State * B, TValue * this, TValue * args UNUSED, int argc UNUSED) {
-  char id[MAX_LEN_ID];
-  TString * ts = NULL;
-  TValue * ret = malloc(sizeof(TValue));
-
-  switch(this->tt_) {
-    case(BEAN_TSTRING): {
-      TString * ss = svalue(this);
-      sprintf(id, "%p", ss);
-      break;
-    }
-    case(BEAN_THASH): {
-      Hash * hash = hhvalue(this);
-      sprintf(id, "%p", hash);
-      break;
-    }
-    case(BEAN_TLIST): {
-      Array * arr = arrvalue(this);
-      sprintf(id, "%p", arr);
-      break;
-    }
-    default: {
-      sprintf(id, "%p", NULL);
-    }
-  }
-
-  ts = beanS_newlstr(B, id, strlen(id));
-  setsvalue(ret, ts);
-  return ret;
 }
 
 TValue * init_Hash(bean_State * B) {
   global_State * G = B->l_G;
 
-  TValue * proto = malloc(sizeof(TValue));
+  TValue * proto = TV_MALLOC;
   Hash * h = init_hash(B);
   sethashvalue(proto, h);
-  set_prototype_function(B, "id", 2, primitive_Hash_id, hhvalue(proto));
   set_prototype_function(B, "clone", 5, primitive_Hash_clone, hhvalue(proto));
-  set_prototype_function(B, "toString", 8, primitive_Hash_toString, hhvalue(proto));
   set_prototype_function(B, "keys", 4, primitive_Hash_keys, hhvalue(proto));
-  set_prototype_getter(B, "__proto__", 9, primitive_Hash_proto, hhvalue(proto));
 
-  TValue * hash = malloc(sizeof(TValue));
+  TValue * hash = TV_MALLOC;
   setsvalue(hash, beanS_newlstr(B, "Hash", 4));
   hash_set(B, G->globalScope->variables, hash, proto);
   return proto;

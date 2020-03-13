@@ -60,6 +60,7 @@ typedef struct global_State {
   TValue * nil;  // nil
   TValue * tVal;
   TValue * fVal;
+  TValue * meta; // Prototype for Meta
   TValue * nproto; // Prototype for Number
   TValue * sproto; // Prototype for String
   TValue * aproto; // Prototype for Array
