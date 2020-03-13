@@ -281,7 +281,8 @@ static void fetch_data(bean_State *B, char * url, Hash * params, char ** result)
 }
 
 static TValue * primitive_Http_fetch(bean_State * B, TValue * this UNUSED, TValue * args, int argc) {
-  assert(argc >= 1);
+  assert_with_message(argc >= 1 && ttisstring(&args[0]), "Please pass a valid string instance as parameter.");
+
   TValue * address = &args[0];
   assert(ttisstring(address));
   Hash * hash = NULL;

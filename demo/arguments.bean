@@ -1,7 +1,0 @@
-fn simple(a, b) {
-  return b
-}
-
-assert(simple(1, 2), 2)
-assert(simple(1, 3), 3)
-assert(simple(1), nil)

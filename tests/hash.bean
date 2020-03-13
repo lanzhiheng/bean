@@ -2,12 +2,6 @@ hash = {}
 string = ""
 array = []
 
-assert(string.__proto__, String)
-assert(array.__proto__, Array)
-assert(hash.__proto__, Hash)
-
-// test clone
-
 new1 = hash.clone()
 new1.name = 'new1'
 new2 = new1.clone()
