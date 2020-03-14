@@ -1,0 +1,44 @@
+// Else testing
+
+var a = 100
+var ifChecker = false
+var elseChecker = false
+if (a > 10) {
+  ifChecker = true
+} else {
+  elseChecker = true
+}
+
+assert(ifChecker, true)
+assert(elseChecker, false)
+
+// Elsif testing
+
+var b = 100
+
+var ifChecker = false
+var elseifChecker = false
+var elseChecker = false
+
+if (b > 200) {
+  ifChecker = true
+} elsif (b > 30) {
+  elseifChecker = true
+} else {
+  elseChecker = true
+}
+
+assert(ifChecker, false)
+assert(elseifChecker, true)
+assert(elseChecker, false)
+
+var c = 100
+var result = if (c > 200) {
+  "Result is 200"
+} elsif (c > 10) {
+  "Result is 10"
+} else {
+  "Result is 0"
+}
+
+assert(result, "Result is 10")

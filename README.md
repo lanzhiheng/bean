@@ -98,7 +98,151 @@ In this part I will show you some Syntax for Bean. About variables' assigning, f
 I don't set constant mechanism in Bean, so now it just support variable. you just need the `var` keyword to define an variable, by default `nil` will assign to it.
 
 ```
-var a = 1000
+> var a = 200
+=> 200
+> var b
+=> nil
+```
+
+If you want to access a undefined variable it will raise error.
+
+```
+> c
+EvalError: Can't reference the variable before defined.
+  from REPL:2
+```
+
+### 2. Basic Type
+
+There are six basic type in Bean, they are `number`, `boolean`, `string`, `array`, `hash` and `nil`, respectively. We can inspect the type of a variable by `typeof` statement.
+
+```
+> var num = 1
+=> 1
+> typeof num
+=> "number"
+
+> var str = "lan"
+=> "lan"
+> typeof str
+=> "string"
+
+> var bool = true
+=> "boolean"
+> typeof bool
+=> "boolean"
+
+> var n = nil
+=> nil
+> typeof n
+=> "nil"
+
+> var array = []
+=> []
+> typeof array
+=> "array"
+
+> var hash = {}
+=> {}
+> typeof hash
+=> "hash"
+```
+
+Otherwise, including some build-in library, the instances of them or themself are `hash` type.
+
+```
+> typeof Date
+=> "hash"
+> typeof Regex
+=> "hash"
+> typeof HTTP
+=> "hash"
+> typeof Date.build()
+=> "hash"
+> typeof Regex.build("dd")
+=> "hash"
+```
+
+### Condition statement
+
+In Bean, only `false` and `nil` will be seen as false value. If you want to make your condition statement work as your expectation, you need to understand it.
+
+```
+> !""
+=> false
+> !false
+=> true
+> if (true) { print("hello") }
+hello
+=> nil
+> if (false) { print("hello") }
+=> nil
+```
+
+You also can append `else` branch after the `if` branch.
+
+```
+var a = 100
+
+var greater
+if (a > 10) {
+  greater = true
+} else {
+  greater = false
+}
+
+print(greater) // => true
+```
+
+Of course we are supporting else if branch, but in Bean, similar to Ruby, we use the keyword `elsif`, So
+
+```
+var b = 100
+if (b > 200) {
+  b = 200
+} elsif (b > 30) {
+  b = 30
+} else {
+  b = 0
+}
+
+print(b) // => 30
+```
+
+I have talk about that the it is a statement, so it will return something. If you want to get return value of the condition statement you can assign it to variable.
+
+```
+var c = 100
+var result = if (c > 200) {
+  "Result is 200"
+} elsif (c > 10) {
+  "Result is 10"
+} else {
+  "Result is 0"
+}
+print(result)
+```
+
+If you run this script with Bean's *Script-Mode*, you will get the result `"Result is 10"`. That is because the last statment in the branch will be seen as the return value. But you can't return the special value explicitly when outside the function.
+
+```
+// return-outside-function.bn
+var d = 300
+var result = if (c > 30) {
+  return "Return Ahead"
+  print("Not run")
+} else {
+  return "Result is 0"
+}
+print(result)
+```
+
+will get the result
+
+```
+EvalError: Can't reference the variable before defined.
+  from return-outside-function.bn:8
+[1]    39888 abort      ./bean return-outside-function.bn
 ```
 
 # Number

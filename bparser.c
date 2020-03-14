@@ -294,7 +294,7 @@ symbol symbol_table[] = {
   { "and", BP_LOGIC_AND, NULL, infix },
   { "break", BP_NONE, NULL, NULL },
   { "else", BP_NONE, NULL, NULL },
-  { "elseif", BP_NONE, NULL, NULL },
+  { "elsif", BP_NONE, NULL, NULL },
   { "+", BP_TERM, unary, infix },
   { "-", BP_TERM, unary, infix },
   { "*", BP_FACTOR, NULL, infix },
@@ -433,7 +433,7 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   }
   testnext(ls, TK_RIGHT_BRACE);
 
-  if (ls->t.type == TK_ELSEIF) { // elseif() {}  => else { if()  }
+  if (ls->t.type == TK_ELSEIF) { // elsif() {}  => else { if()  }
     tree -> branch.else_body = init_dynamic_expr(ls->B);
     add_element(ls->B, tree -> branch.else_body, parse_branch(ls, rbp));
   } else if (ls->t.type == TK_ELSE) {

@@ -15,7 +15,11 @@ void * beanM_realloc_(bean_State * B, void *ptr, size_t oldSize, size_t newSize)
     free(ptr);
     return NULL;
   }
-  return realloc(ptr, newSize);
+  void * p = realloc(ptr, newSize);
+  if (p == NULL) {
+    mem_error(B, "memory allocated issue\n");
+  }
+  return p;
 }
 
 void * beanM_grow_(bean_State * B, void * block, int n, int *psize, int size_elems, int limit, const char * what) {
