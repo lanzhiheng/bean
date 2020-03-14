@@ -54,7 +54,7 @@ Let's check *REPL* mode first
 
 ```
 ➜ ./bean
-> a = "hello"
+> var a = "hello"
 => "hello"
 > print(a)
 hello
@@ -72,11 +72,11 @@ Your first Bean script.
 ```
 // first-script.bn
 fn firstScript() {
-  a = 100 + 90;
+  var a = 100 + 90;
   print(a)
   "Hello World"
 }
-b = firstScript()
+var b = firstScript()
 
 print("The value of variable b is " + b)
 ```
@@ -89,6 +89,18 @@ Run the script
 The value of variable b is Hello World
 ```
 
+## Basic syntax for Bean
+
+In this part I will show you some Syntax for Bean. About variables' assigning, function's definition and calling, Basic operation and so on.
+
+### 1. Variables
+
+I don't set constant mechanism in Bean, so now it just support variable. you just need the `var` keyword to define an variable, by default `nil` will assign to it.
+
+```
+var a = 1000
+```
+
 # Number
 
 ## Number value
@@ -96,7 +108,7 @@ The value of variable b is Hello World
 Not only in Bean, almost every programming language contains the number type. Similar to JavaScript, Bean store all the number value as float, even it has the integer schema. Let me so you some cases.
 
 ```
-> a = 10
+> var a = 10
 => 10
 > a = 1e3
 1e3
@@ -125,7 +137,7 @@ Bean doesn't support the octal but hex. So you can define the number like below.
 We provide a few method to format the number. For example if you want to make a string which has fixed bits after the point. You can use `toFixed/1` method.
 
 ```
-> a = 10.33333333
+> var a = 10.33333333
 => 10.333333
 > a.toFixed(1)
 => "10.3"
@@ -138,7 +150,7 @@ We provide a few method to format the number. For example if you want to make a 
 If you don't pass paramater, number `2` will be the default value.
 
 ```
-> a = 100
+> var a = 100
 => 100
 > a.toFixed()
 => "100.00"
@@ -166,9 +178,9 @@ You also can get the string which formatted by Scientific Notation, by using `to
 I think if you have learned JavaScript or any other programming language you will be familiar to `+`, `-`, `*`, `/`, etc. I think for explaining them, code will be better than my words.
 
 ```
-> a = 10
+> var a = 10
 => 10
-> b = 100
+> var b = 100
 => 100
 > a + b
 => 110
@@ -183,9 +195,9 @@ I think if you have learned JavaScript or any other programming language you wil
 Also support some bit operators.
 
 ```
-> a = 10
+> var a = 10
 => 10
-> b = 2
+> var b = 2
 => 2
 > a | b
 => 10
@@ -200,7 +212,7 @@ Also support some bit operators.
 Similar to javascript we also support `++`, `--` and something like `(*)=` which between two operands.
 
 ```
-> a = 10
+> var a = 10
 => 10
 > a++
 => 10
@@ -216,7 +228,7 @@ Similar to javascript we also support `++`, `--` and something like `(*)=` which
 
 ```
 # (*)= schema
-> a = 100
+> var a = 100
 => 100
 > a += 10
 => 110
@@ -227,7 +239,7 @@ Similar to javascript we also support `++`, `--` and something like `(*)=` which
 > a /= 10
 => 100
 
-> a = 2
+> var a = 2
 => 2
 > a |= 10
 => 10
@@ -277,9 +289,9 @@ Similar to Ruby, Just the `false` and `nil` are false value, the print branch wi
 String must be a common data structure in modern programming language. When using Bean you can easy build a string literally.
 
 ```
-> a = "I am a string"
+> var a = "I am a string"
 => "I am a string"
-> b = "I am a string"
+> var b = "I am a string"
 => "I am a string"
 > typeof a
 => "string"
@@ -290,7 +302,7 @@ String must be a common data structure in modern programming language. When usin
 Easily, You can compare two strings by `==` operator. Otherwise you also can use the special method `equal/1` to compare two strings.
 
 ```
-> a = "hello"
+> var a = "hello"
 => "hello"
 > a.equal("hi")
 => false
@@ -303,7 +315,7 @@ The performance of `==` operator and `equal/1` method is equivalent.
 Bean also provide some common method to handle the string instance. If you want to transform the case of string, `upcase/0`, `downcase/0`, `capitalize/0` are your choices.
 
 ```
-> a = "ruby is a Good programming language"
+> var a = "ruby is a Good programming language"
 => "ruby is a Good programming language"
 > a.upcase()
 => "RUBY IS A GOOD PROGRAMMING LANGUAGE"
@@ -316,7 +328,7 @@ Bean also provide some common method to handle the string instance. If you want 
 What if you want to concat two string? You can use `concat/1` method to do it.
 
 ```
-> a = "Bean"
+> var a = "Bean"
 => "Bean"
 > a.concat(" Ruby")
 => "Bean Ruby"
@@ -327,7 +339,7 @@ Please pass a valid string instance as parameter.
 As you can see. `contact/1` just accepts string instance as parameter. If you want to concat others data type with a string, `+` operator may be a good choice.
 
 ```
-> a = "Bean"
+> var a = "Bean"
 => "Bean"
 > a + " 1"
 => "Bean 1"
@@ -353,7 +365,7 @@ What should you do if you want to get slice of a sting? `slice/2` can help you. 
 if you don't pass any parameters, it will return the same string as target string.
 
 ```
-> a = "hello"
+> var a = "hello"
 => "hello"
 > a.slice() == a
 => true
@@ -362,7 +374,7 @@ if you don't pass any parameters, it will return the same string as target strin
 if you just pass one parameter, it will set the other one equals to  the length of the string.
 
 ```
-> a = "hello world"
+> var a = "hello world"
 => "hello world"
 > a.slice(0)
 => "hello world"
@@ -375,7 +387,7 @@ if you just pass one parameter, it will set the other one equals to  the length 
 It is obvious that what will happen if you pass two parameters.
 
 ```
-> a = "hello"
+> var a = "hello"
 => "hello"
 > a.slice(0, 2)
 => "he"
@@ -386,7 +398,7 @@ It is obvious that what will happen if you pass two parameters.
 Some tricks in `slice/2` is that you can pass negative number as the index of the string. I will handle them by plus it with the length of the sting. You also use `length` attribute to get the string's length.
 
 ```
-> a = "hello world"
+> var a = "hello world"
 => "hello world"
 > a.slice(-3, -1)
 => "rld"
@@ -401,7 +413,7 @@ The last example will raise the exception, the end index must greater that start
 The method similar to `slice/2` is `split/2`. I will you some code, I think you will know what it can do.
 
 ```
-> a = "lan, zhi, heng"
+> var a = "lan, zhi, heng"
 => "lan, zhi, heng"
 > a.split(", ")
 => ["lan", "zhi", "heng"]
@@ -420,7 +432,7 @@ Bean not only supports the ASCII characters, also can handle the string which co
 ### chartAt
 
 ```
-> a = "hello world"
+> var a = "hello world"
 => "hello world"
 > a.charAt(3)
 => "l"
@@ -433,7 +445,7 @@ Bean not only supports the ASCII characters, also can handle the string which co
 ### indexOf
 
 ```
-> a = "hello world"
+> var a = "hello world"
 => "hello world"
 >  a.indexOf(" ")
 => 5
@@ -446,9 +458,9 @@ Bean not only supports the ASCII characters, also can handle the string which co
 ### includes
 
 ```
-> a = "hello world"
+> var a = "hello world"
 => "hello world"
->  a.includes(" ")
+> a.includes(" ")
 => true
 > a = "你好，世界"
 => "你好，世界"
@@ -459,7 +471,7 @@ Bean not only supports the ASCII characters, also can handle the string which co
 ### codePoint
 
 ```
-> a = 'hello'
+> var a = 'hello'
 => "hello"
 > a.codePoint()
 => 104
@@ -480,7 +492,7 @@ Bean not only supports the ASCII characters, also can handle the string which co
 At last, I will show you the performance of `length` attribute and `toNum` method.
 
 ```
-> a  = "hello world"
+> var a = "hello world"
 => "hello world"
 > a.length
 => 11
@@ -493,7 +505,7 @@ At last, I will show you the performance of `length` attribute and `toNum` metho
 As you can see, the `length` attribute will return the count of UTF-8 characters to you not just the count of bytes.
 
 ```
-> a = "hello"
+> var a = "hello"
 => "hello"
 > a.toNum()
 => 0
@@ -514,7 +526,7 @@ Let's talk about array data structure in Bean. As begining I will show you some 
 When you see the name of the method, you can guess what their work. 
 
 ```
-> a = [1, "a", "b", true]
+> var a = [1, "a", "b", true]
 => [1, "a", "b", true]
 > a.pop()
 => true
@@ -546,7 +558,7 @@ Another thing you need to notice is when push successfully, it will return the s
 `shift/0` and `unshift/1` are similar to `pop/0` and `push/1`. The difference is that they handle the item at the head of the array, not tail.
 
 ```
-> a = [1, "a", "b", true]
+> var a = [1, "a", "b", true]
 => [1, "a", "b", true]
 > a.shift()
 => 1
@@ -570,7 +582,7 @@ OK, at this case, the first item be "pop" is number `1`, the second is string `"
 Otherwise, you can reverse the array by using `reverse/1` method.
 
 ```
-> a = [1, 2, 3, 4, 6]
+> var a = [1, 2, 3, 4, 6]
 => [1, 2, 3, 4, 6]
 > a.reverse()
 => [6, 4, 3, 2, 1]
@@ -581,7 +593,7 @@ Otherwise, you can reverse the array by using `reverse/1` method.
 It will change the original order of the array, and return it back. And if you want to check if array contains the expect item, `includes/1` is your choice.
 
 ```
-> a = [1, "lan", "ruby"]
+> var a = [1, "lan", "ruby"]
 => [1, "lan", "ruby"]
 > a.includes(false)
 => false
@@ -609,7 +621,7 @@ Bean also provides some functional methods which can accept callback. They are `
 The `map/1` method accept a callback function as parameter, and then use this call back method to handle all items in array. Finally base of each return value from function's calling it will build a new array.
 
 ```
-> a= [1,2,3,4,5,6]
+> var a= [1,2,3,4,5,6]
 => [1, 2, 3, 4, 5, 6]
 > a.map(fn(x) { x * 2 })
 => [2, 4, 6, 8, 10, 12]
@@ -622,7 +634,7 @@ You may notice two things. The first is that the keyword to define a function in
 Next, Let's check `each/1` method. it is similar to `map/1`, the difference is that it will not build a new array. it will return the original one. You can use it to finish some complex logic if you do not want to build a new array.
 
 ```
-> a= [1,2,3,4,5,6].reverse()
+> var a = [1,2,3,4,5,6].reverse()
 > a.each(fn(x, y) { print(y) })
 0
 1
@@ -644,7 +656,7 @@ Next, Let's check `each/1` method. it is similar to `map/1`, the difference is t
 Next, Let's try to find item by `find/1` with condition from the result of the callback. If you want to find item which greater than number `3` in the array, you can use this code.
 
 ```
-> a = [1,2,3,4,5,6]
+> var a = [1,2,3,4,5,6]
 => [1, 2, 3, 4, 5, 6]
 > a.find(fn (x, y) { x > 3 })
 => 4
@@ -653,7 +665,7 @@ Next, Let's try to find item by `find/1` with condition from the result of the c
 But, `find/1` method just can return only one item which match the condition. If you want to get all of them, please use `filter/1`.
 
 ```
-> a
+> var a = [1,2,3,4,5,6]
 => [1, 2, 3, 4, 5, 6]
 > a.filter(fn (x, y) { x > 3 })
 => [4, 5, 6]
@@ -662,7 +674,7 @@ But, `find/1` method just can return only one item which match the condition. If
 That's all? No. we need to talk about the last one, `reduce/1` method. it will accept two parameter, first is callback, second is the initial value of the flow. what flow? if you want to add from 1 to 10, you can do it by `reduce/1`.
 
 ```
-> a = [1,2,3,4,5,6,7,8,9,10]
+> var a = [1,2,3,4,5,6,7,8,9,10]
 => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 > a.reduce(fn(a,b) { a + b }, 0)
 => 55
@@ -685,7 +697,7 @@ You can see that the second parameter in callback will be the result of previous
 No, You can simpily multiply from 1 to 10 by seting number `1` as the initial value.
 
 ```
-> a = [1,2,3,4,5,6,7,8,9,10]
+> var a = [1,2,3,4,5,6,7,8,9,10]
 => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 > a.reduce(fn(a,b) { a * b }, 1)
 => 3628800
@@ -716,44 +728,44 @@ and also `Math.PI` equal to `3.14159265358979323846`
 There are some example for them.
 
 ```
-> a = 11.1
+> var a = 11.1
 => 11.100000
 > Math.ceil(a)
 => 12
 
-> a = 11.9
+> var a = 11.9
 => 11.900000
 > Math.floor(a)
 => 11
 
-> a = 1000.3333
+> var a = 1000.3333
 => 1000.333300
 > Math.round(a)
 => 1000
 
-> a = 30
+> var a = 30
 => 30
 > Math.sin(a * Math.PI / 180)
 => 0.500000
 > Math.cos(a * 2 * Math.PI / 180)
 => 0.500000
 
-> a = -10000
+> var a = -10000
 => -10000
 > Math.abs(a)
 => 10000
 
-> a = 400
+> var a = 400
 => 400
 > Math.sqrt(a)
 => 20
 
-> a = Math.exp(1)
+> var a = Math.exp(1)
 => 2.718282
 > Math.log(a)
 => 1
 
-> a = Math.random()
+> var a = Math.random()
 => 0.473279
 > Math.round(Math.random() * 10 + 3)
 => 11
@@ -779,7 +791,7 @@ Hash data structure in Bean, is similar to the Object in JavaScript. For simplic
 Hash is a key-value system. so sometime you want to get all the key of it. We can use `keys/0` to get the result, the keys will be included in an array.
 
 ```
-> a = {name: "lanzhiheng", age: "xx"}
+> var a = {name: "lanzhiheng", age: "xx"}
 => {name: "lanzhiheng", age: "xx"}
 > a.keys()
 => ["name", "age"]
@@ -788,9 +800,9 @@ Hash is a key-value system. so sometime you want to get all the key of it. We ca
 If you what to create a new Hash which can call the methods from current Hash, just using the `clone/0` method.
 
 ```
-> a = { hi: fn() { print(self) }, sayHello: fn() { print("Hello") }}
+> var a = { hi: fn() { print(self) }, sayHello: fn() { print("Hello") }}
 => {sayHello: [Function sayHello], hi: [Function hi]}
-> b = a.clone()
+> var b = a.clone()
 => {}
 > b.sayHello()
 Hello
@@ -816,7 +828,7 @@ If we want to get current timestamp we can use `Date.now` like this.
 Otherwise, we can make an instance by using `Date.build`, then we will have a batch of methods for this instance.
 
 ```
-> c = Date.build()
+> var c = Date.build()
 => Sun Mar  8 19:26:59 2020
 > c.getYear()
 => 2020
@@ -839,14 +851,14 @@ Otherwise, we can make an instance by using `Date.build`, then we will have a ba
 I provide a method named `Date.parse` to parse the time from time string. By default the formatter for parsing is `%Y-%m-%d %H:%M:%S %z`. So you can got the date instance like this
 
 ```
-> c = Date.parse("2020-3-30 10:30:00 +0800")
+> var c = Date.parse("2020-3-30 10:30:00 +0800")
 => Mon Mar 30 10:30:00 2020
 ```
 
 The time of printed string is equal to the params which in `Date.parse` method. Because I run this script in china, the timezone for my computer is `Asia/Shanghai`. If you wat to parse an UTC time. you can pass the parameter like this
 
 ```
-> c = Date.parse("2020-3-30 10:30:00 +0000")
+> var c = Date.parse("2020-3-30 10:30:00 +0000")
 => Mon Mar 30 18:30:00 2020
 ```
 
@@ -855,7 +867,7 @@ Now, the parser think the string as UTC time. If you want to display it in Chine
 Also, you can define the formatter by your self. You can customize it by passing second parameter to `Date.parse`. Let't see the example, below.
 
 ```
-> c = Date.parse("10:30:00++++2020-3-30 +0000", "%H:%M:%S++++%Y-%m-%d %z")
+> var c = Date.parse("10:30:00++++2020-3-30 +0000", "%H:%M:%S++++%Y-%m-%d %z")
 => Mon Mar 30 18:30:00 2020
 ```
 
@@ -866,7 +878,7 @@ OK, as you can see the result is right with the new formatter and new string whi
 You can use instance method `format` to construct the Date string by the existing date instance. for example
 
 ```
-> f =  Date.parse("2020-3-30 10:30:00 +0000", "%Y-%m-%d %H:%M:%S %z")
+> var f =  Date.parse("2020-3-30 10:30:00 +0000", "%Y-%m-%d %H:%M:%S %z")
 => Mon Mar 30 18:30:00 2020
 > f.format()
 => "2020-03-30 18:30:00 +0800"
@@ -886,11 +898,11 @@ You also can specify the format string by passing a parameter to `format` method
 But the result of them will depended on your current Timezone. What should I do if I want to specify the timezone information when formatting the date instance? Just pass the timezone info as second parameter to `format` method.
 
 ```
-> h = Date.parse("2020-3-30 10:30:00 +0800", "%Y-%m-%d %H:%M:%S %z")
+> var h = Date.parse("2020-3-30 10:30:00 +0800", "%Y-%m-%d %H:%M:%S %z")
 => Mon Mar 30 10:30:00 2020
 > h.format("%Y-%m-%d %H:%M:%S %z", "Asia/Shanghai")
 => "2020-03-30 10:30:00 +0800"
->  h.format("%Y-%m-%d %H:%M:%S %z", "UTC")
+> h.format("%Y-%m-%d %H:%M:%S %z", "UTC")
 => "2020-03-30 02:30:00 +0000"
 > h.format("%Y-%m-%d %H:%M:%S %z", "America/Toronto")
 => "2020-03-29 22:30:00 -0400"
@@ -899,9 +911,9 @@ But the result of them will depended on your current Timezone. What should I do 
 The timezone which you pass to the method must match the [tzfile](https://linux.die.net/man/5/tzfile) names. If you pass an invalid timezone info, system will treat it as UTC.
 
 ```
->  h.format("%Y-%m-%d %H:%M:%S %z", "UTC")
+> h.format("%Y-%m-%d %H:%M:%S %z", "UTC")
 => "2020-03-30 02:30:00 +0000"
->  h.format("%Y-%m-%d %H:%M:%S %z", "Invalid")
+> h.format("%Y-%m-%d %H:%M:%S %z", "Invalid")
 => "2020-03-30 02:30:00 +0000"
 ```
 
@@ -914,7 +926,7 @@ OK, I think that all about the date library for bean language. If I have some ne
 For using the regular expression feature in bean, you should build the regex instance like this
 
 ```
-> regex = Regex.build('aa+')
+> var regex = Regex.build('aa+')
 => /aa+/
 > regex
 => /aa+/
@@ -927,7 +939,7 @@ For using the regular expression feature in bean, you should build the regex ins
 You also can choose your favor mode. For example, you can specify the `ignore case` mode like this, the result of test with the string **"AAA"** will become `true`
 
 ```
-> regex = Regex.build('aa+', 'i')
+> var regex = Regex.build('aa+', 'i')
 => /aa+/
 > regex.test('aaa')
 => true
@@ -949,7 +961,7 @@ So simple, right? For convenience if you don't need to set the mode, you can bui
 Some time we want to handle subexpression in regular expression. we just need to involve the `exec` method, it will return an array to us.
 
 ```
-> c = Regex.build('(Hello) (Ruby)')
+> var c = Regex.build('(Hello) (Ruby)')
 => /(Hello) (Ruby)/
 > c.exec("Hello Ruby, You are the best.")
 => ["Hello Ruby", "Hello", "Ruby"]
@@ -958,7 +970,7 @@ Some time we want to handle subexpression in regular expression. we just need to
 Otherwise, If the regular expression can not match any part of the string, we will get an empty array.
 
 ```
-> c = Regex.build('(Hello) (Ruby)')
+> var c = Regex.build('(Hello) (Ruby)')
 => /(Hello) (Ruby)/
 > c.exec("Hello Python, You are the best.")
 => []
@@ -969,12 +981,12 @@ Otherwise, If the regular expression can not match any part of the string, we wi
 Similar to javascript we can support the Shorthand Character Classes now. for example, `\s` for space characters, `\w` for a-z, A-Z, 0-9, _ characters and `\d` for 0-9 characters. You can define a regex expression like this. Also supported the opposite of them, `\W`, `\D` and `\S`.
 
 ```
-> c = Regex.build('\w+\s\d+\sRuby')
+> var c = Regex.build('\w+\s\d+\sRuby')
 => /\w+\s\d+\sRuby/
 > c.test('Hello 1024 Ruby')
 => true
 
-> c = Regex.build('\D+\W\S+')
+> var c = Regex.build('\D+\W\S+')
 => /\D+\W\S+/
 > c.test('Hello Ruby')
 => true
@@ -1053,7 +1065,7 @@ That all for POST request, not very diffcult, right?
 The PUT Request is very similar to POST Request. But for better handle the PUT data, we better set the `Content-Type` to `application/json` explicitly. So you need to need to send the request like this
 
 ```
-putResult = HTTP.fetch("http://127.0.0.1:4000/contact-me/100", {
+var putResult = HTTP.fetch("http://127.0.0.1:4000/contact-me/100", {
   method: "PUT",
   data: {
     name: "lan",

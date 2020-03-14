@@ -1,7 +1,7 @@
-getResult = HTTP.fetch("http://127.0.0.1:4000")
+var getResult = HTTP.fetch("http://127.0.0.1:4000")
 print(getResult)
 
-postResult = HTTP.fetch("http://127.0.0.1:4000/contact-me", {
+var postResult = HTTP.fetch("http://127.0.0.1:4000/contact-me", {
   method: "POST",
   data: {
     name: "lan",
@@ -15,7 +15,7 @@ postResult = HTTP.fetch("http://127.0.0.1:4000/contact-me", {
 })
 print(postResult)
 
-mpostResult = HTTP.fetch("http://127.0.0.1:4000/contact-me", {
+var mpostResult = HTTP.fetch("http://127.0.0.1:4000/contact-me", {
   method: "POST",
   data: {
     name: "lan",
@@ -32,7 +32,7 @@ mpostResult = HTTP.fetch("http://127.0.0.1:4000/contact-me", {
 })
 print(mpostResult)
 
-putResult = HTTP.fetch("http://127.0.0.1:4000/test/100", {
+var putResult = HTTP.fetch("http://127.0.0.1:4000/test/100", {
   method: "PUT",
   data: {
     name: "lan",
@@ -50,5 +50,5 @@ putResult = HTTP.fetch("http://127.0.0.1:4000/test/100", {
 
 print(putResult)
 
-deleteResult = HTTP.fetch("http://127.0.0.1:4000", { method: 'delete' })
+var deleteResult = HTTP.fetch("http://127.0.0.1:4000", { method: 'delete' })
 print(deleteResult)

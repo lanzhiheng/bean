@@ -1,15 +1,15 @@
 // var a = "lanzhiheng"
-name = 100;
+var name = 100;
 
-a = {
+var a = {
   lan: fn() {
     return "lan"
   }
 }
 
-c = fn name() {} // Not effect the variable name
+var c = fn name() {} // Not effect the variable name
 
-str = "lanzhiheng"
+var str = "lanzhiheng"
 
 // print(a.lan())
 assert(a.lan, a['lan'])
@@ -29,13 +29,13 @@ fn printA() {
   print(self.b)
 }
 
-thisObj = {
+var thisObj = {
   retThis: fn() {
     return self
   }
 }
 
-temp = {
+var temp = {
   a: 1,
   b: 2
 }
@@ -46,23 +46,9 @@ assert(thisObj.retThis(), thisObj)
 assert(temp.getA(), 1)
 assert(temp.getB(), 2)
 
-fn globalSetting() {
-  fn a() {
-    global a = 100
-  }
-  a()
-}
-
-fn globalGetting() {
- assert(global a, 100)
-}
-
-globalSetting()
-globalGetting()
-
 // print("Test call stack")
 fn breakfn() {
- i = 40
+ var i = 40
 
  while (i > 10) {
    i = i - 1

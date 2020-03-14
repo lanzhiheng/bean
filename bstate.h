@@ -145,7 +145,6 @@ typedef struct expr {
     struct {
       TString * name;
       struct expr * value;
-      bool global;
     } var;
 
     struct {

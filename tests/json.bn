@@ -1,0 +1,10 @@
+var jsonObject = {
+  name: "lanzhiheng",
+  age: 28,
+  position: "Web Developer"
+}
+
+// print(JSON)
+var string = JSON.stringify(jsonObject)
+var object = JSON.parse(string)
+assert(object, jsonObject)

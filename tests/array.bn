@@ -1,58 +1,58 @@
 // Basic handle
 
-array = ["lanzhiheng", "zhiheng", "lan"]
+var array = ["lanzhiheng", "zhiheng", "lan"]
 
 assert(array.join("-"), "lanzhiheng-zhiheng-lan")
 assert(array.join(",    "), "lanzhiheng,    zhiheng,    lan")
 assert(array.join(), "lanzhiheng,zhiheng,lan")
 
-popArray = ["lanzhiheng", "zhiheng", "lan"]
+var popArray = ["lanzhiheng", "zhiheng", "lan"]
 assert(popArray.pop(), "lan")
 assert(popArray, ["lanzhiheng", "zhiheng"])
 
-pushArray = ["lanzhiheng", "zhiheng", "lan"]
+var pushArray = ["lanzhiheng", "zhiheng", "lan"]
 assert(pushArray.push("1234"), 4)
 assert(pushArray, ["lanzhiheng", "zhiheng", "lan", "1234"])
 
-shiftArray = ["lanzhiheng", "zhiheng", "lan"]
+var shiftArray = ["lanzhiheng", "zhiheng", "lan"]
 assert(shiftArray.shift(), "lanzhiheng")
 assert(shiftArray, ["zhiheng", "lan"])
 
-unshiftArray = ["lanzhiheng", "zhiheng", "lan"]
+var unshiftArray = ["lanzhiheng", "zhiheng", "lan"]
 assert(unshiftArray.unshift("1233"), 4)
 assert(unshiftArray, ["1233", "lanzhiheng", "zhiheng", "lan"])
 
-findArray = [1, 2, 3, "lanzhiheng"]
-findResult = findArray.find(fn(a) {
+var findArray = [1, 2, 3, "lanzhiheng"]
+var findResult = findArray.find(fn(a) {
   a == 2
 })
 assert(findResult, 2)
 
-findResult = findArray.find(fn(a) {
+var findResult = findArray.find(fn(a) {
   a == "lanzhiheng"
 })
 assert(findResult, "lanzhiheng")
 
 
-mapArray = [1, 2, 3, 4]
-mapResult = mapArray.map(fn(a) {
+var mapArray = [1, 2, 3, 4]
+var mapResult = mapArray.map(fn(a) {
  a * 300
 })
 assert(mapResult, [300, 600, 900, 1200])
 
-mapResult = mapArray.map(fn(a, b) {
+var mapResult = mapArray.map(fn(a, b) {
  b * a
 })
 assert(mapResult, [0, 2, 6, 12])
 
-mapResult = mapArray.map(fn(a, b) {
+var mapResult = mapArray.map(fn(a, b) {
  b
 })
 assert(mapResult, [0, 1, 2, 3])
 
-reduceArray = [1, 2, 3, 4]
+var reduceArray = [1, 2, 3, 4]
 
-reduceResult = reduceArray.reduce(fn(a, b) {
+var reduceResult = reduceArray.reduce(fn(a, b) {
   return a + b
 }, 0)
 
@@ -63,19 +63,19 @@ reduceResult = reduceArray.reduce(fn(a, b) {
 }, 1)
 assert(reduceResult, 24)
 
-reduceStrArray = ["lanzhiheng", "zhiheng"]
-reduceResult = reduceStrArray.reduce(fn(a,b) {
+var reduceStrArray = ["lanzhiheng", "zhiheng"]
+var reduceResult = reduceStrArray.reduce(fn(a,b) {
   return b.concat(a)
 }, "")
 assert(reduceResult, "lanzhihengzhiheng")
 
-filterArray = [1, 2, 3, 4, 5]
-filterResult = filterArray.filter(fn(a,b) {
+var filterArray = [1, 2, 3, 4, 5]
+var filterResult = filterArray.filter(fn(a,b) {
   a > 3
 })
 assert(filterResult, [4, 5])
 
-reverseArray = [1, 2, 3, 4, "string"]
+var reverseArray = [1, 2, 3, 4, "string"]
 assert(reverseArray.reverse(), ["string", 4, 3, 2, 1])
 assert(reverseArray, ["string", 4, 3, 2, 1])
 
@@ -83,11 +83,11 @@ reverseArray = []
 assert(reverseArray.reverse(), [])
 
 // join different type
-joinDiff = [1,2,3,4,5,"lanzhiheng"]
+var joinDiff = [1,2,3,4,5,"lanzhiheng"]
 assert(joinDiff.join(","), "1,2,3,4,5,lanzhiheng")
 
 // each
-eachArr = [1,2,3,4,5]
+var eachArr = [1,2,3,4,5]
 
 eachArr.each(fn (i, c) {
  assert(i, c+1)
@@ -102,13 +102,13 @@ eachArr.each(fn (i) {
  hello()
 })
 
-b = {
+var b = {
   console: fn(a) {
     print(a)
   }
 }
 
-a = {
+var a = {
   hello: fn(target) {
     while (target) {
       if (target) {

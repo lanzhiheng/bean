@@ -25,9 +25,9 @@ fn sum2(i) {
 
 assert(sum2(4000), 8002000)
 
-a = [1,2,3,4,5,6]
+var a = [1,2,3,4,5,6]
 
-g = a.map(fn a(i) {
+var g = a.map(fn a(i) {
   if (i > 1) {
     return a(i - 1)
   }

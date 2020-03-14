@@ -1,11 +1,11 @@
 print(Date.now())
 
-date1 = Date.build()
+var date1 = Date.build()
 print(date1)
 assert((typeof date1), 'hash')
 assert(date1.__proto__, Date)
 
-date2 = Date.build()
+var date2 = Date.build()
 print(date2.getYear())
 assert(date1.getYear(), 2020)
 assert(date1.getYear(), date2.getYear())
@@ -27,26 +27,26 @@ print("TimeZone offset: " + date1.getTimezoneOffset())
 
 print("================= time zone ======================")
 
-c = Date.parse("2020-3-30 10:30:00 +0200", "%Y-%m-%d %H:%M:%S %z")
+var c = Date.parse("2020-3-30 10:30:00 +0200", "%Y-%m-%d %H:%M:%S %z")
 print(c)
 
 
-d = Date.parse("2020-3-30 10:30:00 +0800", "%Y-%m-%d %H:%M:%S %z")
+var d = Date.parse("2020-3-30 10:30:00 +0800", "%Y-%m-%d %H:%M:%S %z")
 print(d.format("%Y-%m-%d"))
 
 
-f = Date.parse("2020-3-30 10:30:00 +0000", "%Y-%m-%d %H:%M:%S %z")
+var f = Date.parse("2020-3-30 10:30:00 +0000", "%Y-%m-%d %H:%M:%S %z")
 print(f.format())
 assert(f.format(), "2020-03-30 18:30:00 +0800")
-g = Date.parse("2020-3-30 10:30:00 +0900", "%Y-%m-%d %H:%M:%S %z")
+var g = Date.parse("2020-3-30 10:30:00 +0900", "%Y-%m-%d %H:%M:%S %z")
 print(g.format())
 assert(g.format('%Y-%m-%d %H:%M:%S %z'), "2020-03-30 09:30:00 +0800")
 assert(g.format('%Y-%m-%d %H:%M:%S %Z'), "2020-03-30 09:30:00 CST")
 assert(g.format('%Y-%m-%d %Z'), "2020-03-30 CST")
 
 
-h = Date.parse("2020-3-30 10:30:00 +0900", "%Y-%m-%d %H:%M:%S %z")
+var h = Date.parse("2020-3-30 10:30:00 +0900", "%Y-%m-%d %H:%M:%S %z")
 assert(h.format('%Y-%m-%d %H:%M:%S %z', 'UTC'), "2020-03-30 01:30:00 +0000")
 
-i = Date.parse("2020-3-30 10:30:00 +0000", "%Y-%m-%d %H:%M:%S %z")
+var i = Date.parse("2020-3-30 10:30:00 +0000", "%Y-%m-%d %H:%M:%S %z")
 assert(i.format('%Y-%m-%d %H:%M:%S %z', 'Asia/Shanghai'), "2020-03-30 18:30:00 +0800")

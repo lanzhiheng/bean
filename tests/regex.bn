@@ -1,40 +1,40 @@
-a = Regex.build('aa*')
+var a = Regex.build('aa*')
 
 assert(a.test("aaaa"), true)
 assert(a.test("addd"), true)
 assert(a.test("ddd"), false)
 assert(a.test("Ab"), false)
 
-b = Regex.build('aa*', 'i')
+var b = Regex.build('aa*', 'i')
 assert(b.test("Ab"), true)
 assert(b.test("AA"), true)
 assert(b.test("AAAAAAA"), true)
 assert(b.test("ABABABABA"), true)
 assert(b.test("bbbbbbb"), false)
 
-c = Regex.build('(Hello) (Ruby)')
-result = c.exec("Hello Ruby, You are the best.")
+var c = Regex.build('(Hello) (Ruby)')
+var result = c.exec("Hello Ruby, You are the best.")
 assert(typeof result, "array")
 assert(result.length, 3)
 
-result = c.exec("hello")
+var result = c.exec("hello")
 assert(typeof result, "array")
 assert(result.length, 0)
 
-d = Regex.build('^hello$')
+var d = Regex.build('^hello$')
 assert(d.test("hello"), true)
 
-e = Regex.build('\w+\s\d+\sRuby')
+var e = Regex.build('\w+\s\d+\sRuby')
 assert(e.test('Hello 1024 Ruby'), true)
 
-f = Regex.build('\D+\W\S+')
+var f = Regex.build('\D+\W\S+')
 assert(f.test('Hello Ruby'), true)
 
-g = Regex.build('(Ruby|Python)')
+var g = Regex.build('(Ruby|Python)')
 assert(g.test("Ruby"), true)
 
-h = Regex.build('^a[[:alnum:]]')
+var h = Regex.build('^a[[:alnum:]]')
 assert(h.test('ab'), true)
 
-i = Regex.build('[0-9a-fA-F]')
+var i = Regex.build('[0-9a-fA-F]')
 assert(i.test('f'), true)

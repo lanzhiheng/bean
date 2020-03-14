@@ -1,0 +1,6 @@
+var a = 1000
+assert(a, 1000)
+var b = "lanzhiheng"
+assert(b, "lanzhiheng")
+var c
+assert(c, nil)

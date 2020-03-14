@@ -1,25 +1,25 @@
-a = 10.20
+var a = 10.20
 assert(Math.ceil(a), 11)
 assert(Math.floor(a), 10)
 assert(Math.round(a), 10)
 assert(Math.round(a + 0.5), 11)
 
-b = 30
+var b = 30
 assert(Math.PI, 3.141593)
 assert(Math.sin(b * Math.PI / 180), Math.cos(b * 2 * Math.PI / 180))
 
-c = -100
+var c = -100
 assert(Math.abs(c), 100)
 
-d = 256
+var d = 256
 assert(Math.sqrt(d), 16)
 
-e = Math.exp(1)
+var e = Math.exp(1)
 assert(Math.log(e), 1)
 assert(Math.random() > 0 and Math.random() < 1, true)
 
-val1 = 100
-val2 = 200
+var val1 = 100
+var val2 = 200
 assert(Math.max(val1, val2), 200)
 assert(Math.min(val1, val2), 100)
 assert(Math.pow(val1, 2), 10000)
