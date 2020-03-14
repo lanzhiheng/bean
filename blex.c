@@ -33,7 +33,7 @@ static void save(LexState * ls, int c) {
 
 void beanX_init(bean_State * B) {
   TString * e = beanS_newliteral(B, BEAN_ENV);
-  printf("BeanX initialize in %s.\n", getstr(e));
+  /* printf("BeanX initialize in %s.\n", getstr(e)); */
   /* luaC_fix(L, obj2gco(e));  /\* never collect this name *\/ */
   for (int i = 0; i < NUM_RESERVED; i++) {
     TString * ts = beanS_newlstr(B, beanX_tokens[i], strlen(beanX_tokens[i]));

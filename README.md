@@ -1,5 +1,13 @@
 # A simple programming language
 
+## Introduction
+
+Bean is a Dynamic Programming Language which developed by myself at work off hours. The reason of why it called **Bean** is that the company which I am working for named [Beansmile](https://www.beansmile.com). That is the most primary reason. May be it will not be a good programming language in the world but it must be a meaningful language to me. Because it is the first programming language which I make.
+
+I don't know too much about the principle of compiling, So I try my best to make it simple. Even Though it isn't means that Bean is a DSL--Domain Specific Language, no, it is a GPL--General Purpose Language, like Ruby, Python, JavaScript, Java, Go, etc.
+
+There is a simple preview for Bean.
+
 1. A programming language without `class` keyword.
 2. An OOP(Object-oriented programming) language base on prototype.
 3. The syntax will be similar to JavaScript.
@@ -8,12 +16,78 @@
 6. The basic data type include `Number`, `String`, `Bool`, `Array`, `Hash`.
 7. Stack-based virtual Machine.
 
-# Dependencies
+And for display the inheritance relationship, I make a diagram.
 
-1. [bdwgc](https://github.com/ivmai/bdwgc), providing Garbage Collector for Bean, because I don't have enough time to develop it by myself.
-2. [libcurl](https://curl.haxx.se/libcurl/), providing some convenience function to send all kinds of HTTP request.
+![Image](https://via.placeholder.com/1000x600)
 
-*I add the compiled version of them in my codebase, so now Bean just can run in MacOS.*
+## Dependencies
+
+- [libcurl](https://curl.haxx.se/libcurl/), providing some convenience function to send all kinds of HTTP request.
+
+## Install Guide
+
+Thanks for the help from [GUN](https://www.gnu.org/), we can easily install bean in our computer. Unfortunately I just test it in my Mac book and some Linux distribution, like Ubuntu.
+
+1. Clone from github
+
+```
+git clone git@github.com:lanzhiheng/bean.git && cd ~/bean
+```
+
+2. Configure the project to generate makefile
+
+```
+./configure
+```
+
+3. Make it to start compiling
+
+```
+make
+```
+
+4. Run the bean
+
+After that you will get the Bean binary file named `bean` in current directory. Just run it. I have design two mode for it. *Script-Mode* and *REPL*
+
+Let's check *REPL* mode first
+
+```
+➜ ./bean
+> a = "hello"
+=> "hello"
+> print(a)
+hello
+=> nil
+> 1 + 22
+=> 23
+> (10 - 20) * 100
+=> -1000
+```
+
+it is very convenience for checking the basic statement of Bean. But if you want to write multiline source code you should use *Script-Mode*.
+
+Your first Bean script.
+
+```
+// first-script.bn
+fn firstScript() {
+  a = 100 + 90;
+  print(a)
+  "Hello World"
+}
+b = firstScript()
+
+print("The value of variable b is " + b)
+```
+
+Run the script
+
+```
+➜ ./bean first-script.bn
+190
+The value of variable b is Hello World
+```
 
 # Number
 

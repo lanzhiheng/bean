@@ -739,7 +739,7 @@ static char * read_source_file(bean_State * B, const char * path) {
   stat(path, &fileStat);
   size_t fileSize = fileStat.st_size;
 
-  printf("File size is: %lu.\n", fileSize);
+  /* printf("File size is: %lu.\n", fileSize); */
   char * fileContent = (char *)malloc(fileSize + 1);
   if (fileContent == NULL) {
     mem_error(B, "%s", "Could't allocate memory for reading file.");
@@ -803,7 +803,7 @@ void run_file(const char * path) {
 
   bean_State * B = bean_State_init();
   TString * e = beanS_newlstr(B, filename, strlen(filename));
-  printf("Source file name is %s.\n", getstr(e));
+  /* printf("Source file name is %s.\n", getstr(e)); */
 
   preload_library(B);
   char* source = read_source_file(B, path);
