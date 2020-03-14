@@ -1,10 +1,10 @@
-hash = {}
-string = ""
-array = []
+var hash = {}
+var string = ""
+var array = []
 
-new1 = hash.clone()
+var new1 = hash.clone()
 new1.name = 'new1'
-new2 = new1.clone()
+var new2 = new1.clone()
 new2.name = 'new2'
 
 assert(new2.__proto__, new1)

@@ -2,22 +2,22 @@ assert(true == true, true)
 assert(false == false, true)
 assert(nil == nil, true)
 
-a = 100
+var a = 100
 if (true) { a = 99 }
 assert(a, 99)
 
-a = 100
+var a = 100
 if (false) { a = 99 }
 assert(a, 100)
 
-a = 100
+var a = 100
 if (nil) { a = 99 }
 assert(a, 100)
 
-a = 100
+var a = 100
 if ('') { a = 99 }
 assert(a, 99)
 
-a = 100
+var a = 100
 if (0) { a = 99 }
 assert(a, 99)

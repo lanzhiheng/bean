@@ -11,7 +11,7 @@ const char *const beanX_tokens [] = {
     ":", ",", ";", "!",
     "{", "}", "(", ")", "[", "]", ".",
     "false", "for", "fn", "if", "self", "in",
-    "typeof", "global", "nil", "not", "or",
+    "typeof", "var", "nil", "not", "or",
     "return", "true", "do", "while",
     "==", "=", ">=", ">", "<=", "<", "!=",
     "<<", ">>", "<eof>",

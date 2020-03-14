@@ -449,12 +449,7 @@ static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expressi
   TString * variable = expression->var.name;
   setsvalue(name, variable);
 
-  TValue * value = NULL;
-  if (expression->var.global) {
-    value = GGSV(B, name);
-  } else {
-    value = find_variable(B, name);
-  }
+  TValue * value = find_variable(B, name);
 
   if (!value) eval_error(B, "%s", "Can't reference the variable before defined.");
 
@@ -475,15 +470,11 @@ static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expre
     }
   }
 
-  if (expression->var.global) {
-    SGSV(B, name, value);
+  Scope * scope = find_variable_scope(B, name);
+  if (scope) { // if exists
+    hash_set(B, scope->variables, name, value);
   } else {
-    Scope * scope = find_variable_scope(B, name);
-    if (scope) {
-      hash_set(B, scope->variables, name, value);
-    } else {
-      SCSV(B, name, value);
-    }
+    SCSV(B, name, value);
   }
 
   return value;

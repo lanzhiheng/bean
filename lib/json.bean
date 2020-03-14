@@ -1,7 +1,8 @@
 fn parse(input) {
-  BEGIN_CHARACTER = ' '
-  ch = BEGIN_CHARACTER // 用于记录当前的字符
-  at = 0 // 用于记录当前的索引
+  input = input or ''
+  var BEGIN_CHARACTER = ' '
+  var ch = BEGIN_CHARACTER // 用于记录当前的字符
+  var at = 0 // 用于记录当前的索引
 
   fn error(message) { // 报错信息
     throw({
@@ -24,7 +25,7 @@ fn parse(input) {
   }
 
   fn number() { // 用于解析数字
-    num = ''
+    var num = ''
     if (ch == '-') {
       num += ch
       next()
@@ -64,7 +65,7 @@ fn parse(input) {
   }
 
   fn string(escape) { // 用于解析字符串
-    str = ''
+    var str = ''
 
     if (escape) { next(escape) }
     next('"')
@@ -84,9 +85,9 @@ fn parse(input) {
   }
 
   fn object() { // 用于解析hash
-    k = ''
-    v = ''
-    obj = {}
+    var k = ''
+    var v = ''
+    var obj = {}
     next('{')
     white()
 
@@ -108,7 +109,7 @@ fn parse(input) {
   }
 
   fn array() { // 用于解析数组
-    ary = []
+    var ary = []
     next('[')
 
     do {
@@ -169,12 +170,14 @@ fn parse(input) {
 }
 
 fn stringify(hash) {
-  a = []
+  var a = []
   a.push('{')
+
   hash.keys().each(fn(k) {
+    var type = typeof hash[k]
     a.push('"' + k + '"')
     a.push(': ')
-    type = typeof hash[k]
+
     if (type == 'nil') {
       a.push('null')
     } elseif (['number', 'boolean'].includes(type)) {
@@ -190,12 +193,12 @@ fn stringify(hash) {
   })
 
   // a[a.length - 1] = '}'
-  last = a.length - 1
+  var last = a.length - 1
   a[last] = '}'
   a.join('')
 }
 
-JSON = {
+var JSON = {
   parse: parse,
   stringify: stringify
 }

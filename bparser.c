@@ -148,24 +148,12 @@ static expr* left_paren(LexState *ls, expr *exp UNUSED) {
 
 static expr* variable(LexState *ls, expr *exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
-
-  Token preToken = ls->pre;
   Token token = ls->t;
   beanX_next(ls);
-  bool isGlobal = preToken.type == TK_GLOBAL;
 
-  if (ls->t.type == TK_ASSIGN && preToken.type != TK_DOT) {
-    ep->type = EXPR_DVAR;
-    ep->var.name = token.seminfo.ts;
-
-    beanX_next(ls);
-    ep->var.value = parse_statement(ls, BP_LOWEST);
-  } else {
-    ep->type = EXPR_GVAR;
-    ep->var.name = token.seminfo.ts;
-    ep->var.value = NULL;
-  }
-  ep->var.global = isGlobal;
+  ep->type = EXPR_GVAR;
+  ep->var.name = token.seminfo.ts;
+  ep->var.value = NULL;
 
   return ep;
 }
@@ -333,7 +321,7 @@ symbol symbol_table[] = {
   { "self", BP_NONE, self, NULL },
   { "in", BP_CONDITION, NULL, NULL },
   { "typeof", BP_NONE, unary, NULL },
-  { "global", BP_NONE, NULL, NULL },
+  { "var", BP_NONE, NULL, NULL },
   { "nil", BP_NONE, nil, NULL },
   { "not", BP_NONE, unary, NULL },
   { "or", BP_LOGIC_OR, NULL, infix },
@@ -413,6 +401,23 @@ static expr * infix (LexState *ls, expr * left) {
   }
 
   return temp;
+}
+
+static expr * parse_variable_definition(struct LexState *ls, bindpower rbp) {
+  expr * ep = malloc(sizeof(expr));
+  Token token = ls->t;
+  beanX_next(ls);
+  ep->type = EXPR_DVAR;
+  ep->var.name = token.seminfo.ts;
+
+  if (ls->t.type == TK_ASSIGN) {
+    beanX_next(ls);
+    ep->var.value = parse_statement(ls, BP_LOWEST);
+  } else { // Supporting multi variables
+    expr * nilExpr = malloc(sizeof(expr));
+    ep->var.value = nilExpr;
+  }
+  return ep;
 }
 
 static expr * parse_branch(struct LexState *ls, bindpower rbp) {
@@ -508,11 +513,12 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
       return parse_branch(ls, rbp);
     case TK_FUNCTION:
       return parse_definition(ls);
-    case TK_GLOBAL: {
+    case TK_VAR: {
       beanX_next(ls);
       if (ls->t.type != TK_NAME) {
         syntax_error(ls, "Must provide a variable name.");
       }
+      return parse_variable_definition(ls, rbp);
     }
   }
   tree = symbol_table[ls->t.type].nud(ls, NULL);

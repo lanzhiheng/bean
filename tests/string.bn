@@ -1,28 +1,28 @@
-str = "Hello, "
+var str = "Hello, "
 assert(str.concat("World."), "Hello, World.")
 assert(str.equal("Hello, "), true)
 assert(str.equal("Hello"), false)
 
-strWithWhiteSpace = "\t\t\t\thello\n\n\n    "
+var strWithWhiteSpace = "\t\t\t\thello\n\n\n    "
 assert(strWithWhiteSpace.trim(), "hello")
 
-ustr = "hello你好"
+var ustr = "hello你好"
 assert(ustr.upcase(), "HELLO你好")
 
-dstr = "HELLO你好"
+var dstr = "HELLO你好"
 assert(ustr.downcase(), "hello你好")
 
-cstr = "hello你好"
+var cstr = "hello你好"
 assert(cstr.capitalize(), "Hello你好")
 
-slicestr = "你好Ruby，世界上最好的语言。"
+var slicestr = "你好Ruby，世界上最好的语言。"
 assert(slicestr.slice(0, 5), "你好Rub")
 assert(slicestr.slice(5, 6), "y")
 assert(slicestr.slice(6, -1), "，世界上最好的语言。")
 assert(slicestr.slice(10000, 1000000), "")
 assert(slicestr.slice(1, 10), "好Ruby，世界上")
 
-indexstr = "你好，Ruby。"
+var indexstr = "你好，Ruby。"
 assert(indexstr.indexOf("Ruby"), 3)
 assert(indexstr.indexOf("zhi"), -1)
 assert(indexstr.indexOf("lam"), -1)
@@ -34,15 +34,15 @@ assert(indexstr.split(), ["你好，Ruby。"])
 assert(indexstr.split(""), ["你", "好", "，", "R", "u", "b", "y", "。"])
 assert(indexstr.split("，"), ["你好", "Ruby。"])
 
-strLen1 = "lanzhiheng"
+var strLen1 = "lanzhiheng"
 assert(strLen1.length, 10)
 
-strLen2 = "你好"
+var strLen2 = "你好"
 assert(strLen2.length, 2)
 
-strCodePoint1 = "你好"
+var strCodePoint1 = "你好"
 assert(strCodePoint1.codePoint(), 20320)
-strCodePoint2 = "好"
+var strCodePoint2 = "好"
 assert(strCodePoint2.codePoint(), 22909)
 
 assert('9'.codePoint(), 57)
