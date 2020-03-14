@@ -250,7 +250,7 @@ static TValue * primitive_Array_map(bean_State * B, TValue * this, TValue * args
   for (uint32_t i = 0; i < arr->count; i++) {
     TValue * index = TV_MALLOC;
     TValue * item = NULL;
-    call_stack_create_frame(B, this);
+    call_stack_create_frame(B);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
@@ -308,7 +308,7 @@ static TValue * primitive_Array_filter(bean_State * B, TValue * this, TValue * a
   for (uint32_t i = 0; i < arr->count; i++) {
     TValue * index = TV_MALLOC;
     TValue * item = NULL;
-    call_stack_create_frame(B, this);
+    call_stack_create_frame(B);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);
@@ -362,7 +362,7 @@ static TValue * primitive_Array_reduce(bean_State * B, TValue * this, TValue * a
   setsvalue(acc, f->p->args[1]);
 
   for (uint32_t i = 0; i < arr->count; i++) {
-    call_stack_create_frame(B, this);
+    call_stack_create_frame(B);
     enter_scope(B);
 
     SCSV(B, elem, arr->entries[i]);
@@ -412,7 +412,7 @@ static TValue * primitive_Array_each(bean_State * B, TValue * this, TValue * arg
 
   for (uint32_t i = 0; i < arr->count; i++) {
     TValue * index = TV_MALLOC;
-    call_stack_create_frame(B, this);
+    call_stack_create_frame(B);
     enter_scope(B);
 
     SCSV(B, item, arr->entries[i]);
@@ -460,7 +460,7 @@ static TValue * primitive_Array_find(bean_State * B, TValue * this, TValue * arg
 
   TValue * retVal = NULL;
   for (uint32_t i = 0; i < arr->count; i++) {
-    call_stack_create_frame(B, this);
+    call_stack_create_frame(B);
     enter_scope(B);
 
     SCSV(B, key, arr->entries[i]);

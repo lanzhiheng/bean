@@ -125,11 +125,11 @@ fn parse(input) {
   fn value() { // 统一入口，里面可能会有递归调用
     if (ch == '"') {
       return string()
-    } elseif (ch == '\\' and input.charAt(ch + 1) == '"')  {
+    } elsif (ch == '\\' and input.charAt(ch + 1) == '"')  {
       return string('\\')
-    } elseif (ch == '[') {
+    } elsif (ch == '[') {
       return array()
-    } elseif (ch == '{') {
+    } elsif (ch == '{') {
       return object()
     } else {
       if (ch == 'f' or ch == 't' or ch == 'n') {
@@ -148,13 +148,13 @@ fn parse(input) {
       next('s')
       next('e')
       return false
-    } elseif (ch == 't'){
+    } elsif (ch == 't'){
       next('t')
       next('r')
       next('u')
       next('e')
       return true
-    } elseif (ch == 'n') {
+    } elsif (ch == 'n') {
       next('n')
       next('u')
       next('l')
@@ -180,13 +180,13 @@ fn stringify(hash) {
 
     if (type == 'nil') {
       a.push('null')
-    } elseif (['number', 'boolean'].includes(type)) {
+    } elsif (['number', 'boolean'].includes(type)) {
       a.push(hash[k])
-    } elseif (type == 'string') {
+    } elsif (type == 'string') {
       a.push('"' + hash[k] + '"')
-    } elseif (type == 'hash') {
+    } elsif (type == 'hash') {
       a.push(stringify(hash[k]))
-    } elseif (type == 'array') {
+    } elsif (type == 'array') {
       a.push(hash[k].toString())
     }
     a.push(', ')

@@ -38,6 +38,12 @@ typedef struct Scope {
   Hash * variables;
 } Scope;
 
+typedef struct callStack {
+  TValue * retVal;
+  bool target;
+  struct callStack * next;
+} callStack;
+
 typedef struct global_State {
   unsigned int seed;  /* randomized seed for hashes */
   GCObject *allgc;  /* list of all collectable objects */
@@ -56,7 +62,7 @@ typedef struct global_State {
   TValue * rproto; // Prototype for Regex
   TValue * dproto; // Prototype for Date
   TValue * netproto; // Prototype for Http
-  Mbuffer * callStack;
+  callStack * callStack;
 } global_State;
 
 typedef struct dynamic_expr {
@@ -199,7 +205,7 @@ void run();
 void enter_scope(bean_State * B);
 void leave_scope(bean_State * B);
 
-void call_stack_create_frame(bean_State * B, TValue * this);
+void call_stack_create_frame(bean_State * B);
 void call_stack_restore_frame(bean_State * B);
 char call_stack_peek(bean_State * B);
 TValue * call_stack_peek_return(bean_State * B);

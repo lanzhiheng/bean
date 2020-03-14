@@ -5,7 +5,7 @@
 
 /* ORDER RESERVED */
 const char *const beanX_tokens [] = {
-    "and", "break", "else", "elseif",
+    "and", "break", "else", "elsif",
     "+", "-", "*", "/",
     "&", "|", "^", "%",
     ":", ",", ";", "!",

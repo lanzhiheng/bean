@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <sys/stat.h>
@@ -26,69 +25,44 @@ int REPL = false;
 typedef TValue * (*eval_func) (bean_State * B, struct expr * expression);
 char * rootDir = NULL;
 
-void call_stack_create_frame(bean_State * B, TValue * thisPtr) {
-  Mbuffer * stack = G(B)->callStack;
-  uint32_t need = 1 + sizeof(TValue *) + sizeof(TValue *); // returnTag + this + retVal
-  TValue * emptyReturn = NULL;
+void call_stack_create_frame(bean_State * B) {
+  callStack * stack = G(B)->callStack;
+  callStack * stackItem = malloc(sizeof(callStack));
 
-  if (stack->buffsize < stack->n + need) {
-    if (stack->buffsize + BEAN_MINBUFFER * need >= BUFFER_MAX) {
-      runtime_error(B, "%s", "Call stack overflow");
-    }
-
-    beanZ_resizebuffer(B, stack, stack->buffsize + BEAN_MINBUFFER * need);
-  }
-  memcpy(stack->buffer + stack->n, &thisPtr, sizeof(TValue*)); // Put this in stackFrame
-  memcpy(stack->buffer + stack->n + sizeof(TValue*), &emptyReturn, sizeof(TValue*)); // Put defaultReturn
-  stack->buffer[stack->n + 2 * sizeof(TValue*)] = false; // Put target of return stmt
-  stack->n += need;
+  stackItem -> retVal = NULL;
+  stackItem -> target = false;
+  stackItem -> next = stack;
+  G(B)->callStack = stackItem;
 }
 
 // Set return target and retValue
 void call_stack_frame_will_recycle(bean_State * B, TValue * retVal) {
-  Mbuffer * stack = G(B)->callStack;
-  stack->buffer[stack->n - 1] = true;
-  memcpy(stack->buffer + stack->n - sizeof(TValue*) - 1, &retVal, sizeof(TValue*));
+  callStack * stack = G(B)->callStack;
+  if (stack == NULL) {
+    runtime_error(B, "%s", "Can not return outside the function");
+  }
+  stack -> target = true;
+  stack -> retVal = retVal;
 }
 
 void call_stack_restore_frame(bean_State * B) {
-  Mbuffer * stack = G(B)->callStack;
-  uint32_t need = 1 + sizeof(TValue*) + sizeof(TValue*);
-
-  if (stack->n >= need) {
-    stack->buffer[stack->n-1] = false;
-    stack->n -= need;
-
-    ssize_t newSize = stack->buffsize - BEAN_MINBUFFER * need; // 可能会是负数为了避免自动转换成无符号数，需要用有符号数来保存
-    if (newSize > (ssize_t)stack->n) {
-      beanZ_resizebuffer(B, stack, newSize);
-    }
-
-  } else {
+  if (G(B)->callStack == NULL) {
     runtime_error(B, "%s", "Empty of the call stack");
+  } else {
+    callStack * item = G(B)->callStack;
+    G(B)->callStack = G(B)->callStack -> next;
+    free(item);
   }
 }
 
 TValue * call_stack_peek_return(bean_State * B) {
-  Mbuffer * stack = G(B)->callStack;
-  uint32_t need = 1 + sizeof(TValue*);
-  TValue ** tvPtr = malloc(sizeof(TValue*));
-  memcpy((char*)tvPtr, stack->buffer + stack->n - need, sizeof(TValue*));
-  return *tvPtr;
+  callStack * stack = G(B)->callStack;
+  return stack -> retVal;
 }
 
 char call_stack_peek(bean_State * B) {
-  Mbuffer * stack = G(B)->callStack;
-  return stack->buffer[stack->n - 1];
-}
-
-TValue * call_stack_peek_self(bean_State * B) {
-  Mbuffer * stack = G(B)->callStack;
-  uint32_t need = 1 + sizeof(TValue*) + sizeof(TValue*);
-  TValue ** tvPtr = malloc(sizeof(TValue*));
-  memcpy((char*)tvPtr, stack->buffer + stack->n - need, sizeof(TValue*));
-
-  return *tvPtr;
+  callStack * stack = G(B)->callStack;
+  return stack != NULL && stack -> target ;
 }
 
 void set_self_before_caling(bean_State * B, TValue * context) {
@@ -99,7 +73,7 @@ void set_self_before_caling(bean_State * B, TValue * context) {
 
 static Scope * find_variable_scope(bean_State * B, TValue * name) {
   TValue * res;
-  Scope * scope = B->l_G->cScope;
+  Scope * scope = G(B) -> cScope;
   while (scope) {
     res = hash_get(B, scope->variables, name);
     if (res) break;
@@ -555,7 +529,7 @@ static TValue * function_call_eval (bean_State * B, struct expr * expression) {
     ret = t->function(B, this, args, i);
   } else if (ttisfunction(func)) {
     Function * f = fcvalue(func);
-    call_stack_create_frame(B, f->context);
+    call_stack_create_frame(B);
 
     for (int i = 0; i < f->p->arity; i++) {
       TValue * key = TV_MALLOC;
@@ -596,6 +570,7 @@ static TValue * branch_eval(bean_State * B, struct expr * expression) {
   expr * condition = expression->branch.condition;
   dynamic_expr * body;
   enter_scope(B);
+
   TValue * cond = eval(B, condition);
 
   if (truthvalue(cond)) {
@@ -873,7 +848,7 @@ void global_init(bean_State * B) {
   G -> seed = rand();
   G -> allgc = NULL;
   G -> strt = stringtable_init(B);
-  G -> callStack = malloc(sizeof(Mbuffer));
+  G -> callStack = NULL;
   G -> globalScope = create_scope(B, NULL);
   G -> cScope = G -> globalScope;
   B -> l_G = G;
@@ -900,7 +875,6 @@ void global_init(bean_State * B) {
   G -> netproto -> prototype = G -> meta;
 
   G -> meta -> prototype = G->nil;
-  beanZ_initbuffer(G->callStack);
 
   TValue * self = TV_MALLOC;
   setsvalue(self, beanS_newlstr(B, "self", 4));
