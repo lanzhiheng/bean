@@ -4,6 +4,7 @@
 #include "bmeta.h"
 #include "bstring.h"
 #include "bnumber.h"
+#include "bfunction.h"
 #include "bmath.h"
 #include "bdate.h"
 #include "berror.h"
@@ -873,7 +874,6 @@ void set_prototype_getter(bean_State *B, const char * method, uint32_t len, prim
 TValue * init_Nil(bean_State * B UNUSED) {
   TValue * proto = TV_MALLOC;
   setnilvalue(proto);
-  proto -> prototype = NULL;
   return proto;
 }
 
@@ -886,7 +886,6 @@ void global_init(bean_State * B) {
   G -> globalScope = create_scope(B, NULL);
   G -> cScope = G -> globalScope;
   B -> l_G = G;
-  add_tools(B);
 
   G -> nil = init_Nil(B);
   G -> meta = init_Meta(B);
@@ -897,6 +896,7 @@ void global_init(bean_State * B) {
   G -> mproto = init_Math(B);
   G -> rproto = init_Regex(B);
   G -> dproto = init_Date(B);
+  G -> fproto = init_Function(B);
   G -> netproto = init_Http(B);
 
   G -> nproto -> prototype = G -> meta;
@@ -906,9 +906,12 @@ void global_init(bean_State * B) {
   G -> mproto -> prototype = G -> meta;
   G -> rproto -> prototype = G -> meta;
   G -> dproto -> prototype = G -> meta;
+  G -> fproto -> prototype = G -> meta;
   G -> netproto -> prototype = G -> meta;
 
   G -> meta -> prototype = G->nil;
+
+  add_tools(B); // Depend on the previous setting
 
   TValue * self = TV_MALLOC;
   setsvalue(self, beanS_newlstr(B, "self", 4));
