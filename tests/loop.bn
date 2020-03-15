@@ -1,0 +1,114 @@
+var i = 0
+
+while(i < 6) {
+  i++;
+  break;
+}
+
+assert(i, 1)
+
+var j = 0
+
+while(j < 6) {
+  j++;
+}
+
+assert(j, 6)
+
+var k = 0
+
+while(k < 6) {
+  k++;
+  if (k > 3) {
+    break;
+  }
+}
+
+assert(k, 4)
+
+
+// Nesting loop
+
+var m = 0
+var n = 0
+var total = 0
+
+while(m < 2) {
+  var n = 0
+  while(n < 9) {
+    total += n;
+    n++
+  }
+  m++;
+}
+assert(72, total)
+assert(m, 2)
+
+var m = 0
+var n = 0
+var total = 0
+
+while(m < 2) {
+  var n = 0
+  while(n < 9) {
+    break;
+    total += n;
+    n++
+  }
+  m++;
+}
+assert(0, total)
+assert(m, 2)
+
+var m = 0
+var n = nil
+var total = 0
+
+while(m < 2) {
+  var n = 0
+  while(n < 9) {
+    total += n;
+    n++
+  }
+  break
+  m++;
+}
+assert(36, total)
+assert(m, 0)
+assert(n, nil)
+
+var m = 0
+var n = nil
+var total = 0
+
+while(m < 2) {
+  n = 0 // 使用外层的变量
+  while(n < 9) {
+    total += n;
+    n++
+  }
+  break
+  m++;
+}
+assert(36, total)
+assert(m, 0)
+assert(n, 9)
+
+
+// do-while
+var i = 100
+var run = false
+
+do {
+  run = true
+} while(i > 100)
+
+assert(run, true)
+
+var i = 100
+var run = false
+
+while(i > 100) {
+  run = true
+}
+assert(run, false)

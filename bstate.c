@@ -25,6 +25,32 @@ int REPL = false;
 typedef TValue * (*eval_func) (bean_State * B, struct expr * expression);
 char * rootDir = NULL;
 
+void new_loop(bean_State * B) {
+  loopStack * stack = G(B)->loopStack;
+  loopStack * stackItem = malloc(sizeof(loopStack));
+  stackItem -> target = false;
+  stackItem -> next = stack;
+  G(B) -> loopStack = stackItem;
+}
+
+void will_out_loop(bean_State * B) {
+  loopStack * stack = G(B)->loopStack;
+  if (stack == NULL) {
+    runtime_error(B, "%s", "Can not break outside the loop");
+  }
+  stack -> target = true;
+}
+
+void restore_loop(bean_State * B) {
+  if (G(B)->loopStack == NULL) {
+    runtime_error(B, "%s", "Empty of the call stack");
+  } else {
+    loopStack * item = G(B)->loopStack;
+    G(B)->loopStack = G(B)->loopStack -> next;
+    free(item);
+  }
+}
+
 void call_stack_create_frame(bean_State * B) {
   callStack * stack = G(B)->callStack;
   callStack * stackItem = malloc(sizeof(callStack));
@@ -33,6 +59,11 @@ void call_stack_create_frame(bean_State * B) {
   stackItem -> target = false;
   stackItem -> next = stack;
   G(B)->callStack = stackItem;
+}
+
+char loop_stack_peek(bean_State * B) {
+  loopStack * stack = G(B)->loopStack;
+  return stack -> target;
 }
 
 // Set return target and retValue
@@ -62,7 +93,7 @@ TValue * call_stack_peek_return(bean_State * B) {
 
 char call_stack_peek(bean_State * B) {
   callStack * stack = G(B)->callStack;
-  return stack != NULL && stack -> target ;
+  return stack != NULL && stack -> target;
 }
 
 void set_self_before_caling(bean_State * B, TValue * context) {
@@ -444,12 +475,7 @@ static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expre
     }
   }
 
-  Scope * scope = find_variable_scope(B, name);
-  if (scope) { // if exists
-    hash_set(B, scope->variables, name, value);
-  } else {
-    SCSV(B, name, value);
-  }
+  SCSV(B, name, value);
 
   return value;
 }
@@ -461,6 +487,7 @@ static TValue * loop_eval(bean_State * B, struct expr * expression) {
   TValue * cond = NULL;
   TValue * stmt = G(B)->nil;
   enter_scope(B);
+  new_loop(B);
 
   if (!expression->loop.firstcheck) { // do-while loop
     for (int i = 0; i < body->count; i++) {
@@ -478,7 +505,7 @@ static TValue * loop_eval(bean_State * B, struct expr * expression) {
     for (int i = 0; i < body->count; i++) {
       expr * ep = body->es[i];
 
-      if (ep -> type == EXPR_BREAK || call_stack_peek(B)) {
+      if (loop_stack_peek(B) || call_stack_peek(B)) {
         goto breakoff; // Only one jump point, Use goto statement can be more clear and easy
       } else {
         stmt = eval(B, ep);
@@ -489,6 +516,7 @@ static TValue * loop_eval(bean_State * B, struct expr * expression) {
 #undef condition_is_true
 
  breakoff:
+  restore_loop(B);
   leave_scope(B);
 
   return G(B)->nil;
@@ -498,6 +526,11 @@ static TValue * return_eval(bean_State * B, struct expr * expression) {
   TValue * retVal = eval(B, expression->ret.ret_val);
   call_stack_frame_will_recycle(B, retVal);
   return retVal;
+}
+
+static TValue * break_eval(bean_State * B, struct expr * expression) {
+  will_out_loop(B);
+  return G(B)->nil;
 }
 
 static TValue * function_call_eval (bean_State * B, struct expr * expression) {
@@ -680,7 +713,8 @@ eval_func fn[] = {
    branch_eval,
    array_eval,
    hash_eval,
-   regex_eval
+   regex_eval,
+   break_eval
 };
 
 
