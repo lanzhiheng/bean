@@ -487,15 +487,17 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   return tree;
 }
 
+
+static void skip_semicolon(LexState * ls) { // Skip all the semicolon
+  while (checknext(ls, TK_SEMI)) ;
+}
+
 static expr * parse_break(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   ep -> type = EXPR_BREAK;
   beanX_next(ls);
+  skip_semicolon(ls); // Skip all the semicolon
   return ep;
-}
-
-static void skip_semicolon(LexState * ls) { // Skip all the semicolon
-  while (checknext(ls, TK_SEMI)) ;
 }
 
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {

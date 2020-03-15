@@ -44,6 +44,12 @@ typedef struct callStack {
   struct callStack * next;
 } callStack;
 
+typedef struct loopStack {
+  TValue * retVal;
+  bool target;
+  struct loopStack * next;
+} loopStack;
+
 typedef struct global_State {
   unsigned int seed;  /* randomized seed for hashes */
   GCObject *allgc;  /* list of all collectable objects */
@@ -63,6 +69,7 @@ typedef struct global_State {
   TValue * dproto; // Prototype for Date
   TValue * netproto; // Prototype for Http
   callStack * callStack;
+  loopStack * loopStack;
 } global_State;
 
 typedef struct dynamic_expr {

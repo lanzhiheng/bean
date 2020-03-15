@@ -228,7 +228,7 @@ If you run this script with Bean's *Script-Mode*, you will get the result `"Resu
 ```
 // return-outside-function.bn
 var d = 300
-var result = if (c > 30) {
+var result = if (d > 30) {
   return "Return Ahead"
   print("Not run")
 } else {
@@ -240,9 +240,70 @@ print(result)
 will get the result
 
 ```
-EvalError: Can't reference the variable before defined.
+RuntimeError: Can not return outside the function
   from return-outside-function.bn:8
-[1]    39888 abort      ./bean return-outside-function.bn
+[1]    83606 abort      ./bean return-outside-function.bn
+```
+
+### loop statement
+
+We just support the basic `while` loop statement in bean. Let me show you some code
+
+```
+// basic-loop.rb
+var i = 0
+
+while(i < 6) {
+  i++;
+}
+
+print(i) // => 6
+```
+
+Also you can use `keyword` to break the loop in advance.
+
+```
+// basic-loop.rb
+var i = 0p
+
+while(i < 6) {
+  i++;
+  if (i > 3) { break }
+}
+
+print(i)
+```
+
+Or you can write a nesting one
+
+```
+// nesting-loop.bn
+var m = 0
+var total = 0
+
+while(m < 2) {
+  var n = 0
+  while(n < 9) {
+    total += n;
+    n++
+  }
+  m++;
+}
+print(total) // => 72
+print(m) // => 2
+```
+
+We also support do-while one
+
+```
+var i = 100
+var run = false
+
+do {
+  run = true
+} while(i > 100)
+
+print(run) // => true
 ```
 
 # Number
