@@ -306,6 +306,83 @@ do {
 print(run) // => true
 ```
 
+### Function Definition and Calling
+
+We use keyword `fn` to define a function in Bean. So you can define a function like below.
+
+```
+fn add(a, b, c) {
+  a + b + c
+}
+
+add(1,2,3) // => 6
+add(1) // => 1nilnil
+add(1, 2) // => 3nil
+```
+
+As you can see if you missing some parameters they will auto assign by `nil`. In this case they will contact by `+` operator.
+
+That is one of the method to call function, you also can use `call` or `apply` to invoke. Similar to javascript the first paramater of `call` or `apply` will be seen as `self`.
+
+```
+print(add.call(nil, 1,2,3)) // => 6
+print(add.call(nil, 1)) // => 1nilnil
+print(add.call(nil, 1,2)) // => 3nil
+
+print(add.apply(nil, [1,2,3])) // => 6
+print(add.apply(nil, [1])) // => 1nilnil
+print(add.apply(nil, [1,2])) // => 3nil
+```
+
+Let's check the `self`'s behavior in function. As `this` in JavaScript.
+
+```
+fn returnSelf() {
+  self
+}
+
+print(returnSelf.call("hello")) // => hello
+print(returnSelf.call(12)) // => 12
+
+fn returnAttributeName() {
+  self['name']
+}
+
+print(returnAttributeName.call({ name: 'lanzhiheng' })) // => lanzhiheng
+
+fn returnValueofIndex(a) {
+  self[a]
+}
+
+print(returnValueofIndex.call(["Ruby", "JavaScript", "Go"], 2)) // => Go
+print(returnValueofIndex.apply(["Ruby", "JavaScript", "Go"], [0])) // => Ruby
+```
+
+OK, that is all for function. If you are familiar to JavaScript, that will be so easy for you.
+
+It should be noted that, `apply` or `call` method just can use in customized function, it will not work in system's build-in function. Because the prototype of them are different.
+
+```
+> print.__proto__
+=> {id: [Primitive function], toString: [Primitive function], __proto__: [Primitive getter]}
+>  print.__proto__.__proto__
+=> nil
+> fn a() {}
+=> [Function a]
+> a.__proto__
+=> {call: [Primitive function], apply: [Primitive function]}
+> a.__proto__.__proto__
+=> {id: [Primitive function], toString: [Primitive function], __proto__: [Primitive getter]}
+> a.__proto__ == Function
+> true
+> Function.__proto__ == Meta
+=> true
+> print.__proto__ == Meta
+=> true
+```
+
+The prototype of normal function is `Function`, but of system's built-in function is `Meta`. `Metho` is the prototype of `Function`. So the built-in function don't have `call` or `apply` method.
+
 # Number
 
 ## Number value

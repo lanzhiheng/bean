@@ -67,6 +67,7 @@ typedef struct global_State {
   TValue * mproto; // Prototype for Math
   TValue * rproto; // Prototype for Regex
   TValue * dproto; // Prototype for Date
+  TValue * fproto; // Prototype for Function
   TValue * netproto; // Prototype for Http
   callStack * callStack;
   loopStack * loopStack;

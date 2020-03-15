@@ -117,6 +117,8 @@ typedef struct TValue {
 
 #define BEAN_TREGEX	(BEAN_THASH | (1 << 4))  /* regex */
 #define BEAN_TDATE	(BEAN_THASH | (2 << 4))  /* date */
+
+#define BEAN_TTOOL	(BEAN_TFUNCTION | (1 << 4))  /* tool */
 #define ttishash(o)           checktag((o), BEAN_THASH)
 #define ttisregex(o)           checktag((o), BEAN_TREGEX)
 #define ttisdate(o)           checktag((o), BEAN_TDATE)
@@ -154,10 +156,10 @@ typedef struct TValue {
   { TValue *io = obj; val_(io).s=(x); settt_(io, BEAN_TSTRING); io->prototype=G(B)->sproto; }
 
 #define setfcvalue(obj,x)                                               \
-  { TValue *io = obj; val_(io).fc=(x); settt_(io, BEAN_TFUNCTION); }
+  { TValue *io = obj; val_(io).fc=(x); settt_(io, BEAN_TFUNCTION); io->prototype=G(B)->fproto; }
 
 #define settlvalue(obj,x)                                                \
-  { TValue *io = obj; val_(io).tl=(x); settt_(io, BEAN_TTOOL); }
+  { TValue *io = obj; val_(io).tl=(x); settt_(io, BEAN_TTOOL); io->prototype=G(B)->meta; }
 
 #define fcvalue(o)       check_exp(ttisfunction(o), val_(o).fc)
 #define tlvalue(o)       check_exp(ttistool(o), val_(o).tl)
