@@ -381,7 +381,7 @@ It should be noted that, `apply` or `call` method just can use in customized fun
 => true
 ```
 
-The prototype of normal function is `Function`, but of system's built-in function is `Meta`. `Metho` is the prototype of `Function`. So the built-in function don't have `call` or `apply` method.
+The prototype of normal function is `Function`, but of system's built-in function is `Meta`. `Meta` is the prototype of `Function`. So the built-in function don't have `call` or `apply` method which store in prototype `Function`.
 
 # Number
 
@@ -1155,6 +1155,8 @@ Also, you can define the formatter by your self. You can customize it by passing
 
 OK, as you can see the result is right with the new formatter and new string which matched to it.
 
+It should be noted that `Date.now`, `Date.parse` and `Date.build` methods just can invoke by the prototype `Date`. Don't use them in `Date`'s instance.
+
 ## 3. Stringify
 
 You can use instance method `format` to construct the Date string by the existing date instance. for example
@@ -1205,11 +1207,16 @@ OK, I think that all about the date library for bean language. If I have some ne
 
 ## Simple demo
 
-For using the regular expression feature in bean, you should build the regex instance like this
+For using the regular expression feature in Bean, you should use `Regex.build` method to create the relative instance first. 
 
 ```
 > var regex = Regex.build('aa+')
 => /aa+/
+```
+
+After that, we can use instance's method to match something.
+
+```
 > regex
 => /aa+/
 > regex.test('aaa')

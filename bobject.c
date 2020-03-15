@@ -199,7 +199,7 @@ static char * array_inspect(bean_State * B, Array * array) {
 }
 
 static TValue * inspect(bean_State * B UNUSED, TValue * value, PARSER_TYPE mode) {
-  TValue * inspect = malloc(sizeof(TValue));
+  TValue * inspect = TV_MALLOC;
   char * string;
 
   switch(value -> tt_) {
@@ -331,11 +331,11 @@ static TValue * primitive_assert(bean_State * B UNUSED, TValue * this UNUSED, TV
 
 void add_tool_by_name(bean_State * B, char * str, size_t len, primitive_Fn fn) {
   Hash * variables = B -> l_G -> globalScope -> variables;
-  TValue * name = malloc(sizeof(TValue));
+  TValue * name = TV_MALLOC;
   TString * ts = beanS_newlstr(B, str, len);
   setsvalue(name, ts);
 
-  TValue * func = malloc(sizeof(TValue));
+  TValue * func = TV_MALLOC;
   Tool * tool = initialize_tool_by_fn(fn, false);
 
   settlvalue(func, tool);
@@ -376,7 +376,7 @@ TValue * type_statement(bean_State * B UNUSED, TValue * target) {
   }
 
   TString * ts = beanS_newlstr(B, typeStr, strlen(typeStr));
-  TValue * typeVal = malloc(sizeof(TValue));
+  TValue * typeVal = TV_MALLOC;
   setsvalue(typeVal, ts);
   return typeVal;
 }
