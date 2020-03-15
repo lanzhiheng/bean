@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 #define _XOPEN_SOURCE /* See feature_test_macros(7) */
@@ -13,14 +12,16 @@
 #define DEFAULT_FORMATTED_STRING_LENGTH 255
 
 static TValue * primitive_Date_now(bean_State * B, TValue * thisVal UNUSED, TValue * args UNUSED, int argc UNUSED) {
-  TValue * ret = malloc(sizeof(TValue));
+  assert_with_message(thisVal == G(B)->dproto, "This method just can call by prototype 'Date'.");
+  TValue * ret = TV_MALLOC;
   time_t timer = time(NULL);
   setnvalue(ret, timer);
   return ret;
 }
 
 static TValue * primitive_Date_build(bean_State * B, TValue * thisVal UNUSED, TValue * args UNUSED, int argc UNUSED) {
-  TValue * ret = malloc(sizeof(TValue));
+  assert_with_message(thisVal == G(B)->dproto, "This method just can call by prototype 'Date'.");
+  TValue * ret = TV_MALLOC;
   Date * date = malloc(sizeof(Date));
   time_t t = time(NULL);
   date->time = t;
@@ -29,7 +30,8 @@ static TValue * primitive_Date_build(bean_State * B, TValue * thisVal UNUSED, TV
 }
 
 static TValue * primitive_Date_parse(bean_State * B, TValue * thisVal UNUSED, TValue * args UNUSED, int argc UNUSED) {
-  TValue * ret = malloc(sizeof(TValue));
+  assert_with_message(thisVal == G(B)->dproto, "This method just can call by prototype 'Date'.");
+  TValue * ret = TV_MALLOC;
   Date * date = malloc(sizeof(Date));
   char * formatString = "%Y-%m-%d %H:%M:%S %z"; // default formater
   assert(argc >= 1);
@@ -49,8 +51,7 @@ static TValue * primitive_Date_parse(bean_State * B, TValue * thisVal UNUSED, TV
 }
 
 static TValue * primitive_Date_format(bean_State * B, TValue * thisVal UNUSED, TValue * args UNUSED, int argc UNUSED) {
-  assert(ttisdate(thisVal));
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   Date * date = datevalue(thisVal);
   char * formatString = "%Y-%m-%d %H:%M:%S %z"; // default formater
   char * timezone = NULL;
@@ -90,8 +91,7 @@ static TValue * primitive_Date_format(bean_State * B, TValue * thisVal UNUSED, T
 }
 
 #define FROM_BROKEN_DOWN_TIME(attribute) do { \
-    assert(ttisdate(thisVal));                \
-    TValue * ret = malloc(sizeof(TValue));    \
+    TValue * ret = TV_MALLOC;    \
     Date * date = datevalue(thisVal);         \
     time_t time = date -> time;               \
     struct tm * t = localtime(&time);         \
@@ -129,8 +129,7 @@ static TValue * primitive_Date_getWeekDay(bean_State * B, TValue * thisVal, TVal
 
 static TValue * primitive_Date_getTimezoneOffset(bean_State * B, TValue * thisVal, TValue * args UNUSED, int argc UNUSED) {
   // https://www.gnu.org/software/libc/manual/html_node/Time-Zone-Functions.html
-  assert(ttisdate(thisVal));
-  TValue * ret = malloc(sizeof(TValue));
+  TValue * ret = TV_MALLOC;
   Date * date = datevalue(thisVal);
   time_t time = date -> time;
   struct tm * tm = localtime(&time); // Call the tzset to set the timezone from environment variable
@@ -141,13 +140,12 @@ static TValue * primitive_Date_getTimezoneOffset(bean_State * B, TValue * thisVa
 TValue * init_Date(bean_State * B) {
   srand(time(0));
   global_State * G = B->l_G;
-  TValue * proto = malloc(sizeof(TValue));
+  TValue * proto = TV_MALLOC;
   Hash * h = init_hash(B);
   sethashvalue(proto, h);
   set_prototype_function(B, "now", 3, primitive_Date_now, hhvalue(proto));
   set_prototype_function(B, "build", 5, primitive_Date_build, hhvalue(proto));
   set_prototype_function(B, "parse", 5, primitive_Date_parse, hhvalue(proto));
-  /* set_prototype_function(B, "utc", 3, primitive_Date_utc, hhvalue(proto)); */
   set_prototype_function(B, "getYear", 7, primitive_Date_getYear, hhvalue(proto));
   set_prototype_function(B, "getMonth", 8, primitive_Date_getMonth, hhvalue(proto));
   set_prototype_function(B, "getDate", 7, primitive_Date_getDate, hhvalue(proto));
@@ -158,7 +156,7 @@ TValue * init_Date(bean_State * B) {
   set_prototype_function(B, "getTimezoneOffset", 17, primitive_Date_getTimezoneOffset, hhvalue(proto));
   set_prototype_function(B, "format", 6, primitive_Date_format, hhvalue(proto));
 
-  TValue * date = malloc(sizeof(TValue));
+  TValue * date = TV_MALLOC;
   setsvalue(date, beanS_newlstr(B, "Date", 4));
   hash_set(B, G->globalScope->variables, date, proto);
   return proto;

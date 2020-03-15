@@ -66,7 +66,7 @@ TValue * init_regex(bean_State * B, char * matchStr, char * modeStr) {
     runtime_error(B, "%s", "The regex expression is invalid.");
   }
 
-  TValue * regex = malloc(sizeof(TValue));
+  TValue * regex = TV_MALLOC;
   Regex * re = malloc(sizeof(Regex));
   re -> rr = r;
   re -> match = matchStr;
@@ -77,7 +77,7 @@ TValue * init_regex(bean_State * B, char * matchStr, char * modeStr) {
 
 // Build the regex
 static TValue * primitive_Regex_build(bean_State * B, TValue * this, TValue * args UNUSED, int argc) {
-  assert_with_message(this == G(B)->rproto, "Just the Regex instance can call this method.");
+  assert_with_message(this == G(B)->rproto, "This method just can call by prototype 'Regex'.");
   TValue * match = &args[0];
   assert(ttisstring(match));
 
@@ -135,18 +135,18 @@ static TValue * primitive_Regex_exec(bean_State * B, TValue * this, TValue * arg
     str[j] = '\0';
 
     TString * ts = beanS_newlstr(B, str, end - start);
-    TValue * value = malloc(sizeof(TValue));
+    TValue * value = TV_MALLOC;
     setsvalue(value, ts);
     array_push(B, array, value);
   }
-  TValue * result = malloc(sizeof(TValue));
+  TValue * result = TV_MALLOC;
   setarrvalue(result, array);
   return result;
 }
 
 TValue * init_Regex(bean_State * B) {
   global_State * G = B->l_G;
-  TValue * proto = malloc(sizeof(TValue));
+  TValue * proto = TV_MALLOC;
   Hash * h = init_hash(B);
 
   sethashvalue(proto, h);
@@ -154,7 +154,7 @@ TValue * init_Regex(bean_State * B) {
   set_prototype_function(B, "exec", 4, primitive_Regex_exec, hhvalue(proto));
   set_prototype_function(B, "build", 5, primitive_Regex_build, hhvalue(proto));
 
-  TValue * regex = malloc(sizeof(TValue));
+  TValue * regex = TV_MALLOC;
   setsvalue(regex, beanS_newlstr(B, "Regex", 5));
   hash_set(B, G->globalScope->variables, regex, proto);
   return proto;
