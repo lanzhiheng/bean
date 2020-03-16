@@ -71,6 +71,7 @@ typedef struct global_State {
   TValue * netproto; // Prototype for Http
   callStack * callStack;
   loopStack * loopStack;
+  Mbuffer * instructionStream;
 } global_State;
 
 typedef struct dynamic_expr {

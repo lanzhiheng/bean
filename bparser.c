@@ -1,6 +1,8 @@
 #include <limits.h>
 #include <assert.h>
 #include "bstring.h"
+#include "vm.h"
+#include "bzio.h"
 #include "berror.h"
 #include "bhash.h"
 #include "bparser.h"
@@ -8,6 +10,11 @@
 #define MAX_ARGS 16 // MAX args of function
 #define MIN_EXPR_SIZE 16
 #define get_tk_precedence(ls) (symbol_table[ls->t.type].lbp)
+
+static void write_opcode(bean_State * B, OpCode code) {
+  Mbuffer * buff = G(B)->instructionStream;
+  beanZ_append(B, buff, code);
+}
 
 static dynamic_expr * init_dynamic_expr(bean_State * B UNUSED) {
   dynamic_expr * target = malloc(sizeof(dynamic_expr));
@@ -118,10 +125,12 @@ static expr* boolean(LexState *ls, expr * exp UNUSED) {
   switch(ls->t.type) {
     case(TK_TRUE): {
       ep -> bval = true;
+      write_opcode(ls->B, OP_BEAN_PUSH_TRUE);
       break;
     }
     case(TK_FALSE): {
       ep -> bval = false;
+      write_opcode(ls->B, OP_BEAN_PUSH_FALSE);
       break;
     }
     default:
