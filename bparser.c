@@ -115,6 +115,7 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
 static expr* nil(LexState *ls, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   ep -> type = EXPR_NIL;
+  write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   beanX_next(ls);
   return ep;
 }
@@ -555,6 +556,7 @@ void bparser(LexState * ls) {
 
   while (ls -> current != EOZ) {
     parse_program(ls);
+    write_opcode(ls->B, OP_BEAN_INSPECT);
   }
 }
 
