@@ -31,10 +31,11 @@ typedef struct Mbuffer {
 
 #define beanZ_freebuffer(B, buff)	beanZ_resizebuffer(B, buff, 0)
 
-/* #define beanZ_append(B, buff, c) do {                \ */
-/*     if (buff->n >= buff->buffsize) {                 \ */
-/*       beanZ_resizebuff(B, buff, buff->buffsize * 2); \ */
-/*     }                                                \ */
-/*     buff->buffer[buff->n++] = c;                     \ */
-/*   } while(0); */
+#define beanZ_append(B, buff, c) do {                \
+    if (buff->n >= buff->buffsize) {                 \
+      beanZ_resizebuffer(B, buff, buff->buffsize * 2); \
+    }                                                \
+    buff->buffer[buff->n++] = c;                     \
+  } while(0);
+
 #endif

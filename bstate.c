@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <sys/stat.h>
+#include "vm.h"
 #include "bmeta.h"
 #include "bstring.h"
 #include "bnumber.h"
@@ -811,6 +812,7 @@ void run_file(const char * path) {
   beanX_setinput(B, source, e, *source);
 
   bparser(B->ls);
+  executeInstruct(B);
 }
 
 void run() {
@@ -921,6 +923,9 @@ void global_init(bean_State * B) {
   setbvalue(G->tVal, true);
   G -> fVal = TV_MALLOC;
   setbvalue(G->fVal, false);
+
+  G->instructionStream = malloc(sizeof(Mbuffer));
+  beanZ_initbuffer(G->instructionStream);
 }
 
 void exception() {
