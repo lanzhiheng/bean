@@ -11,9 +11,28 @@
 #define MIN_EXPR_SIZE 16
 #define get_tk_precedence(ls) (symbol_table[ls->t.type].lbp)
 
-static void write_opcode(bean_State * B, OpCode code) {
+static size_t operand_encode(bean_State * B, uint64_t num) {
   Mbuffer * buff = G(B)->instructionStream;
-  beanZ_append(B, buff, code);
+  size_t llen = 0;
+
+  do {
+    uint8_t b = num & 0x7f;
+    num >>= 7;
+    if (num != 0) b |= 0x80;
+    beanZ_append(B, buff, b);
+    llen++;
+  } while (num != 0);
+
+  return llen;
+}
+
+static void write_byte(bean_State * B, uint8_t b) {
+  Mbuffer * buff = G(B)->instructionStream;
+  beanZ_append(B, buff, b);
+}
+
+static void write_opcode(bean_State * B, OpCode code) {
+  write_byte(B, code);
 }
 
 static dynamic_expr * init_dynamic_expr(bean_State * B UNUSED) {
@@ -103,6 +122,8 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
     case(TK_NUM): {
       ep -> type = EXPR_NUM;
       ep -> nval = ls->t.seminfo.n;
+      write_opcode(ls->B, OP_BEAN_PUSH_NUM);
+      operand_encode(ls->B, ls->t.seminfo.n);
       break;
     }
     default:
@@ -407,6 +428,7 @@ static expr * infix (LexState *ls, expr * left) {
     }
 
     temp -> infix.right = parse_statement(ls, symbol_table[op].lbp);
+    write_byte(ls->B, OP_BEAN_ADD);
     if (temp -> infix.op == TK_LEFT_BRACKET) testnext(ls, TK_RIGHT_BRACKET);
   }
 
