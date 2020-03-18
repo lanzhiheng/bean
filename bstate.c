@@ -308,14 +308,14 @@ static TValue * binary_eval (bean_State * B, struct expr * expression) {
       if (truthvalue(ret)) ret = eval(B, expression -> infix.right);
       break;
     }
+    case(TK_LT):
+      compare_statement(lt);
+      break;
     case(TK_OR): {
       ret = eval(B, expression -> infix.left);
       if (falsyvalue(ret)) ret = eval(B, expression -> infix.right);
       break;
     }
-    case(TK_LT):
-      compare_statement(lt);
-      break;
     case(TK_NE): {
       TValue * v1 = eval(B, expression -> infix.left);
       TValue * v2 = eval(B, expression -> infix.right);
