@@ -1,3 +1,4 @@
+(100 + 20) * 100
 100 + 4444.12312312
 4000 - 100
 100 * 4.4
@@ -23,8 +24,38 @@ false or 1
 
 
 "lanhziheng"
-
-"lianghaidao"
 "Hello World"
 
 "lanzhiheng" + 1312313123
+
+var m = 100
+
+var c = "hello world"
+
+fn a() {
+ "hello"
+}
+
+var a = []
+var b = [1,2]
+var c = [2,3,4,4,"lanzhiheng"]
+var d = ["lanzhihen", [], 1, nil, false, true]
+
+var mm = {
+  a: 1,
+  b: false,
+  c: [],
+  d: {},
+  e: fn c() {}
+}
+
+var a = 0;
+--a;
+--a;
+--a;
+++a;
+--a;
+
+a++;
+a--;
+a++;

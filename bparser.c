@@ -100,13 +100,10 @@ static expr * infix (LexState *ls, expr * left);
 static expr * function_call (LexState *ls, expr * left);
 
 static expr * string (LexState *ls, expr * exp UNUSED) {
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_STRING;
-  ep -> sval = ls->t.seminfo.ts;
   write_byte(ls->B, OP_BEAN_PUSH_STR);
   operand_pointer_encode(ls->B, ls->t.seminfo.ts);
   beanX_next(ls);
-  return ep;
+  return NULL;
 }
 
 static expr * regex(LexState * ls, expr * exp UNUSED) {
@@ -119,44 +116,34 @@ static expr * regex(LexState * ls, expr * exp UNUSED) {
 }
 
 static expr* num(LexState *ls, expr * exp UNUSED) {
-  expr * ep = malloc(sizeof(expr));
   switch(ls->t.type) {
     case(TK_NUM): {
-      ep -> type = EXPR_NUM;
-      ep -> nval = ls->t.seminfo.n;
       write_opcode(ls->B, OP_BEAN_PUSH_NUM);
       bean_Number * value = malloc(sizeof(double));
       *value = ls->t.seminfo.n;
       operand_pointer_encode(ls->B, value);
-      /* operand_encode(ls->B, ls->t.seminfo.n); */
       break;
     }
     default:
       syntax_error(ls, "Not the valid number.");
   }
   beanX_next(ls);
-  return ep;
+  return NULL;
 }
 
 static expr* nil(LexState *ls, expr * exp UNUSED) {
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_NIL;
   write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   beanX_next(ls);
-  return ep;
+  return NULL;
 }
 
 static expr* boolean(LexState *ls, expr * exp UNUSED) {
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_BOOLEAN;
   switch(ls->t.type) {
     case(TK_TRUE): {
-      ep -> bval = true;
       write_opcode(ls->B, OP_BEAN_PUSH_TRUE);
       break;
     }
     case(TK_FALSE): {
-      ep -> bval = false;
       write_opcode(ls->B, OP_BEAN_PUSH_FALSE);
       break;
     }
@@ -164,7 +151,7 @@ static expr* boolean(LexState *ls, expr * exp UNUSED) {
       syntax_error(ls, "Not the valid boolean value.");
   }
   beanX_next(ls);
-  return ep;
+  return NULL;
 }
 
 static expr* self(LexState *ls, expr *exp UNUSED) {
@@ -183,15 +170,24 @@ static expr* left_paren(LexState *ls, expr *exp UNUSED) {
 }
 
 static expr* variable(LexState *ls, expr *exp UNUSED) {
-  expr * ep = malloc(sizeof(expr));
   Token token = ls->t;
   beanX_next(ls);
 
-  ep->type = EXPR_GVAR;
-  ep->var.name = token.seminfo.ts;
-  ep->var.value = NULL;
+  write_opcode(ls->B, OP_BEAN_PUSH_STR);
+  operand_pointer_encode(ls->B, token.seminfo.ts);
 
-  return ep;
+  TokenType op = ls->t.type;
+  // a++ or a--
+  if (op == TK_ADD || op == TK_SUB) {
+    testnext(ls, op);
+    testnext(ls, op);
+    write_opcode(ls->B, OP_BEAN_HANDLE_SUFFIX);
+    write_byte(ls->B, op);
+  } else {
+    write_opcode(ls->B, OP_BEAN_VARIABLE_GET);
+  }
+
+  return NULL;
 }
 
 static expr* return_exp(LexState *ls, expr * exp UNUSED) {
@@ -259,6 +255,9 @@ static expr * parse_definition(LexState *ls) {
   expr * ex = malloc(sizeof(expr));
   ex->type = EXPR_FUN;
   ex->fun = f;
+
+  write_opcode(ls->B, OP_BEAN_FUNCTION_DEFINE);
+  operand_pointer_encode(ls->B, f);
   return ex;
 }
 
@@ -272,16 +271,16 @@ static expr * unary(LexState *ls, expr * exp UNUSED) {
     TokenType op = ls->t.type;
 
     if (ls->t.type == TK_ADD || ls->t.type == TK_SUB) {
-      temp -> type = EXPR_CHANGE;
-      temp -> change.op = op;
-
+      write_opcode(ls->B, OP_BEAN_HANDLE_PREFIX);
+      write_byte(ls->B, op);
       testnext(ls, op);
-      expr * val = parse_statement(ls, BP_LOWEST);
-      if (val -> type == EXPR_GVAR) {
-        temp -> change.prefix = true;
-        temp -> change.val = val;
+
+      if (ls->t.type == TK_NAME) {
+        Token token = ls->t;
+        operand_pointer_encode(ls->B, token.seminfo.ts);
+        beanX_next(ls);
       } else {
-        syntax_error(ls, "Just supporting ++ or -- operator before variable.");
+        syntax_error(ls, "++ or -- must follow a variable.");
       }
     } else {
       syntax_error(ls, "Just supporting ++ or -- operator.");
@@ -300,9 +299,13 @@ static expr * parse_array(struct LexState *ls UNUSED, expr * exp UNUSED) {
   ep -> type = EXPR_ARRAY;
   ep -> array = init_dynamic_expr(ls->B);
 
+  write_opcode(ls->B, OP_BEAN_ARRAY_PUSH);
+
   if (checknext(ls, TK_RIGHT_BRACKET)) return ep;
+
   do {
     add_element(ls->B, ep->array, parse_statement(ls, BP_LOWEST));
+    write_opcode(ls->B, OP_BEAN_ARRAY_ITEM);
   } while(checknext(ls, TK_COMMA));
   checknext(ls, TK_RIGHT_BRACKET);
   return ep;
@@ -313,12 +316,23 @@ static expr * parse_hash(struct LexState *ls UNUSED, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   ep -> type = EXPR_HASH;
   ep -> hash = init_dynamic_expr(ls->B);
+
+  write_byte(ls->B, OP_BEAN_HASH_NEW);
   if (checknext(ls, TK_RIGHT_BRACE)) return ep;
 
   do {
-    add_element(ls->B, ep->hash, parse_statement(ls, BP_LOWEST));
+    Token token = ls->t;
+    if (token.type == TK_NAME || token.type == TK_STRING) {
+      write_opcode(ls->B, OP_BEAN_PUSH_STR);
+      operand_pointer_encode(ls->B, token.seminfo.ts);
+      beanX_next(ls);
+    } else {
+      syntax_error(ls, "Expect string or identifier as key.");
+    }
+
     checknext(ls, TK_COLON);
     add_element(ls->B, ep->hash, parse_statement(ls, BP_LOWEST));
+    write_byte(ls->B, OP_BEAN_HASH_VALUE);
   } while(checknext(ls, TK_COMMA));
 
   checknext(ls, TK_RIGHT_BRACE);
@@ -400,63 +414,43 @@ static expr * function_call (LexState *ls, expr * left) {
 static expr * infix (LexState *ls, expr * left) {
   expr * temp = malloc(sizeof(expr));
 
-  // Supporting a++, a--
-  if (ls->pre.type == ls->t.type) {
-    TokenType op = ls->t.type;
-    if (ls->t.type == TK_ADD || ls->t.type == TK_SUB) {
-      temp -> type = EXPR_CHANGE;
-      temp -> change.op = op;
+  TokenType op = ls->pre.type;
+  temp -> type = EXPR_BINARY;
+  temp -> infix.op = op;
+  temp -> infix.left = left;
 
-      if (left -> type == EXPR_GVAR) {
-        temp -> change.prefix = false;
-        temp -> change.val = left;
-        testnext(ls, op);
-      } else {
-        syntax_error(ls, "Just supporting ++ or -- operator after variable.");
-      }
+  if (ls->t.type == TK_ASSIGN) {
+    if (ls->pre.type >= TK_ADD && ls->pre.type <= TK_MOD) {
+      testnext(ls, TK_ASSIGN);
+      temp -> infix.assign = true;
     } else {
-      syntax_error(ls, "Just supporting ++ or -- operator.");
+      syntax_error(ls, "Just supporting +=, -=, *=, /=, |=, &=, %=");
     }
-  } else {
-    TokenType op = ls->pre.type;
-    temp -> type = EXPR_BINARY;
-    temp -> infix.op = op;
-    temp -> infix.left = left;
-
-    if (ls->t.type == TK_ASSIGN) {
-      if (ls->pre.type >= TK_ADD && ls->pre.type <= TK_MOD) {
-        testnext(ls, TK_ASSIGN);
-        temp -> infix.assign = true;
-      } else {
-        syntax_error(ls, "Just supporting +=, -=, *=, /=, |=, &=, %=");
-      }
-    }
-
-    TokenType binaryOp = ls->pre.type;
-    temp -> infix.right = parse_statement(ls, symbol_table[op].lbp);
-    write_byte(ls->B, OP_BEAN_BINARY_OP);
-    write_byte(ls->B, binaryOp);
-    if (temp -> infix.op == TK_LEFT_BRACKET) testnext(ls, TK_RIGHT_BRACKET);
   }
+
+  TokenType binaryOp = ls->pre.type;
+  temp -> infix.right = parse_statement(ls, symbol_table[op].lbp);
+  write_byte(ls->B, OP_BEAN_BINARY_OP);
+  write_byte(ls->B, binaryOp);
+  if (temp -> infix.op == TK_LEFT_BRACKET) testnext(ls, TK_RIGHT_BRACKET);
 
   return temp;
 }
 
-static expr * parse_variable_definition(struct LexState *ls, bindpower rbp) {
-  expr * ep = malloc(sizeof(expr));
+static expr * parse_variable_definition(struct LexState *ls, bindpower rbp UNUSED) {
   Token token = ls->t;
   beanX_next(ls);
-  ep->type = EXPR_DVAR;
-  ep->var.name = token.seminfo.ts;
 
+  write_opcode(ls->B, OP_BEAN_PUSH_STR);
+  operand_pointer_encode(ls->B, token.seminfo.ts);
   if (ls->t.type == TK_ASSIGN) {
     beanX_next(ls);
-    ep->var.value = parse_statement(ls, BP_LOWEST);
+    parse_statement(ls, BP_LOWEST);
   } else { // Supporting multi variables
-    expr * nilExpr = malloc(sizeof(expr));
-    ep->var.value = nilExpr;
+    write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   }
-  return ep;
+  write_opcode(ls->B, OP_BEAN_VARIABLE_DEFINE);
+  return NULL;
 }
 
 static expr * parse_branch(struct LexState *ls, bindpower rbp) {
@@ -571,6 +565,7 @@ static expr * parse_statement(struct LexState *ls, bindpower rbp) {
   }
 
   skip_semicolon(ls);
+
   return tree;
 };
 
