@@ -30,6 +30,7 @@ typedef struct vm VM;
 
 #define MAX_SIZET (~cast_sizet(0))
 #define BEAN_IDSIZE	60
+#define COMMON_POINTER_SIZE sizeof(void *)
 
 #if defined(DEBUG)
 #include <assert.h>
