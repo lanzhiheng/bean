@@ -11,17 +11,17 @@
 #define MIN_EXPR_SIZE 16
 #define get_tk_precedence(ls) (symbol_table[ls->t.type].lbp)
 
-static size_t operand_encode(bean_State * B, uint64_t num) {
+static size_t operand_pointer_encode(bean_State * B, void * num) {
   Mbuffer * buff = G(B)->instructionStream;
   size_t llen = 0;
+  int64_t pointer = (int64_t)num;
 
-  do {
-    uint8_t b = num & 0x7f;
-    num >>= 7;
-    if (num != 0) b |= 0x80;
+  while (llen < COMMON_POINTER_SIZE) {
+    uint8_t b = pointer & 0xff;
     beanZ_append(B, buff, b);
+    pointer >>= 8;
     llen++;
-  } while (num != 0);
+  }
 
   return llen;
 }
@@ -103,6 +103,8 @@ static expr * string (LexState *ls, expr * exp UNUSED) {
   expr * ep = malloc(sizeof(expr));
   ep -> type = EXPR_STRING;
   ep -> sval = ls->t.seminfo.ts;
+  write_byte(ls->B, OP_BEAN_PUSH_STR);
+  operand_pointer_encode(ls->B, ls->t.seminfo.ts);
   beanX_next(ls);
   return ep;
 }
@@ -123,7 +125,10 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
       ep -> type = EXPR_NUM;
       ep -> nval = ls->t.seminfo.n;
       write_opcode(ls->B, OP_BEAN_PUSH_NUM);
-      operand_encode(ls->B, ls->t.seminfo.n);
+      bean_Number * value = malloc(sizeof(double));
+      *value = ls->t.seminfo.n;
+      operand_pointer_encode(ls->B, value);
+      /* operand_encode(ls->B, ls->t.seminfo.n); */
       break;
     }
     default:
@@ -427,8 +432,10 @@ static expr * infix (LexState *ls, expr * left) {
       }
     }
 
+    TokenType binaryOp = ls->pre.type;
     temp -> infix.right = parse_statement(ls, symbol_table[op].lbp);
-    write_byte(ls->B, OP_BEAN_ADD);
+    write_byte(ls->B, OP_BEAN_BINARY_OP);
+    write_byte(ls->B, binaryOp);
     if (temp -> infix.op == TK_LEFT_BRACKET) testnext(ls, TK_RIGHT_BRACKET);
   }
 
