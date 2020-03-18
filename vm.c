@@ -6,10 +6,20 @@
 #include "berror.h"
 #include "bstate.h"
 
+static TValue * find_variable(bean_State * B, TValue * name) {
+  TValue * res;
+  Scope * scope = B->l_G->cScope;
+  while (scope) {
+    res = hash_get(B, scope->variables, name);
+    if (res) break;
+    scope = scope -> previous;
+  }
+  return res;
+}
+
 static int compareTwoTValue(bean_State * B, TValue * v1, TValue *v2) {
   TValue * convertV1 = ttisstring(v1) ? v1 : tvalue_inspect(B, v1);
   TValue * convertV2 = ttisstring(v2) ? v2 : tvalue_inspect(B, v2);
-
   return strcmp(getstr(svalue(convertV1)), getstr(svalue(convertV2)));
 }
 
@@ -174,12 +184,116 @@ int executeInstruct(bean_State * B) {
       PUSH(G(B)->nil);
       LOOP();
     }
+    CASE(FUNCTION_DEFINE): {
+      TValue * function = TV_MALLOC;
+      Function * f = operand_decode(ip);
+      setfcvalue(function, f);
+      ip += COMMON_POINTER_SIZE;
+      PUSH(function);
+      LOOP();
+    }
     CASE(INSPECT): {
       TValue * value = POP();
       TValue * tvString = tvalue_inspect(B, value);
       char * string = getstr(svalue(tvString));
       printf("%s\n", string);
       LOOP();
+    }
+    CASE(VARIABLE_GET): {
+      TValue * name = POP();
+      TValue * value = find_variable(B, name);
+      if (!value) eval_error(B, "%s", "Can't reference the variable before defined.");
+      PUSH(value);
+      free(name);
+      LOOP();
+    }
+    CASE(VARIABLE_DEFINE): {
+      TValue * value = POP();
+      TValue * name = POP();
+      SCSV(B, name, value);
+      PUSH(value);
+      LOOP();
+    }
+    CASE(ARRAY_PUSH): {
+      TValue * array = TV_MALLOC;
+      Array * a = init_array(B);
+      setarrvalue(array, a);
+      PUSH(array);
+      LOOP();
+    }
+    CASE(ARRAY_ITEM): {
+      TValue * item = POP();
+      TValue * array = POP();
+      Array * a = arrvalue(array);
+      array_push(B, a, item);
+      PUSH(array);
+      LOOP();
+    }
+    CASE(HASH_NEW): {
+      TValue * hash = TV_MALLOC;
+      Hash * h = init_hash(B);
+      sethashvalue(hash, h);
+      PUSH(hash);
+      LOOP();
+    }
+    CASE(HASH_VALUE): {
+      TValue * value = POP();
+      TValue * key = POP();
+      TValue * hash = POP();
+      Hash * h = hhvalue(hash);
+      hash_set(B, h, key, value);
+      PUSH(hash);
+      LOOP();
+    }
+    CASE(HANDLE_PREFIX): {
+      uint8_t op = READ_BYTE();
+
+      #define PREFIX(operator) do {                           \
+        TValue * name = TV_MALLOC;                      \
+        TString * ts = operand_decode(ip);              \
+        setsvalue(name, ts);                            \
+        TValue * value = find_variable(B, name);        \
+        bean_Number i = nvalue(value);                  \
+        i = i operator 1;                               \
+        setnvalue(value, i);                            \
+        PUSH(value);                                    \
+        ip += COMMON_POINTER_SIZE;                      \
+        LOOP();                                         \
+      } while(0);
+
+      switch(op) {
+        case(TK_ADD): {
+          PREFIX(+);
+        }
+        case(TK_SUB): {
+          PREFIX(-);
+        }
+      }
+      #undef PREFIX
+    }
+    CASE(HANDLE_SUFFIX): {
+      uint8_t op = READ_BYTE();
+      #define SUFFIX(operator) do {                           \
+        TValue * name = POP();                              \
+        TValue * value = find_variable(B, name);        \
+        bean_Number i = nvalue(value);                  \
+        TValue * ret = TV_MALLOC;                       \
+        setnvalue(ret, i);                              \
+        i = i operator 1;                               \
+        setnvalue(value, i);                            \
+        PUSH(ret);                                    \
+        LOOP();                                         \
+      } while(0);
+
+      switch(op) {
+        case(TK_ADD): {
+          SUFFIX(+);
+        }
+        case(TK_SUB): {
+          SUFFIX(-);
+        }
+      }
+#undef SUFFIX
     }
     default: {
       break;

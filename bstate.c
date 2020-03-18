@@ -189,27 +189,8 @@ static TValue * unary_eval (bean_State * B UNUSED, struct expr * expression) {
 }
 
 static TValue * change_eval (bean_State * B UNUSED, struct expr * expression) {
-  TValue * value = eval(B, expression->change.val);
-  TValue * retVal = TV_MALLOC;
 
-  switch(expression->change.op) {
-    case(TK_ADD): {
-      double res = expression->change.prefix ? nvalue(value) + 1 : nvalue(value);
-      setnvalue(retVal, res);
-      setnvalue(value, nvalue(value) + 1);
-      break;
-    }
-    case(TK_SUB): {
-      double res = expression->change.prefix ? nvalue(value) - 1: nvalue(value);
-      setnvalue(retVal, res) ;
-      setnvalue(value, nvalue(value) - 1);
-      break;
-    }
-    default:
-      eval_error(B, "%s", "Just supporting ++ or -- operator.");
-  }
-
-  return retVal;
+  return G(B)->nil;
 }
 
 static int compareTwoTValue(bean_State * B, TValue * v1, TValue *v2) {
@@ -464,22 +445,22 @@ static TValue * variable_get_eval (bean_State * B UNUSED, struct expr * expressi
 }
 
 static TValue * variable_define_eval (bean_State * B UNUSED, struct expr * expression) {
-  TValue * name = TV_MALLOC;
-  TString * vname = expression->var.name;
-  setsvalue(name, vname);
+  /* TValue * name = TV_MALLOC; */
+  /* TString * vname = expression->var.name; */
+  /* setsvalue(name, vname); */
 
-  TValue * value = eval(B, expression->var.value);
+  /* TValue * value = eval(B, expression->var.value); */
 
-  if (ttisfunction(value)) {
-    TString * funName = fcvalue(value)->p->name;
-    if (!funName) { // anonymous function
-      fcvalue(value)->p->name = vname;
-    }
-  }
+  /* if (ttisfunction(value)) { */
+  /*   TString * funName = fcvalue(value)->p->name; */
+  /*   if (!funName) { // anonymous function */
+  /*     fcvalue(value)->p->name = vname; */
+  /*   } */
+  /* } */
 
-  SCSV(B, name, value);
+  /* SCSV(B, name, value); */
 
-  return value;
+  return G(B)->nil;
 }
 
 static TValue * loop_eval(bean_State * B, struct expr * expression) {
@@ -680,21 +661,20 @@ static TValue * hash_key_eval(bean_State * B UNUSED, struct expr * expression) {
 
 static TValue * hash_eval(bean_State * B UNUSED, struct expr * expression) {
   TValue * ret = TV_MALLOC;
-  dynamic_expr * eps = expression->hash;
-  Hash * hash = init_hash(B);
-  assert(eps->count % 2 == 0);
-  for (int i = 0; i < eps->count; i+=2) {
-    TValue * key = hash_key_eval(B, eps->es[i]);
-    TValue * value = eval(B, eps->es[i + 1]);
+  /* dynamic_expr * eps = expression->hash; */
+  /* Hash * hash = init_hash(B); */
+  /* for (int i = 0; i < eps->count; i+=2) { */
+  /*   TValue * key = hash_key_eval(B, eps->es[i]); */
+  /*   TValue * value = eval(B, eps->es[i + 1]); */
 
-    if (ttisfunction(value) && !fcvalue(value)->p->name) {
-      fcvalue(value)->p->name = svalue(key);
-    }
+  /*   if (ttisfunction(value) && !fcvalue(value)->p->name) { */
+  /*     fcvalue(value)->p->name = svalue(key); */
+  /*   } */
 
-    hash_set(B, hash, key, value);
-  }
-  sethashvalue(ret, hash);
-  return ret;
+  /*   hash_set(B, hash, key, value); */
+  /* } */
+  /* sethashvalue(ret, hash); */
+  return G(B)->nil;
 }
 
 eval_func fn[] = {
@@ -941,6 +921,6 @@ void assert_with_message(bool condition, char * msg) {
 }
 
 TValue * eval(bean_State * B, struct expr * expression) {
-  EXPR_TYPE t = expression -> type;
-  return fn[t](B, expression);
+  /* EXPR_TYPE t = expression -> type; */
+  /* return fn[t](B, expression); */
 }
