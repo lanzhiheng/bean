@@ -56,7 +56,7 @@ int executeInstruct(bean_State * B) {
   switch (code)
 #define CASE(shortOp) case OP_BEAN_##shortOp
 #define LOOP() goto loopStart
-#define CAL_STMT(action) do {                                      \
+#define CAL_STMT(action) do {                                           \
     TValue * v2 = POP();                                                \
     TValue * v1 = POP();                                                \
     if (!ttisnumber(v1)) {                                              \
@@ -84,6 +84,23 @@ int executeInstruct(bean_State * B) {
     PUSH(v1);                                                           \
     LOOP();                                                             \
  } while(0)
+
+#define CAL_EQ_STMT(action) do {                                        \
+    TValue * v2 = POP();                                                \
+    TValue * name = POP();                                              \
+    TValue * v1 = find_variable(B, name);                               \
+    if (!ttisnumber(v1)) {                                              \
+      eval_error(B, "%s", "left operand of "#action" must be number");  \
+    }                                                                   \
+    if (!ttisnumber(v2)) {                                              \
+      eval_error(B, "%s", "right operand of "#action" must be number"); \
+    }                                                                   \
+    setnvalue(v1, action(nvalue(v1), nvalue(v2)));                      \
+    SCSV(B, name, v1);                                                  \
+    free(v2);                                                           \
+    PUSH(v1);                                                           \
+    LOOP();                                                             \
+  } while(0)
 
   DECODE {
     CASE(BINARY_OP): {
@@ -154,6 +171,40 @@ int executeInstruct(bean_State * B) {
           free(v2);
           LOOP();
         }
+      }
+    }
+    CASE(BINARY_OP_WITH_ASSIGN): {
+      uint8_t op = READ_BYTE();
+
+      switch(op) {
+        case(TK_ADD): { // To recognize += or -=
+          TValue * v2 = POP();
+          TValue * name = POP();
+          TValue * v1 = find_variable(B, name);
+          if (ttisnumber(v1) && ttisnumber(v2)) {
+            setnvalue(v1, add(nvalue(v1), nvalue(v2)));
+          } else {
+            v1= concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
+          }
+          free(v2);
+          SCSV(B, name, v1);
+          PUSH(v1);
+          LOOP();
+        }
+        case(TK_SUB):
+          CAL_EQ_STMT(sub);
+        case(TK_MUL):
+          CAL_EQ_STMT(mul);
+        case(TK_DIV):
+          CAL_EQ_STMT(div);
+        case(TK_LOGIC_OR):
+          CAL_EQ_STMT(logic_or);
+        case(TK_LOGIC_AND):
+          CAL_EQ_STMT(logic_and);
+        case(TK_LOGIC_XOR):
+          CAL_EQ_STMT(logic_xor);
+        case(TK_MOD):
+          CAL_EQ_STMT(mod);
       }
     }
     CASE(PUSH_NUM): {
@@ -293,7 +344,7 @@ int executeInstruct(bean_State * B) {
           SUFFIX(-);
         }
       }
-#undef SUFFIX
+      #undef SUFFIX
     }
     default: {
       break;
