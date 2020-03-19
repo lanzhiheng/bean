@@ -183,7 +183,9 @@ static expr* self(LexState *ls, expr *exp UNUSED) {
 }
 
 static expr* left_paren(LexState *ls, expr *exp UNUSED) {
+  checknext(ls, TK_LEFT_PAREN);
   parse_statement(ls, BP_LOWEST);
+  checknext(ls, TK_RIGHT_PAREN);
   return NULL;
 }
 
@@ -310,30 +312,24 @@ static expr * unary(LexState *ls, expr * exp UNUSED) {
 
 static expr * parse_array(struct LexState *ls UNUSED, expr * exp UNUSED) {
   beanX_next(ls);
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_ARRAY;
-  ep -> array = init_dynamic_expr(ls->B);
 
   write_opcode(ls->B, OP_BEAN_ARRAY_PUSH);
 
-  if (checknext(ls, TK_RIGHT_BRACKET)) return ep;
+  if (checknext(ls, TK_RIGHT_BRACKET)) return NULL;
 
   do {
-    add_element(ls->B, ep->array, parse_statement(ls, BP_LOWEST));
+    parse_statement(ls, BP_LOWEST);
     write_opcode(ls->B, OP_BEAN_ARRAY_ITEM);
   } while(checknext(ls, TK_COMMA));
   checknext(ls, TK_RIGHT_BRACKET);
-  return ep;
+  return NULL;
 }
 
 static expr * parse_hash(struct LexState *ls UNUSED, expr * exp UNUSED) {
   beanX_next(ls);
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_HASH;
-  ep -> hash = init_dynamic_expr(ls->B);
 
   write_byte(ls->B, OP_BEAN_HASH_NEW);
-  if (checknext(ls, TK_RIGHT_BRACE)) return ep;
+  if (checknext(ls, TK_RIGHT_BRACE)) return NULL;
 
   do {
     Token token = ls->t;
@@ -346,12 +342,12 @@ static expr * parse_hash(struct LexState *ls UNUSED, expr * exp UNUSED) {
     }
 
     checknext(ls, TK_COLON);
-    add_element(ls->B, ep->hash, parse_statement(ls, BP_LOWEST));
+    parse_statement(ls, BP_LOWEST);
     write_byte(ls->B, OP_BEAN_HASH_VALUE);
   } while(checknext(ls, TK_COMMA));
 
   checknext(ls, TK_RIGHT_BRACE);
-  return ep;
+  return NULL;
 }
 
 symbol symbol_table[] = {
