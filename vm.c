@@ -346,6 +346,35 @@ int executeInstruct(bean_State * B) {
       }
       #undef SUFFIX
     }
+    CASE(UNARY): {
+      uint8_t op = READ_BYTE();
+      TValue * res = TV_MALLOC;
+      TValue * v = POP();
+
+      switch(op) {
+        case(TK_SUB): {
+          setnvalue(res, -nvalue(v));
+          goto clear_unary;
+        }
+        case(TK_ADD): {
+          setnvalue(res, nvalue(v));
+          goto clear_unary;
+        }
+        case(TK_BANG):
+        case(TK_NOT): {
+          res = truthvalue(v) ?  G(B)->fVal : G(B)->tVal;
+          goto clear_unary;
+        }
+        case(TK_TYPE_OF): {
+          res = type_statement(B, v);
+          goto clear_unary;
+        }
+        clear_unary:
+        free(v);
+        PUSH(res);
+        LOOP();
+      }
+    }
     default: {
       break;
     }

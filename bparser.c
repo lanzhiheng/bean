@@ -260,6 +260,7 @@ static expr * parse_definition(LexState *ls) {
 static expr * unary(LexState *ls, expr * exp UNUSED) {
   expr * temp = malloc(sizeof(expr));
 
+  TokenType type = ls->t.type;
   beanX_next(ls);
 
   // Supporting ++a, --a
@@ -282,9 +283,9 @@ static expr * unary(LexState *ls, expr * exp UNUSED) {
       syntax_error(ls, "Just supporting ++ or -- operator.");
     }
   } else {
-    temp -> type = EXPR_UNARY;
-    temp -> unary.op = ls->pre.type;
-    temp -> unary.val = parse_statement(ls, BP_LOWEST);
+    parse_statement(ls, BP_LOWEST);
+    write_opcode(ls->B, OP_BEAN_UNARY);
+    write_byte(ls->B, type);
   }
   return temp;
 }
