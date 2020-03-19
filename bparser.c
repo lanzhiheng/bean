@@ -26,6 +26,20 @@ static size_t operand_pointer_encode(bean_State * B, void * num) {
   return llen;
 }
 
+static size_t offset_patch(bean_State * B, size_t index, size_t offset) {
+  Mbuffer * buff = G(B)->instructionStream;
+  size_t llen = 0;
+
+  while (llen < COMMON_POINTER_SIZE) {
+    uint8_t b = offset & 0xff;
+    buff->buffer[index++] = b;
+    offset >>= 8;
+    llen++;
+  }
+
+  return llen;
+}
+
 static void write_byte(bean_State * B, uint8_t b) {
   Mbuffer * buff = G(B)->instructionStream;
   beanZ_append(B, buff, b);
@@ -33,6 +47,13 @@ static void write_byte(bean_State * B, uint8_t b) {
 
 static void write_opcode(bean_State * B, OpCode code) {
   write_byte(B, code);
+}
+
+static void write_init_offset(bean_State * B) {
+  size_t i;
+  for (i = 0; i < COMMON_POINTER_SIZE; i++) {
+    write_byte(B, 0);
+  }
 }
 
 static dynamic_expr * init_dynamic_expr(bean_State * B UNUSED) {
@@ -162,11 +183,8 @@ static expr* self(LexState *ls, expr *exp UNUSED) {
 }
 
 static expr* left_paren(LexState *ls, expr *exp UNUSED) {
-  checknext(ls, TK_LEFT_PAREN);
-  expr * ep = malloc(sizeof(expr));
-  ep = parse_statement(ls, BP_LOWEST);
-  checknext(ls, TK_RIGHT_PAREN);
-  return ep;
+  parse_statement(ls, BP_LOWEST);
+  return NULL;
 }
 
 static expr* variable(LexState *ls, expr *exp UNUSED) {
@@ -454,33 +472,51 @@ static expr * parse_variable_definition(struct LexState *ls, bindpower rbp UNUSE
 }
 
 static expr * parse_branch(struct LexState *ls, bindpower rbp) {
+  size_t offIf, offEndif;
   if (ls->t.type == TK_IF || ls->t.type == TK_ELSEIF) beanX_next(ls);
-  expr * tree = malloc(sizeof(expr));
-  tree -> type = EXPR_BRANCH;
-  tree -> branch.condition = parse_statement(ls, rbp);
-  tree -> branch.if_body = init_dynamic_expr(ls->B);
+
+  testnext(ls, TK_LEFT_PAREN);
+  parse_statement(ls, rbp); // condition
+  testnext(ls, TK_RIGHT_PAREN);
+
+  write_opcode(ls->B, OP_BEAN_JUMP_FALSE);
+  offIf = G(ls->B)->instructionStream->n;
+
+  write_init_offset(ls->B); // placeholder
 
   testnext(ls, TK_LEFT_BRACE);
+
   while (ls->t.type != TK_RIGHT_BRACE) {
-    add_element(ls->B, tree -> branch.if_body, parse_statement(ls, rbp));
+    parse_statement(ls, rbp);
   }
   testnext(ls, TK_RIGHT_BRACE);
 
-  if (ls->t.type == TK_ELSEIF) { // elsif() {}  => else { if()  }
-    tree -> branch.else_body = init_dynamic_expr(ls->B);
-    add_element(ls->B, tree -> branch.else_body, parse_branch(ls, rbp));
-  } else if (ls->t.type == TK_ELSE) {
-    checknext(ls, TK_ELSE);
-    tree -> branch.else_body = init_dynamic_expr(ls->B);
+  if (ls->t.type == TK_ELSE) {
+    size_t offElse, offEndelse;
+
+    testnext(ls, TK_ELSE);
+    write_opcode(ls->B, OP_BEAN_JUMP);
+    offElse = G(ls->B)->instructionStream->n;
+    write_init_offset(ls->B); // placeholder
+    offEndif = G(ls->B)->instructionStream->n;
+
+    write_opcode(ls->B, OP_BEAN_DROP);
+
     testnext(ls, TK_LEFT_BRACE);
     while (ls->t.type != TK_RIGHT_BRACE) {
-      add_element(ls->B, tree -> branch.else_body, parse_statement(ls, rbp));
+      parse_statement(ls, rbp);
     }
     testnext(ls, TK_RIGHT_BRACE);
+
+    offEndelse = G(ls->B)->instructionStream->n;
+    offset_patch(ls->B, offElse, offEndelse - offElse );
   } else {
-    tree -> branch.else_body = NULL;
+    offEndif = G(ls->B)->instructionStream->n;
   }
-  return tree;
+
+  offset_patch(ls->B, offIf, offEndif - offIf);
+
+  return NULL;
 }
 
 static expr * parse_do_while(struct LexState *ls, bindpower rbp) {

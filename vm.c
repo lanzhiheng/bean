@@ -72,8 +72,8 @@ int executeInstruct(bean_State * B) {
   } while(0)
 
 #define COMPARE_STMT(action) do {                                       \
-    TValue * v1 = POP();                                                \
     TValue * v2 = POP();                                                \
+    TValue * v1 = POP();                                                \
     if (ttisnumber(v1) && ttisnumber(v2)) {                             \
       v1 = action(nvalue(v1), nvalue(v2)) ? G(B)->tVal : G(B)->fVal;    \
     } else {                                                            \
@@ -208,8 +208,8 @@ int executeInstruct(bean_State * B) {
       }
     }
     CASE(PUSH_NUM): {
-      bean_Number * np = operand_decode(ip);
       TValue * number = TV_MALLOC;
+      bean_Number * np = operand_decode(ip);
       setnvalue(number, *np);
       PUSH(number);
       ip += COMMON_POINTER_SIZE;
@@ -372,6 +372,25 @@ int executeInstruct(bean_State * B) {
         clear_unary:
         free(v);
         PUSH(res);
+        LOOP();
+      }
+      CASE(JUMP_FALSE): {
+        TValue * condition = POP();
+        if (falsyvalue(condition)) {
+          size_t offset = (size_t)operand_decode(ip);
+          ip += offset;
+        } else {
+          ip += COMMON_POINTER_SIZE;
+        }
+        LOOP();
+      }
+      CASE(JUMP): {
+        size_t offset = (size_t)operand_decode(ip);
+        ip += offset;
+        LOOP();
+      }
+      CASE(DROP): {
+        POP();
         LOOP();
       }
     }

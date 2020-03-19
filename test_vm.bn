@@ -77,11 +77,22 @@
 // var a = 10
 // a %= 2
 
-var a = 100;
--a;
-var a = 200;
-+a;
-var a = 300;
-!a;
-var a = 400;
-typeof a;
+// var a = 100;
+// -a;
+// var a = 200;
+// +a;
+// var a = 300;
+// !a;
+// var a = 400;
+// typeof a;
+
+
+var m = 10;
+
+if (m > 105) {
+  m++;
+} else {
+  m--;
+}
+
+m;
