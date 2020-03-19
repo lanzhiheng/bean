@@ -87,12 +87,14 @@
 // typeof a;
 
 
-var m = 10;
+var m = 100;
 
-if (m > 105) {
-  m++;
+if (m > 1000) {
+  m+=3;
+} elsif (m > 1) {
+  m+=10
 } else {
-  m--;
+  m-=10
 }
 
 m;

@@ -473,6 +473,7 @@ static expr * parse_variable_definition(struct LexState *ls, bindpower rbp UNUSE
 
 static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   size_t offIf, offEndif;
+  write_opcode(ls->B, OP_BEAN_PUSH_NIL); // default return value of branch
   if (ls->t.type == TK_IF || ls->t.type == TK_ELSEIF) beanX_next(ls);
 
   testnext(ls, TK_LEFT_PAREN);
@@ -485,13 +486,24 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   write_init_offset(ls->B); // placeholder
 
   testnext(ls, TK_LEFT_BRACE);
-
   while (ls->t.type != TK_RIGHT_BRACE) {
     parse_statement(ls, rbp);
   }
   testnext(ls, TK_RIGHT_BRACE);
 
-  if (ls->t.type == TK_ELSE) {
+  if (ls->t.type == TK_ELSEIF) {
+    size_t offElse, offEndelse;
+    write_opcode(ls->B, OP_BEAN_JUMP);
+    offElse = G(ls->B)->instructionStream->n;
+    write_init_offset(ls->B); // placeholder
+    offEndif = G(ls->B)->instructionStream->n;
+    offset_patch(ls->B, offIf, offEndif - offIf);
+
+    parse_branch(ls, rbp);
+
+    offEndelse = G(ls->B)->instructionStream->n;
+    offset_patch(ls->B, offElse, offEndelse - offElse);
+  } else if (ls->t.type == TK_ELSE) {
     size_t offElse, offEndelse;
 
     testnext(ls, TK_ELSE);
@@ -499,6 +511,7 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     offElse = G(ls->B)->instructionStream->n;
     write_init_offset(ls->B); // placeholder
     offEndif = G(ls->B)->instructionStream->n;
+    offset_patch(ls->B, offIf, offEndif - offIf);
 
     write_opcode(ls->B, OP_BEAN_DROP);
 
@@ -509,12 +522,11 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     testnext(ls, TK_RIGHT_BRACE);
 
     offEndelse = G(ls->B)->instructionStream->n;
-    offset_patch(ls->B, offElse, offEndelse - offElse );
+    offset_patch(ls->B, offElse, offEndelse - offElse);
   } else {
     offEndif = G(ls->B)->instructionStream->n;
+    offset_patch(ls->B, offIf, offEndif - offIf);
   }
-
-  offset_patch(ls->B, offIf, offEndif - offIf);
 
   return NULL;
 }
