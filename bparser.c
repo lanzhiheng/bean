@@ -178,11 +178,7 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
 
   TokenType op = ls->t.type;
   // a++ or a--
-  if (op == TK_ADD || op == TK_SUB) {
-    testnext(ls, op);
-    testnext(ls, op);
-    write_opcode(ls->B, OP_BEAN_HANDLE_SUFFIX);
-    write_byte(ls->B, op);
+  if (op >= TK_ADD && op <= TK_MOD) {
   } else {
     write_opcode(ls->B, OP_BEAN_VARIABLE_GET);
   }
@@ -412,29 +408,32 @@ static expr * function_call (LexState *ls, expr * left) {
 }
 
 static expr * infix (LexState *ls, expr * left) {
-  expr * temp = malloc(sizeof(expr));
-
-  TokenType op = ls->pre.type;
-  temp -> type = EXPR_BINARY;
-  temp -> infix.op = op;
-  temp -> infix.left = left;
+  int binaryOp = ls->pre.type;
 
   if (ls->t.type == TK_ASSIGN) {
-    if (ls->pre.type >= TK_ADD && ls->pre.type <= TK_MOD) {
+    if (binaryOp >= TK_ADD && binaryOp <= TK_MOD) {
       testnext(ls, TK_ASSIGN);
-      temp -> infix.assign = true;
+      parse_statement(ls, symbol_table[binaryOp].lbp);
+      write_byte(ls->B, OP_BEAN_BINARY_OP_WITH_ASSIGN);
+      write_byte(ls->B, binaryOp);
     } else {
-      syntax_error(ls, "Just supporting +=, -=, *=, /=, |=, &=, %=");
+      syntax_error(ls, "Just supporting +=, -=, *=, /=, |=, &=, %=, ^=");
     }
+  } else if (ls->t.type == binaryOp) {
+    if (ls->t.type == TK_ADD || ls->t.type == TK_SUB) {
+      write_opcode(ls->B, OP_BEAN_HANDLE_SUFFIX);
+      write_byte(ls->B, binaryOp);
+      beanX_next(ls);
+    } else {
+      syntax_error(ls, "Just supporting a++ and a--");
+    }
+  } else {
+    parse_statement(ls, symbol_table[binaryOp].lbp);
+    write_byte(ls->B, OP_BEAN_BINARY_OP);
+    write_byte(ls->B, binaryOp);
   }
 
-  TokenType binaryOp = ls->pre.type;
-  temp -> infix.right = parse_statement(ls, symbol_table[op].lbp);
-  write_byte(ls->B, OP_BEAN_BINARY_OP);
-  write_byte(ls->B, binaryOp);
-  if (temp -> infix.op == TK_LEFT_BRACKET) testnext(ls, TK_RIGHT_BRACKET);
-
-  return temp;
+  return NULL;
 }
 
 static expr * parse_variable_definition(struct LexState *ls, bindpower rbp UNUSED) {
