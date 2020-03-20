@@ -37,18 +37,22 @@ void * operand_decode(char * buff) {
 typedef struct Thread {
   TValue ** stack;
   TValue ** esp;
+  TValue ** loop;
 } Thread;
 
 int executeInstruct(bean_State * B) {
   Thread * thread = malloc(sizeof(Thread));
   thread -> stack = malloc(sizeof(TValue*) * 3000);
   thread -> esp = thread -> stack;
+  thread -> loop = malloc(sizeof(TValue*) * 100);
 
   char * ip;
   ip = G(B)->instructionStream->buffer;
   char code;
 
 #define READ_BYTE() *ip++;
+#define CREATE_LOOP(value) (*thread->loop++ = value)
+#define DROP_LOOP(value) (*(--thread->loop))
 #define PUSH(value) (*thread->esp++ = value)
 #define POP(value) (*(--thread->esp))
 #define DECODE loopStart:                       \
@@ -374,6 +378,16 @@ int executeInstruct(bean_State * B) {
         PUSH(res);
         LOOP();
       }
+      CASE(JUMP_TRUE): {
+        TValue * condition = POP();
+        if (truthvalue(condition)) {
+          size_t offset = (size_t)operand_decode(ip);
+          ip += offset;
+        } else {
+          ip += COMMON_POINTER_SIZE;
+        }
+        LOOP();
+      }
       CASE(JUMP_FALSE): {
         TValue * condition = POP();
         if (falsyvalue(condition)) {
@@ -391,6 +405,33 @@ int executeInstruct(bean_State * B) {
       }
       CASE(DROP): {
         POP();
+        LOOP();
+      }
+      CASE(LOOP): {
+        long end = (long)operand_decode(ip);
+        TValue * address = TV_MALLOC;
+        setnvalue(address, end);
+        CREATE_LOOP(address);
+        ip += COMMON_POINTER_SIZE;
+        LOOP();
+      }
+      CASE(LOOP_CONTINUE): {
+        long offset = (long)operand_decode(ip);
+        ip += offset;
+        LOOP();
+      }
+      CASE(LOOP_BREAK): {
+        TValue * address = DROP_LOOP();
+        long index = nvalue(address);
+        ip = G(B)->instructionStream->buffer + (long)index + 1;
+        LOOP();
+      }
+      CASE(CREATE_SCOPE): {
+        enter_scope(B);
+        LOOP();
+      }
+      CASE(DESTROY_SCOPE): {
+        leave_scope(B);
         LOOP();
       }
     }
