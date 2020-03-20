@@ -528,40 +528,78 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
 }
 
 static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
+  size_t loopEnd, loopTop, loopPush;
   beanX_next(ls);
+  write_opcode(ls->B, OP_BEAN_PUSH_NIL); // default return value
 
-  expr * tree = malloc(sizeof(expr));
-  tree -> type = EXPR_LOOP;
-  tree -> loop.body = init_dynamic_expr(ls->B);
-  tree -> loop.firstcheck = false;
+  write_opcode(ls->B, OP_BEAN_LOOP);
+  loopPush = G(ls->B)->instructionStream -> n;
+  write_init_offset(ls->B);
+  loopTop = G(ls->B)->instructionStream -> n;
+
+  write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
+
   testnext(ls, TK_LEFT_BRACE);
 
   while (ls->t.type != TK_RIGHT_BRACE) {
-    add_element(ls->B, tree->loop.body, parse_statement(ls, rbp));
+    parse_statement(ls, rbp);
   }
 
   testnext(ls, TK_RIGHT_BRACE);
+
   testnext(ls, TK_WHILE);
-  tree -> loop.condition = parse_statement(ls, rbp);
-  return tree;
+
+  parse_statement(ls, rbp);
+
+  write_opcode(ls->B, OP_BEAN_JUMP_TRUE);
+  loopEnd = G(ls->B)->instructionStream -> n;
+  write_init_offset(ls->B);
+  offset_patch(ls->B, loopEnd, loopTop - loopEnd);
+
+  offset_patch(ls->B, loopPush, G(ls->B)->instructionStream -> n); // End of loop's address.
+  write_opcode(ls->B, OP_BEAN_LOOP_BREAK);
+  write_opcode(ls->B, OP_BEAN_DESTROY_SCOPE);
+
+  return NULL;
 }
 
 static expr * parse_while(struct LexState *ls, bindpower rbp) {
+  size_t loopBegin, loopEnd, loopTop, loopPush;
   beanX_next(ls);
+  write_opcode(ls->B, OP_BEAN_PUSH_NIL); // default return value
+  write_opcode(ls->B, OP_BEAN_LOOP);
+  loopPush = G(ls->B)->instructionStream -> n;
+  write_init_offset(ls->B);
+  loopTop = G(ls->B)->instructionStream -> n;
 
-  expr * tree = malloc(sizeof(expr));
-  tree -> type = EXPR_LOOP;
-  tree -> loop.firstcheck = true;
-  tree -> loop.condition = parse_statement(ls, rbp);
-  tree -> loop.body = init_dynamic_expr(ls->B);
+  parse_statement(ls, rbp); // condition
+
+  write_opcode(ls->B, OP_BEAN_JUMP_FALSE);
+  loopBegin = G(ls->B)->instructionStream -> n;
+  write_init_offset(ls->B);
+
+  write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
+
   testnext(ls, TK_LEFT_BRACE);
-
   while (ls->t.type != TK_RIGHT_BRACE) {
-    add_element(ls->B, tree->loop.body, parse_statement(ls, rbp));
+    parse_statement(ls, rbp);
+    write_opcode(ls->B, OP_BEAN_DROP); // Drop the stack top value of each loop
   }
-
   testnext(ls, TK_RIGHT_BRACE);
-  return tree;
+
+  write_opcode(ls->B, OP_BEAN_LOOP_CONTINUE);
+  loopEnd = G(ls->B)->instructionStream -> n;
+  write_init_offset(ls->B);
+  offset_patch(ls->B, loopEnd, loopTop - loopEnd);
+
+  loopEnd = G(ls->B)->instructionStream -> n;
+  offset_patch(ls->B, loopBegin, loopEnd - loopBegin);
+
+  offset_patch(ls->B, loopPush, loopEnd); // End of loop's address.
+  write_opcode(ls->B, OP_BEAN_LOOP_BREAK);
+
+  write_opcode(ls->B, OP_BEAN_DESTROY_SCOPE);
+  return NULL;
 }
 
 
@@ -570,11 +608,11 @@ static void skip_semicolon(LexState * ls) { // Skip all the semicolon
 }
 
 static expr * parse_break(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_BREAK;
+  write_opcode(ls->B, OP_BEAN_LOOP_BREAK);
+
   beanX_next(ls);
   skip_semicolon(ls); // Skip all the semicolon
-  return ep;
+  return NULL;
 }
 
 static expr * parse_statement(struct LexState *ls, bindpower rbp) {
