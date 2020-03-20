@@ -49,6 +49,7 @@ typedef union Value {
   TString * s;
   Regex * rr;
   struct Function * fc;
+  struct Fn * fn;
   struct Tool * tl;
   struct Array * ar;
   struct Hash * hh;
@@ -158,10 +159,14 @@ typedef struct TValue {
 #define setfcvalue(obj,x)                                               \
   { TValue *io = obj; val_(io).fc=(x); settt_(io, BEAN_TFUNCTION); io->prototype=G(B)->fproto; }
 
+#define setfnvalue(obj,x)                                               \
+  { TValue *io = obj; val_(io).fn=(x); settt_(io, BEAN_TFUNCTION); io->prototype=G(B)->fproto; }
+
 #define settlvalue(obj,x)                                                \
   { TValue *io = obj; val_(io).tl=(x); settt_(io, BEAN_TTOOL); io->prototype=G(B)->meta; }
 
 #define fcvalue(o)       check_exp(ttisfunction(o), val_(o).fc)
+#define fnvalue(o)       check_exp(ttisfunction(o), val_(o).fn)
 #define tlvalue(o)       check_exp(ttistool(o), val_(o).tl)
 #define arrvalue(o)       check_exp(ttisarray(o), val_(o).ar)
 #define hhvalue(o)       check_exp(ttishash(o), val_(o).hh)

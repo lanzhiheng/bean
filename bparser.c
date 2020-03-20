@@ -56,28 +56,6 @@ static void write_init_offset(bean_State * B) {
   }
 }
 
-static dynamic_expr * init_dynamic_expr(bean_State * B UNUSED) {
-  dynamic_expr * target = malloc(sizeof(dynamic_expr));
-  target -> es = calloc(sizeof(struct expr *), MIN_EXPR_SIZE);
-  target -> size = MIN_EXPR_SIZE;
-  target -> count = 0;
-  return target;
-}
-
-static void add_element(bean_State * B, dynamic_expr * target, struct expr * expression) {
-  if (target -> count + 1 > target -> size) {
-    size_t oldSize = (target -> size) * sizeof(struct expr *);
-    size_t newSize = oldSize * 2;
-    target->es = beanM_realloc_(B, target -> es, oldSize, newSize);
-
-    if (target->es) {
-      for (uint32_t i = target->size; i < newSize; i++) target->es[i] = NULL;
-
-      target->size = newSize;
-    }
-  }
-  target -> es[target -> count++] = expression;
-}
 
 /* maximum number of local variables per function (must be smaller
    than 250, due to the bytecode format) */
@@ -199,6 +177,8 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
   TokenType op = ls->t.type;
   // a++ or a--
   if (op >= TK_ADD && op <= TK_MOD) {
+  } else if (op == TK_LEFT_PAREN) {
+
   } else {
     write_opcode(ls->B, OP_BEAN_VARIABLE_GET);
   }
@@ -218,63 +198,53 @@ static expr* return_exp(LexState *ls, expr * exp UNUSED) {
   return ep;
 }
 
-static Proto * parse_prototype(LexState *ls) {
-  Token preToken = ls->pre;
-  Proto * p = malloc(sizeof(Proto));
-  beanX_next(ls);
+static expr * parse_definition(LexState *ls) {
+  testnext(ls, TK_FUNCTION);
 
-  TString * name = NULL;
+  size_t prologue, off;
+  bool nameProvided = false;
 
-  bool assign = preToken.type == TK_COLON || preToken.type == TK_ASSIGN;
-  bool immediate = preToken.type == TK_LEFT_PAREN;
-
-  if (!checknext(ls, TK_NAME)) {
-    if (!assign && !immediate) {
-      syntax_error(ls, "Expect function name in prototype!");
-    }
-  } else {
-    name = ls->t.seminfo.ts;
+  if (ls->t.type == TK_NAME) {
+    nameProvided = true;
+    write_opcode(ls->B, OP_BEAN_PUSH_STR);
+    operand_pointer_encode(ls->B, ls->t.seminfo.ts);
+    beanX_next(ls);
   }
 
-  p -> assign = assign;
-  p -> name = name;
-  p -> args = malloc(sizeof(TString) * MAX_ARGS);
-  p -> arity = 0;
+  write_opcode(ls->B, OP_BEAN_JUMP);
+  off = G(ls->B)->instructionStream -> n;
+  write_init_offset(ls->B);
+
+  prologue = G(ls->B)->instructionStream -> n; // Function body start here.
 
   testnext(ls, TK_LEFT_PAREN);
 
-  if (checknext(ls, TK_RIGHT_PAREN)) {
-    return p;
+  while (ls->t.type != TK_RIGHT_PAREN) {
+    write_opcode(ls->B, OP_BEAN_SET_ARG);
+    operand_pointer_encode(ls->B, ls->t.seminfo.ts);
   }
-
-  do {
-    testnext(ls, TK_NAME);
-    p->args[p->arity++] = ls->t.seminfo.ts;
-  } while(checknext(ls, TK_COMMA));
 
   testnext(ls, TK_RIGHT_PAREN);
 
-  return p;
-}
-
-static expr * parse_definition(LexState *ls) {
-  Function * f = malloc(sizeof(Function));
-  f -> p = parse_prototype(ls);
-  f -> body = init_dynamic_expr(ls->B);
   checknext(ls, TK_LEFT_BRACE);
 
   while (ls->t.type != TK_RIGHT_BRACE) {
-    add_element(ls->B, f->body, parse_statement(ls, BP_LOWEST));
+    parse_statement(ls, BP_LOWEST);
+    /* write_opcode(ls->B, OP_BEAN_DROP); // Drop the stack top value of each loop */
   }
 
   testnext(ls, TK_RIGHT_BRACE);
-  expr * ex = malloc(sizeof(expr));
-  ex->type = EXPR_FUN;
-  ex->fun = f;
+  write_opcode(ls->B, OP_BEAN_RETURN); // Get return address from stack
 
+  offset_patch(ls->B, off, G(ls->B)->instructionStream -> n - off); // jump here
   write_opcode(ls->B, OP_BEAN_FUNCTION_DEFINE);
-  operand_pointer_encode(ls->B, f);
-  return ex;
+  operand_pointer_encode(ls->B, (void *)prologue);
+
+  if (nameProvided) {
+    write_opcode(ls->B, OP_BEAN_VARIABLE_DEFINE);
+  }
+
+  return NULL;
 }
 
 static expr * unary(LexState *ls, expr * exp UNUSED) {
@@ -407,19 +377,24 @@ symbol symbol_table[] = {
 };
 
 static expr * function_call (LexState *ls, expr * left) {
-  expr * func_call = malloc(sizeof(expr));
-  func_call -> type = EXPR_CALL;
-  func_call -> call.callee = left;
-  func_call->call.args = init_dynamic_expr(ls->B);
+  Token tk = ls->pre;
+  TString * str = tk.seminfo.ts;
+  write_opcode(ls->B, OP_BEAN_PUSH_STR);
+  operand_pointer_encode(ls->B, str);
 
-  if (checknext(ls, TK_RIGHT_PAREN)) return func_call;
+  checknext(ls, TK_LEFT_PAREN);
+
+  if (checknext(ls, TK_RIGHT_PAREN)) {
+    write_opcode(ls->B, OP_BEAN_FUNCTION_CALL0);
+    return NULL;
+  }
 
   do {
-    add_element(ls->B, func_call->call.args, parse_statement(ls, BP_LOWEST));
+    parse_statement(ls, BP_LOWEST);
   } while(checknext(ls, TK_COMMA));
 
   testnext(ls, TK_RIGHT_PAREN);
-  return func_call;
+  return NULL;
 }
 
 static expr * infix (LexState *ls, expr * left) {
@@ -563,8 +538,8 @@ static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
   write_init_offset(ls->B);
   offset_patch(ls->B, loopEnd, loopTop - loopEnd);
 
-  offset_patch(ls->B, loopPush, G(ls->B)->instructionStream -> n); // End of loop's address.
   write_opcode(ls->B, OP_BEAN_LOOP_BREAK);
+  offset_patch(ls->B, loopPush, G(ls->B)->instructionStream -> n); // End of loop's address.
   write_opcode(ls->B, OP_BEAN_DESTROY_SCOPE);
 
   return NULL;
