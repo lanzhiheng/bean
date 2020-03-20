@@ -86,15 +86,17 @@ var a = 300;
 var a = 400;
 typeof a;
 
-
 var m = 100;
 
 if (m > 200) {
-  m+=3;
+ var a = 100
+m+=a;
 } elsif (m > 221) {
-  m+=10
+ var a = 100
+m+=a
 } else {
-  m-=10
+ var a = 1000000
+m-=a
 }
 
 m;
