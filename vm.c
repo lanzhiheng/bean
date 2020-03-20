@@ -52,7 +52,7 @@ int executeInstruct(bean_State * B) {
 
 #define READ_BYTE() *ip++;
 #define CREATE_LOOP(value) (*thread->loop++ = value)
-#define DROP_LOOP(value) (*(--thread->loop))
+#define DROP_LOOP() (*(--thread->loop))
 #define PUSH(value) (*thread->esp++ = value)
 #define POP(value) (*(--thread->esp))
 #define DECODE loopStart:                       \
@@ -241,8 +241,9 @@ int executeInstruct(bean_State * B) {
     }
     CASE(FUNCTION_DEFINE): {
       TValue * function = TV_MALLOC;
-      Function * f = operand_decode(ip);
-      setfcvalue(function, f);
+      Fn * fn = malloc(sizeof(Fn));
+      fn->address = (size_t)operand_decode(ip);
+      setfnvalue(function, fn);
       ip += COMMON_POINTER_SIZE;
       PUSH(function);
       LOOP();
@@ -265,6 +266,11 @@ int executeInstruct(bean_State * B) {
     CASE(VARIABLE_DEFINE): {
       TValue * value = POP();
       TValue * name = POP();
+
+      if (ttisfunction(value)) {
+        Fn * f = fnvalue(value);
+        f->name = svalue(name);
+      }
       SCSV(B, name, value);
       PUSH(value);
       LOOP();
@@ -432,6 +438,21 @@ int executeInstruct(bean_State * B) {
       }
       CASE(DESTROY_SCOPE): {
         leave_scope(B);
+        LOOP();
+      }
+      CASE(FUNCTION_CALL0): {
+        TValue * name = POP();
+        TValue * function = find_variable(B, name);
+        Fn * fn = fnvalue(function);
+        TValue * address = TV_MALLOC;
+        setnvalue(address, (ip - G(B)->instructionStream->buffer));
+        CREATE_LOOP(address);
+        ip = G(B)->instructionStream->buffer + fn -> address;
+        LOOP();
+      }
+      CASE(RETURN): {
+        TValue * address = DROP_LOOP();
+        ip = G(B)->instructionStream->buffer + (size_t)nvalue(address);
         LOOP();
       }
     }

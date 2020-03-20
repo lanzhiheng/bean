@@ -101,6 +101,11 @@ typedef struct Function {
   TValue * context;
 } Function;
 
+typedef struct Fn {
+  TString * name;
+  size_t address;
+} Fn;
+
 typedef enum {
   EXPR_NIL,
   EXPR_NUM,

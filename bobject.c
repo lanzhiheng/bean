@@ -254,8 +254,8 @@ static TValue * inspect(bean_State * B UNUSED, TValue * value, PARSER_TYPE mode)
       break;
     }
     case BEAN_TFUNCTION: {
-      Function * f = fcvalue(value);
-      TString * ts = f->p->name;
+      Fn * f = fnvalue(value);
+      TString * ts = f->name;
       uint32_t len = tslen(ts);
       string = malloc(sizeof(char) * len + 1 + 11);
       sprintf(string, "[Function %s]", getstr(ts));
