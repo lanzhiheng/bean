@@ -389,81 +389,105 @@ int executeInstruct(bean_State * B) {
         PUSH(res);
         LOOP();
       }
-      CASE(JUMP_TRUE): {
-        TValue * condition = POP();
-        if (truthvalue(condition)) {
-          size_t offset = (size_t)operand_decode(ip);
-          ip += offset;
-        } else {
-          ip += COMMON_POINTER_SIZE;
-        }
-        LOOP();
-      }
-      CASE(JUMP_FALSE): {
-        TValue * condition = POP();
-        if (falsyvalue(condition)) {
-          size_t offset = (size_t)operand_decode(ip);
-          ip += offset;
-        } else {
-          ip += COMMON_POINTER_SIZE;
-        }
-        LOOP();
-      }
-      CASE(JUMP): {
+    }
+    CASE(JUMP_TRUE): {
+      TValue * condition = POP();
+      if (truthvalue(condition)) {
         size_t offset = (size_t)operand_decode(ip);
         ip += offset;
-        LOOP();
-      }
-      CASE(DROP): {
-        POP();
-        LOOP();
-      }
-      CASE(LOOP): {
-        long end = (long)operand_decode(ip);
-        TValue * address = TV_MALLOC;
-        setnvalue(address, end);
-        CREATE_LOOP(address);
+      } else {
         ip += COMMON_POINTER_SIZE;
-        LOOP();
       }
-      CASE(LOOP_CONTINUE): {
-        long offset = (long)operand_decode(ip);
+      LOOP();
+    }
+    CASE(JUMP_FALSE): {
+      TValue * condition = POP();
+      if (falsyvalue(condition)) {
+        size_t offset = (size_t)operand_decode(ip);
         ip += offset;
-        LOOP();
+      } else {
+        ip += COMMON_POINTER_SIZE;
       }
-      CASE(LOOP_BREAK): {
-        TValue * address = DROP_LOOP();
-        long index = nvalue(address);
-        ip = G(B)->instructionStream->buffer + (long)index + 1;
-        LOOP();
-      }
-      CASE(CREATE_SCOPE): {
-        enter_scope(B);
-        SAVE_BASE;
-        LOOP();
-      }
-      CASE(DESTROY_SCOPE): {
-        TValue * ret = PEEK();
-        RESTORE_BASE;
-        PUSH(ret);
-        leave_scope(B);
-        LOOP();
-      }
-      CASE(FUNCTION_CALL0): {
-        TValue * name = POP();
-        TValue * function = find_variable(B, name);
-        Fn * fn = fnvalue(function);
-        TValue * address = TV_MALLOC;
-        setnvalue(address, (ip - G(B)->instructionStream->buffer));
-        CREATE_LOOP(address);
-        ip = G(B)->instructionStream->buffer + fn -> address;
-        LOOP();
-      }
-      CASE(RETURN): {
-        TValue * address = DROP_LOOP();
-        ip = G(B)->instructionStream->buffer + (size_t)nvalue(address);
-        LOOP();
-      }
+      LOOP();
+    }
+    CASE(JUMP): {
+      size_t offset = (size_t)operand_decode(ip);
+      ip += offset;
+      LOOP();
+    }
+    CASE(DROP): {
+      POP();
+      LOOP();
+    }
+    CASE(LOOP): {
+      long end = (long)operand_decode(ip);
+      TValue * address = TV_MALLOC;
+      setnvalue(address, end);
+      CREATE_LOOP(address);
+      ip += COMMON_POINTER_SIZE;
+      LOOP();
+    }
+    CASE(LOOP_CONTINUE): {
+      long offset = (long)operand_decode(ip);
+      ip += offset;
+      LOOP();
+    }
+    CASE(LOOP_BREAK): {
+      TValue * address = DROP_LOOP();
+      long index = nvalue(address);
+      ip = G(B)->instructionStream->buffer + (long)index + 1;
+      LOOP();
+    }
+    CASE(NEW_SCOPE): {
+      enter_scope(B);
+      SAVE_BASE;
+      LOOP();
+    }
+    CASE(END_SCOPE): {
+      TValue * ret = PEEK();
+      RESTORE_BASE;
+      PUSH(ret);
+      leave_scope(B);
+      LOOP();
+    }
+    CASE(SET_ARG): {
+      TString * ts = operand_decode(ip);
+      TValue * name = TV_MALLOC;
+      setsvalue(name, ts);
+      TValue * value = TV_MALLOC;
+      setnvalue(value, 1000);
+      SCSV(B, name, value);
+      ip += COMMON_POINTER_SIZE;
+      LOOP();
+    }
+    CASE(FUNCTION_CALL0):
+    CASE(FUNCTION_CALL1):
+    CASE(FUNCTION_CALL2):
+    CASE(FUNCTION_CALL3):
+    CASE(FUNCTION_CALL5):
+    CASE(FUNCTION_CALL6):
+    CASE(FUNCTION_CALL7):
+    CASE(FUNCTION_CALL8):
+    CASE(FUNCTION_CALL9):
+    CASE(FUNCTION_CALL10):
+    CASE(FUNCTION_CALL11):
+    CASE(FUNCTION_CALL12):
+    CASE(FUNCTION_CALL13):
+    CASE(FUNCTION_CALL14):
+    CASE(FUNCTION_CALL15): {
+      TValue * name = POP();
+      TValue * function = find_variable(B, name);
+      Fn * fn = fnvalue(function);
+      TValue * address = TV_MALLOC;
+      setnvalue(address, (ip - G(B)->instructionStream->buffer));
+      CREATE_LOOP(address);
+      ip = G(B)->instructionStream->buffer + fn -> address;
+      LOOP();
+    }
+    CASE(RETURN): {
+      TValue * address = DROP_LOOP();
+      ip = G(B)->instructionStream->buffer + (size_t)nvalue(address);
+      LOOP();
     }
     default: {
       break;

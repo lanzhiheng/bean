@@ -217,11 +217,15 @@ static expr * parse_definition(LexState *ls) {
 
   prologue = G(ls->B)->instructionStream -> n; // Function body start here.
 
+  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
+
   testnext(ls, TK_LEFT_PAREN);
 
   while (ls->t.type != TK_RIGHT_PAREN) {
     write_opcode(ls->B, OP_BEAN_SET_ARG);
     operand_pointer_encode(ls->B, ls->t.seminfo.ts);
+    beanX_next(ls);
+    if (ls->t.type == TK_COMMA) beanX_next(ls);
   }
 
   testnext(ls, TK_RIGHT_PAREN);
@@ -233,6 +237,7 @@ static expr * parse_definition(LexState *ls) {
   }
 
   testnext(ls, TK_RIGHT_BRACE);
+  write_opcode(ls->B, OP_BEAN_END_SCOPE);
   write_opcode(ls->B, OP_BEAN_RETURN); // Get return address from stack
 
   offset_patch(ls->B, off, G(ls->B)->instructionStream -> n - off); // jump here
@@ -378,8 +383,6 @@ symbol symbol_table[] = {
 static expr * function_call (LexState *ls, expr * left) {
   Token tk = ls->pre;
   TString * str = tk.seminfo.ts;
-  write_opcode(ls->B, OP_BEAN_PUSH_STR);
-  operand_pointer_encode(ls->B, str);
 
   checknext(ls, TK_LEFT_PAREN);
 
@@ -388,9 +391,16 @@ static expr * function_call (LexState *ls, expr * left) {
     return NULL;
   }
 
+  int args = 0;
   do {
+    args++;
     parse_statement(ls, BP_LOWEST);
   } while(checknext(ls, TK_COMMA));
+  if (args > MAX_ARGS) syntax_error(ls, "SyntaxError: The arguments you are passing up max size of args.");
+
+  write_opcode(ls->B, OP_BEAN_PUSH_STR);
+  operand_pointer_encode(ls->B, str);
+  write_opcode(ls->B, OP_BEAN_FUNCTION_CALL0 + args);
 
   testnext(ls, TK_RIGHT_PAREN);
   return NULL;
@@ -455,7 +465,7 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
 
   write_init_offset(ls->B); // placeholder
 
-  write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
+  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
   testnext(ls, TK_LEFT_BRACE);
   while (ls->t.type != TK_RIGHT_BRACE) {
     parse_statement(ls, rbp);
@@ -486,7 +496,7 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     offset_patch(ls->B, offIf, offEndif - offIf);
 
     testnext(ls, TK_LEFT_BRACE);
-    write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
+    write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
     while (ls->t.type != TK_RIGHT_BRACE) {
       parse_statement(ls, rbp);
     }
@@ -494,11 +504,11 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
 
     offEndelse = G(ls->B)->instructionStream->n;
     offset_patch(ls->B, offElse, offEndelse - offElse);
-    write_opcode(ls->B, OP_BEAN_DESTROY_SCOPE);
+    write_opcode(ls->B, OP_BEAN_END_SCOPE);
   } else {
     offEndif = G(ls->B)->instructionStream->n;
     offset_patch(ls->B, offIf, offEndif - offIf);
-    write_opcode(ls->B, OP_BEAN_DESTROY_SCOPE);
+    write_opcode(ls->B, OP_BEAN_END_SCOPE);
   }
 
   return NULL;
@@ -513,7 +523,7 @@ static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
   write_init_offset(ls->B);
   loopTop = G(ls->B)->instructionStream -> n;
 
-  write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
+  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
 
   testnext(ls, TK_LEFT_BRACE);
 
@@ -534,7 +544,7 @@ static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
 
   write_opcode(ls->B, OP_BEAN_LOOP_BREAK);
   offset_patch(ls->B, loopPush, G(ls->B)->instructionStream -> n); // End of loop's address.
-  write_opcode(ls->B, OP_BEAN_DESTROY_SCOPE);
+  write_opcode(ls->B, OP_BEAN_END_SCOPE);
 
   return NULL;
 }
@@ -553,7 +563,7 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   loopBegin = G(ls->B)->instructionStream -> n;
   write_init_offset(ls->B);
 
-  write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
+  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
 
   testnext(ls, TK_LEFT_BRACE);
   while (ls->t.type != TK_RIGHT_BRACE) {
@@ -572,7 +582,7 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   offset_patch(ls->B, loopPush, loopEnd); // End of loop's address.
   write_opcode(ls->B, OP_BEAN_LOOP_BREAK);
 
-  write_opcode(ls->B, OP_BEAN_DESTROY_SCOPE);
+  write_opcode(ls->B, OP_BEAN_END_SCOPE);
   return NULL;
 }
 
