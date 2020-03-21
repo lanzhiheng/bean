@@ -4,6 +4,7 @@
 #include "bstring.h"
 #include "bobject.h"
 #include "berror.h"
+#include "bparser.h"
 #include "bstate.h"
 
 static TValue * find_variable(bean_State * B, TValue * name) {
@@ -39,6 +40,7 @@ typedef struct Thread {
   TValue ** esp;
   TValue ** loop;
   TValue ** base; // Bacic of scope
+  TValue ** frame;
 } Thread;
 
 int executeInstruct(bean_State * B) {
@@ -51,6 +53,9 @@ int executeInstruct(bean_State * B) {
   char * ip;
   ip = G(B)->instructionStream->buffer;
   char code;
+
+#define CREATE_FRAME (thread->frame = thread->esp + MAX_ARGS)
+#define DROP_FRAME (thread->frame = thread->esp - MAX_ARGS)
 
 #define CREATE_LOOP(value) (*thread->loop++ = value)
 #define DROP_LOOP() (*(--thread->loop))
@@ -189,6 +194,9 @@ int executeInstruct(bean_State * B) {
         case(TK_ADD): { // To recognize += or -=
           TValue * v2 = POP();
           TValue * name = POP();
+          if (!ttisstring(name)) {
+            runtime_error(B, "%s", "The instance can not be called which isn't a function.");
+          }
           TValue * v1 = find_variable(B, name);
           if (ttisnumber(v1) && ttisnumber(v2)) {
             setnvalue(v1, add(nvalue(v1), nvalue(v2)));
@@ -424,6 +432,8 @@ int executeInstruct(bean_State * B) {
       TValue * address = TV_MALLOC;
       setnvalue(address, end);
       CREATE_LOOP(address);
+      for (long i = 0; i < MAX_ARGS; i++) *(thread->stack + i) = NULL;
+
       ip += COMMON_POINTER_SIZE;
       LOOP();
     }
@@ -436,6 +446,15 @@ int executeInstruct(bean_State * B) {
       TValue * address = DROP_LOOP();
       long index = nvalue(address);
       ip = G(B)->instructionStream->buffer + (long)index + 1;
+      LOOP();
+    }
+    CASE(CREATE_FRAME): {
+      long addr = (long)operand_decode(ip);
+      TValue * address = TV_MALLOC;
+      setnvalue(address, addr);
+      CREATE_FRAME;
+      CREATE_LOOP(address);
+      ip += COMMON_POINTER_SIZE;
       LOOP();
     }
     CASE(NEW_SCOPE): {
@@ -451,12 +470,19 @@ int executeInstruct(bean_State * B) {
       LOOP();
     }
     CASE(SET_ARG): {
+      long index = (long)operand_decode(ip);
+      ip += COMMON_POINTER_SIZE;
       TString * ts = operand_decode(ip);
       TValue * name = TV_MALLOC;
       setsvalue(name, ts);
-      TValue * value = TV_MALLOC;
-      setnvalue(value, 1000);
-      SCSV(B, name, value);
+      TValue * value = *(thread->frame - MAX_ARGS + index);
+
+      if (value) {
+        SCSV(B, name, value);
+      } else {
+        SCSV(B, name, G(B)->nil);
+      }
+
       ip += COMMON_POINTER_SIZE;
       LOOP();
     }
@@ -475,16 +501,24 @@ int executeInstruct(bean_State * B) {
     CASE(FUNCTION_CALL13):
     CASE(FUNCTION_CALL14):
     CASE(FUNCTION_CALL15): {
-      TValue * name = POP();
+      TValue * name = TV_MALLOC;
+      TString * str = operand_decode(ip);
+      setsvalue(name, str);
+      ip += COMMON_POINTER_SIZE;
       TValue * function = find_variable(B, name);
+      if(!ttisfunction(function)) {
+        runtime_error(B, "%s", "The instance can not be called which isn't a function.");
+        break;
+      }
       Fn * fn = fnvalue(function);
-      TValue * address = TV_MALLOC;
-      setnvalue(address, (ip - G(B)->instructionStream->buffer));
-      CREATE_LOOP(address);
+
       ip = G(B)->instructionStream->buffer + fn -> address;
       LOOP();
     }
     CASE(RETURN): {
+      TValue * retVal = PEEK();
+      thread->esp = thread->frame - MAX_ARGS;
+      PUSH(retVal);
       TValue * address = DROP_LOOP();
       ip = G(B)->instructionStream->buffer + (size_t)nvalue(address);
       LOOP();
