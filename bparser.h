@@ -7,6 +7,7 @@
 
 #define MAX_LEN_ID 255
 
+#define MAX_ARGS 16 // MAX args of function
 /*
 ** Marks the end of a patch list. It is an invalid value both as an absolute
 ** address, and as a list link (would link an element to itself).

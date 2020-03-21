@@ -7,7 +7,6 @@
 #include "bhash.h"
 #include "bparser.h"
 
-#define MAX_ARGS 16 // MAX args of function
 #define MIN_EXPR_SIZE 16
 #define get_tk_precedence(ls) (symbol_table[ls->t.type].lbp)
 
@@ -47,6 +46,16 @@ static void write_byte(bean_State * B, uint8_t b) {
 
 static void write_opcode(bean_State * B, OpCode code) {
   write_byte(B, code);
+}
+
+static uint8_t last_opcode(bean_State * B) {
+  Mbuffer * buff = G(B)->instructionStream;
+  return buff->buffer[buff->n - 1];
+}
+
+static void delete_opcode(bean_State * B) {
+  Mbuffer * buff = G(B)->instructionStream;
+  buff->n--;
 }
 
 static void write_init_offset(bean_State * B) {
@@ -174,28 +183,20 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
   write_opcode(ls->B, OP_BEAN_PUSH_STR);
   operand_pointer_encode(ls->B, token.seminfo.ts);
 
-  TokenType op = ls->t.type;
-  // a++ or a--
-  if (op >= TK_ADD && op <= TK_MOD) {
-  } else if (op == TK_LEFT_PAREN) {
-
-  } else {
-    write_opcode(ls->B, OP_BEAN_VARIABLE_GET);
-  }
+  write_opcode(ls->B, OP_BEAN_VARIABLE_GET);
 
   return NULL;
 }
 
 static expr* return_exp(LexState *ls, expr * exp UNUSED) {
-  expr * ep = malloc(sizeof(expr));
   beanX_next(ls);
-  ep -> type = EXPR_RETURN;
 
   // TODO: support to return the null value
   if (ls -> t.type == TK_RIGHT_BRACE) syntax_error(ls, "You have to set the return value after the return statement");
 
-  ep -> ret.ret_val = parse_statement(ls, BP_LOWEST);
-  return ep;
+  parse_statement(ls, BP_LOWEST);
+  write_opcode(ls->B, OP_BEAN_RETURN); // Get return address from stack
+  return NULL;
 }
 
 static expr * parse_definition(LexState *ls) {
@@ -221,8 +222,10 @@ static expr * parse_definition(LexState *ls) {
 
   testnext(ls, TK_LEFT_PAREN);
 
+  long args = 0;
   while (ls->t.type != TK_RIGHT_PAREN) {
     write_opcode(ls->B, OP_BEAN_SET_ARG);
+    operand_pointer_encode(ls->B, (void *)args++);
     operand_pointer_encode(ls->B, ls->t.seminfo.ts);
     beanX_next(ls);
     if (ls->t.type == TK_COMMA) beanX_next(ls);
@@ -390,6 +393,11 @@ static expr * function_call (LexState *ls, expr * left) {
     write_opcode(ls->B, OP_BEAN_FUNCTION_CALL0);
     return NULL;
   }
+  size_t off;
+
+  write_opcode(ls->B, OP_BEAN_CREATE_FRAME);
+  off = G(ls->B)->instructionStream -> n;
+  write_init_offset(ls->B);
 
   int args = 0;
   do {
@@ -398,9 +406,9 @@ static expr * function_call (LexState *ls, expr * left) {
   } while(checknext(ls, TK_COMMA));
   if (args > MAX_ARGS) syntax_error(ls, "SyntaxError: The arguments you are passing up max size of args.");
 
-  write_opcode(ls->B, OP_BEAN_PUSH_STR);
-  operand_pointer_encode(ls->B, str);
   write_opcode(ls->B, OP_BEAN_FUNCTION_CALL0 + args);
+  operand_pointer_encode(ls->B, str);
+  offset_patch(ls->B, off, G(ls->B)->instructionStream -> n);
 
   testnext(ls, TK_RIGHT_PAREN);
   return NULL;
@@ -412,14 +420,26 @@ static expr * infix (LexState *ls, expr * left) {
   if (ls->t.type == TK_ASSIGN) {
     if (binaryOp >= TK_ADD && binaryOp <= TK_MOD) {
       testnext(ls, TK_ASSIGN);
+      if (last_opcode(ls->B) == OP_BEAN_VARIABLE_GET) {
+        delete_opcode(ls->B);
+      } else {
+        syntax_error(ls, "SyntaxError: This operation just support for variable.");
+      }
+
       parse_statement(ls, symbol_table[binaryOp].lbp);
-      write_byte(ls->B, OP_BEAN_BINARY_OP_WITH_ASSIGN);
+      write_opcode(ls->B, OP_BEAN_BINARY_OP_WITH_ASSIGN);
       write_byte(ls->B, binaryOp);
     } else {
       syntax_error(ls, "Just supporting +=, -=, *=, /=, |=, &=, %=, ^=");
     }
   } else if (ls->t.type == binaryOp) {
     if (ls->t.type == TK_ADD || ls->t.type == TK_SUB) {
+      if (last_opcode(ls->B) == OP_BEAN_VARIABLE_GET) {
+        delete_opcode(ls->B);
+      } else {
+        syntax_error(ls, "SyntaxError: This operation just support for variable.");
+      }
+
       write_opcode(ls->B, OP_BEAN_HANDLE_SUFFIX);
       write_byte(ls->B, binaryOp);
       beanX_next(ls);
@@ -427,6 +447,10 @@ static expr * infix (LexState *ls, expr * left) {
       syntax_error(ls, "Just supporting a++ and a--");
     }
   } else {
+    if (binaryOp == TK_NAME && ls->t.type != TK_LEFT_PAREN) {
+      write_opcode(ls->B, OP_BEAN_VARIABLE_GET);
+    }
+
     parse_statement(ls, symbol_table[binaryOp].lbp);
     write_byte(ls->B, OP_BEAN_BINARY_OP);
     write_byte(ls->B, binaryOp);
@@ -585,7 +609,6 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   write_opcode(ls->B, OP_BEAN_END_SCOPE);
   return NULL;
 }
-
 
 static void skip_semicolon(LexState * ls) { // Skip all the semicolon
   while (checknext(ls, TK_SEMI)) ;
