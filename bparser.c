@@ -230,7 +230,6 @@ static expr * parse_definition(LexState *ls) {
 
   while (ls->t.type != TK_RIGHT_BRACE) {
     parse_statement(ls, BP_LOWEST);
-    /* write_opcode(ls->B, OP_BEAN_DROP); // Drop the stack top value of each loop */
   }
 
   testnext(ls, TK_RIGHT_BRACE);
@@ -444,7 +443,7 @@ static expr * parse_variable_definition(struct LexState *ls, bindpower rbp UNUSE
 
 static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   size_t offIf, offEndif;
-  write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
+
   if (ls->t.type == TK_IF || ls->t.type == TK_ELSEIF) beanX_next(ls);
 
   testnext(ls, TK_LEFT_PAREN);
@@ -456,10 +455,10 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
 
   write_init_offset(ls->B); // placeholder
 
+  write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
   testnext(ls, TK_LEFT_BRACE);
   while (ls->t.type != TK_RIGHT_BRACE) {
     parse_statement(ls, rbp);
-    write_opcode(ls->B, OP_BEAN_DROP); // Drop the stack top value of each loop
   }
   testnext(ls, TK_RIGHT_BRACE);
 
@@ -475,9 +474,8 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
 
     offEndelse = G(ls->B)->instructionStream->n;
     offset_patch(ls->B, offElse, offEndelse - offElse);
-    write_opcode(ls->B, OP_BEAN_DESTROY_SCOPE);
   } else if (ls->t.type == TK_ELSE) {
-    write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
+
     size_t offElse, offEndelse;
 
     testnext(ls, TK_ELSE);
@@ -487,9 +485,8 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     offEndif = G(ls->B)->instructionStream->n;
     offset_patch(ls->B, offIf, offEndif - offIf);
 
-    write_opcode(ls->B, OP_BEAN_DROP);
-
     testnext(ls, TK_LEFT_BRACE);
+    write_opcode(ls->B, OP_BEAN_CREATE_SCOPE);
     while (ls->t.type != TK_RIGHT_BRACE) {
       parse_statement(ls, rbp);
     }
@@ -504,15 +501,12 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     write_opcode(ls->B, OP_BEAN_DESTROY_SCOPE);
   }
 
-  write_opcode(ls->B, OP_BEAN_PUSH_NIL); // default return value of branch
-
   return NULL;
 }
 
 static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
   size_t loopEnd, loopTop, loopPush;
   beanX_next(ls);
-  write_opcode(ls->B, OP_BEAN_PUSH_NIL); // default return value
 
   write_opcode(ls->B, OP_BEAN_LOOP);
   loopPush = G(ls->B)->instructionStream -> n;
@@ -548,7 +542,6 @@ static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
 static expr * parse_while(struct LexState *ls, bindpower rbp) {
   size_t loopBegin, loopEnd, loopTop, loopPush;
   beanX_next(ls);
-  write_opcode(ls->B, OP_BEAN_PUSH_NIL); // default return value
   write_opcode(ls->B, OP_BEAN_LOOP);
   loopPush = G(ls->B)->instructionStream -> n;
   write_init_offset(ls->B);
@@ -565,7 +558,6 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   testnext(ls, TK_LEFT_BRACE);
   while (ls->t.type != TK_RIGHT_BRACE) {
     parse_statement(ls, rbp);
-    write_opcode(ls->B, OP_BEAN_DROP); // Drop the stack top value of each loop
   }
   testnext(ls, TK_RIGHT_BRACE);
 
