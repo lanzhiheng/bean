@@ -1,6 +1,7 @@
-(100 + 20) * 100
 var a = 10
 a + 10
+
+assert(a, 20)
 
 100 + 4444.12312312
 4000 - 100
@@ -13,81 +14,96 @@ a + 10
 10 & 3
 2 ^ 2
 
-100 == 100.333
-200 == 200.0
+assert(100 == 100.333, false)
+assert(200 == 200.0, true)
 
-100 > 10
-100 < 10
-100 >= 100
-100 <= 100
+assert(100 > 10, true)
+assert(100 < 10, false)
+assert(100 >= 100, true)
+assert(100 <= 100, true)
 
-100 and 3000
-false or 1
-10 != 10
+assert(100 and 3000, 100)
+assert(false or 1, 1)
+assert(10 != 10, false)
 
+var a = "lanhziheng"
+var b = "Hello World"
 
-"lanhziheng"
-"Hello World"
-
-"lanzhiheng" + 1312313123
-
-var m = 100
-
-var c = "hello world"
+assert(a + b, "lanhzihengHello World")
 
 fn a() {
  "hello"
 }
+
+assert(a, "[Function a]")
+assert(a(), "hello")
+
+var m = fn (a, b,c, d,e) {
+ return 900
+ a + b + c * d
+}
+assert(m(10,20,1000, 3330), 900)
 
 var a = []
 var b = [1,2]
 var c = [2,3,4,4,"lanzhiheng"]
 var d = ["lanzhiheng", [], 1, nil, false, true]
 
-var mm = {
-  a: 1,
-  b: false,
-  c: [],
-  d: {},
-  e: fn c() {}
-}
+var a = 0;
+assert(--a, -1)
+assert(a, -1)
+var a = 0;
+assert(++a, 1)
+assert(a, 1)
 
 var a = 0;
---a;
---a;
---a;
-++a;
---a;
-
-a++;
-a--;
-a++;
+assert(a--, 0)
+assert(a, -1)
+var a = 0;
+assert(a++, 0)
+assert(a, 1)
 
 var a = 10;
 a += 10;
+assert(a, 20)
 var a = 10;
 a -= 10;
+assert(a, 0)
 var a = 10;
 a *= 10;
+assert(a, 100)
 var a = 10;
 a /= 10;
+assert(a, '1.000000')
 var a = 10;
 a |= 1;
+assert(a, 11)
 var a = 10;
 a &= 1;
+assert(a, 0)
 var a = 2;
 a ^= 1;
+assert(a, 3)
 var a = 10
 a %= 2
+assert(a, 0)
 
 var a = 100;
--a;
+assert(-a, -100)
+assert(a, 100)
+
 var a = 200;
-+a;
+assert(+a, 200)
+assert(a, 200)
+
 var a = 300;
-!a;
+assert(!a, false)
+assert(a, 300)
+
 var a = 400;
 typeof a;
+assert(typeof a, 'number')
+assert(a, 400)
 
 var m = 100;
 
@@ -102,14 +118,7 @@ m-=a
 m-=a
 }
 
-m
-
-var m = fn (a, b,c, d,e) {
- return 900
- a + b + c * d
-}
-
-m(10,20,1000, 3330)
+assert(m, -999900)
 
 var m = 9000
 
@@ -119,11 +128,10 @@ while (m > 8000) {
  m--;
  m+=1;
  m-=1000;
- // ++m; // 这会有问题
  m++;
 }
 
-m
+assert(m, 8000)
 
 var a = 1
 
@@ -131,3 +139,5 @@ do {
  a+=100;
  break;
 } while(a < 90000)
+
+assert(a, 101)
