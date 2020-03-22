@@ -387,30 +387,29 @@ static expr * function_call (LexState *ls, expr * left) {
   Token tk = ls->pre;
   TString * str = tk.seminfo.ts;
 
-  checknext(ls, TK_LEFT_PAREN);
-
-  if (checknext(ls, TK_RIGHT_PAREN)) {
-    write_opcode(ls->B, OP_BEAN_FUNCTION_CALL0);
-    return NULL;
-  }
+  int args = 0;
   size_t off;
 
+  checknext(ls, TK_LEFT_PAREN);
   write_opcode(ls->B, OP_BEAN_CREATE_FRAME);
   off = G(ls->B)->instructionStream -> n;
   write_init_offset(ls->B);
 
-  int args = 0;
-  do {
-    args++;
-    parse_statement(ls, BP_LOWEST);
-  } while(checknext(ls, TK_COMMA));
-  if (args > MAX_ARGS) syntax_error(ls, "SyntaxError: The arguments you are passing up max size of args.");
+  if (checknext(ls, TK_RIGHT_PAREN)) {
+
+  } else {
+    do {
+      args++;
+      parse_statement(ls, BP_LOWEST);
+    } while(checknext(ls, TK_COMMA));
+    if (args > MAX_ARGS) syntax_error(ls, "SyntaxError: The arguments you are passing up max size of args.");
+    testnext(ls, TK_RIGHT_PAREN);
+  }
 
   write_opcode(ls->B, OP_BEAN_FUNCTION_CALL0 + args);
   operand_pointer_encode(ls->B, str);
   offset_patch(ls->B, off, G(ls->B)->instructionStream -> n);
 
-  testnext(ls, TK_RIGHT_PAREN);
   return NULL;
 }
 
@@ -447,10 +446,6 @@ static expr * infix (LexState *ls, expr * left) {
       syntax_error(ls, "Just supporting a++ and a--");
     }
   } else {
-    if (binaryOp == TK_NAME && ls->t.type != TK_LEFT_PAREN) {
-      write_opcode(ls->B, OP_BEAN_VARIABLE_GET);
-    }
-
     parse_statement(ls, symbol_table[binaryOp].lbp);
     write_byte(ls->B, OP_BEAN_BINARY_OP);
     write_byte(ls->B, binaryOp);
@@ -669,7 +664,6 @@ void bparser(LexState * ls) {
 
   while (ls -> current != EOZ) {
     parse_program(ls);
-    write_opcode(ls->B, OP_BEAN_INSPECT);
   }
 }
 

@@ -80,7 +80,6 @@ int executeInstruct(bean_State * B) {
       eval_error(B, "%s", "right operand of "#action" must be number"); \
     }                                                                   \
     setnvalue(v1, action(nvalue(v1), nvalue(v2)));                      \
-    free(v2);                                                           \
     PUSH(v1);                                                           \
     LOOP();                                                             \
   } while(0)
@@ -94,7 +93,6 @@ int executeInstruct(bean_State * B) {
       int result = compareTwoTValue(B, v1, v2);                         \
       v1 = action(result, 0) ? G(B)->tVal : G(B)->fVal;                 \
     }                                                                   \
-    free(v2);                                                           \
     PUSH(v1);                                                           \
     LOOP();                                                             \
  } while(0)
@@ -111,7 +109,6 @@ int executeInstruct(bean_State * B) {
     }                                                                   \
     setnvalue(v1, action(nvalue(v1), nvalue(v2)));                      \
     SCSV(B, name, v1);                                                  \
-    free(v2);                                                           \
     PUSH(v1);                                                           \
     LOOP();                                                             \
   } while(0)
@@ -155,7 +152,6 @@ int executeInstruct(bean_State * B) {
           TValue * v2 = POP();
           v1 = check_equal(v1, v2) ? G(B)->tVal : G(B)->fVal;
           PUSH(v1);
-          free(v2);
           LOOP();
         }
         case(TK_GE):
@@ -182,7 +178,7 @@ int executeInstruct(bean_State * B) {
           TValue * v1 = POP();
           TValue * v2 = POP();
           v1 = !check_equal(v1, v2) ? G(B)->tVal : G(B)->fVal;
-          free(v2);
+          PUSH(v1);
           LOOP();
         }
       }
@@ -194,16 +190,12 @@ int executeInstruct(bean_State * B) {
         case(TK_ADD): { // To recognize += or -=
           TValue * v2 = POP();
           TValue * name = POP();
-          if (!ttisstring(name)) {
-            runtime_error(B, "%s", "The instance can not be called which isn't a function.");
-          }
           TValue * v1 = find_variable(B, name);
           if (ttisnumber(v1) && ttisnumber(v2)) {
             setnvalue(v1, add(nvalue(v1), nvalue(v2)));
           } else {
             v1= concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
           }
-          free(v2);
           SCSV(B, name, v1);
           PUSH(v1);
           LOOP();
@@ -261,19 +253,11 @@ int executeInstruct(bean_State * B) {
       PUSH(function);
       LOOP();
     }
-    CASE(INSPECT): {
-      TValue * value = POP();
-      TValue * tvString = tvalue_inspect(B, value);
-      char * string = getstr(svalue(tvString));
-      printf("%s\n", string);
-      LOOP();
-    }
     CASE(VARIABLE_GET): {
       TValue * name = POP();
       TValue * value = find_variable(B, name);
       if (!value) eval_error(B, "%s", "Can't reference the variable before defined.");
       PUSH(value);
-      free(name);
       LOOP();
     }
     CASE(VARIABLE_DEFINE): {
@@ -393,7 +377,6 @@ int executeInstruct(bean_State * B) {
           goto clear_unary;
         }
         clear_unary:
-        free(v);
         PUSH(res);
         LOOP();
       }
@@ -501,18 +484,31 @@ int executeInstruct(bean_State * B) {
     CASE(FUNCTION_CALL13):
     CASE(FUNCTION_CALL14):
     CASE(FUNCTION_CALL15): {
+      uint8_t opCode = *(ip - 1);
       TValue * name = TV_MALLOC;
       TString * str = operand_decode(ip);
       setsvalue(name, str);
       ip += COMMON_POINTER_SIZE;
-      TValue * function = find_variable(B, name);
-      if(!ttisfunction(function)) {
-        runtime_error(B, "%s", "The instance can not be called which isn't a function.");
-        break;
-      }
-      Fn * fn = fnvalue(function);
+      TValue * func = find_variable(B, name);
+      if(ttisfunction(func)) {
+        Fn * fn = fnvalue(func);
 
-      ip = G(B)->instructionStream->buffer + fn -> address;
+        ip = G(B)->instructionStream->buffer + fn -> address;
+      } else if (ttistool(func)) {
+        Tool * tl = tlvalue(func);
+        TValue * args = malloc(sizeof(TValue) * MAX_ARGS); // TODO: 调用栈，参数
+        int argc = opCode - OP_BEAN_FUNCTION_CALL0;
+
+        for (int i = 0; i < argc; i++) {
+          TValue * res = POP();
+          args[argc - i - 1] = *res;
+        }
+        TValue * res = tl->function(B, G(B)->nil, args, argc);
+        PUSH(res);
+      } else {
+        runtime_error(B, "%s", "The instance can not be called which isn't a function.");
+      }
+
       LOOP();
     }
     CASE(RETURN): {
