@@ -191,14 +191,15 @@ int executeInstruct(bean_State * B) {
         case(TK_AND): {
           TValue * v2 = POP();
           TValue * v1 = POP();
-          TValue * ret = truthvalue(v2) ? v1 : v2;
-          PUSH(ret);
+          TValue * res = falsyvalue(v1) ? v2 : v1;
+
+          PUSH(res);
           LOOP();
         }
         case(TK_OR): {
           TValue * v2 = POP();
           TValue * v1 = POP();
-          TValue * ret = truthvalue(v2) ? v2 : v1;
+          TValue * ret = truthvalue(v1) ? v1 : v2;
           PUSH(ret);
           LOOP();
         }
