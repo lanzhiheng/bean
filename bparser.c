@@ -200,6 +200,7 @@ static expr* return_exp(LexState *ls, expr * exp UNUSED) {
 }
 
 static expr * parse_definition(LexState *ls) {
+  TokenType tkType = ls->pre.type;
   testnext(ls, TK_FUNCTION);
 
   size_t prologue, off;
@@ -242,6 +243,7 @@ static expr * parse_definition(LexState *ls) {
   }
 
   testnext(ls, TK_RIGHT_BRACE);
+
   write_opcode(ls->B, OP_BEAN_END_SCOPE);
   write_opcode(ls->B, OP_BEAN_RETURN); // Get return address from stack
 
@@ -250,7 +252,8 @@ static expr * parse_definition(LexState *ls) {
   operand_pointer_encode(ls->B, (void *)prologue);
 
   if (nameProvided) {
-    write_opcode(ls->B, OP_BEAN_VARIABLE_DEFINE);
+    write_opcode(ls->B, OP_BEAN_SET_FUNCTION_NAME);
+    write_byte(ls->B, tkType == TK_COLON || tkType == TK_ASSIGN); // Don't set name to scope
   }
 
   return NULL;
@@ -386,9 +389,6 @@ symbol symbol_table[] = {
 };
 
 static expr * function_call (LexState *ls, expr * left) {
-  Token tk = ls->pre;
-  TString * str = tk.seminfo.ts;
-
   int args = 0;
   size_t off;
 
@@ -410,7 +410,6 @@ static expr * function_call (LexState *ls, expr * left) {
   }
 
   write_opcode(ls->B, OP_BEAN_FUNCTION_CALL0 + args);
-  operand_pointer_encode(ls->B, str);
   offset_patch(ls->B, off, G(ls->B)->instructionStream -> n);
 
   return NULL;
@@ -492,7 +491,10 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
 
   write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
   testnext(ls, TK_LEFT_BRACE);
+
+  write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   while (ls->t.type != TK_RIGHT_BRACE) {
+    write_opcode(ls->B, OP_BEAN_DROP);
     parse_statement(ls, rbp);
   }
   testnext(ls, TK_RIGHT_BRACE);
