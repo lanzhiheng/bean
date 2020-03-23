@@ -72,7 +72,7 @@ int executeInstruct(bean_State * B) {
   thread -> stack = malloc(sizeof(TValue*) * 3000);
   thread -> esp = thread -> stack;
   thread -> base = thread -> esp;
-  thread -> loop = malloc(sizeof(TValue*) * 100);
+  thread -> loop = malloc(sizeof(TValue*) * 4000);
 
   char * ip;
   ip = G(B)->instructionStream->buffer;
@@ -296,14 +296,29 @@ int executeInstruct(bean_State * B) {
       PUSH(value);
       LOOP();
     }
+    CASE(SET_FUNCTION_NAME): {
+      TValue * value = POP();
+      TValue * name = POP();
+      Fn * f = fnvalue(value);
+      f->name = svalue(name);
+
+      bool withAssign = READ_BYTE();
+      if (!withAssign) SCSV(B, name, value);
+      PUSH(value);
+      LOOP();
+    }
     CASE(VARIABLE_DEFINE): {
       TValue * value = POP();
       TValue * name = POP();
 
       if (ttisfunction(value)) {
         Fn * f = fnvalue(value);
-        f->name = svalue(name);
+
+        if (!f->name) {
+          f->name = svalue(name);
+        }
       }
+
       SCSV(B, name, value);
       PUSH(value);
       LOOP();
@@ -528,10 +543,6 @@ int executeInstruct(bean_State * B) {
     CASE(FUNCTION_CALL14):
     CASE(FUNCTION_CALL15): {
       uint8_t opCode = *(ip - 1);
-      TValue * name = TV_MALLOC;
-      TString * str = operand_decode(ip);
-      setsvalue(name, str);
-      ip += COMMON_POINTER_SIZE;
       TValue * func = POP();
       if(ttisfunction(func)) {
         Fn * fn = fnvalue(func);
