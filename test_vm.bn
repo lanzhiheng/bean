@@ -141,3 +141,35 @@ do {
 } while(a < 90000)
 
 assert(a, 101)
+
+var mm = {
+  a: 1,
+  b: false,
+  c: [],
+  d: {},
+  e: fn c() { "hello" },
+  m: {
+    d: 100
+  }
+}
+
+assert(mm.a, 1)
+assert(mm.b, false)
+assert(mm.c, [])
+assert(mm.d, {})
+assert(mm.e, "[Function c]")
+assert(mm.m.d, 100)
+
+fn kkk() {
+  "lianghaidao"
+}
+
+var methods = {
+  name: fn m() {
+    print("liliming")
+    "liliming"
+  }
+}
+
+var a = methods.name()
+assert(a, "liliming")
