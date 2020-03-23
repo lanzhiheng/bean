@@ -235,7 +235,9 @@ static expr * parse_definition(LexState *ls) {
 
   checknext(ls, TK_LEFT_BRACE);
 
+  write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   while (ls->t.type != TK_RIGHT_BRACE) {
+    write_opcode(ls->B, OP_BEAN_DROP);
     parse_statement(ls, BP_LOWEST);
   }
 
@@ -401,6 +403,7 @@ static expr * function_call (LexState *ls, expr * left) {
     do {
       args++;
       parse_statement(ls, BP_LOWEST);
+      write_opcode(ls->B, OP_BEAN_IN_STACK);
     } while(checknext(ls, TK_COMMA));
     if (args > MAX_ARGS) syntax_error(ls, "SyntaxError: The arguments you are passing up max size of args.");
     testnext(ls, TK_RIGHT_PAREN);
@@ -447,6 +450,9 @@ static expr * infix (LexState *ls, expr * left) {
     }
   } else {
     parse_statement(ls, symbol_table[binaryOp].lbp);
+    if (binaryOp == TK_DOT) {
+      delete_opcode(ls->B);
+    }
     write_byte(ls->B, OP_BEAN_BINARY_OP);
     write_byte(ls->B, binaryOp);
   }
