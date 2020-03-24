@@ -127,7 +127,7 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
   switch(ls->t.type) {
     case(TK_NUM): {
       write_opcode(ls->B, OP_BEAN_PUSH_NUM);
-      bean_Number * value = malloc(sizeof(double));
+      bean_Number * value = malloc(sizeof(bean_Number));
       *value = ls->t.seminfo.n;
       operand_pointer_encode(ls->B, value);
       break;
@@ -219,7 +219,7 @@ static expr * parse_definition(LexState *ls) {
 
   prologue = G(ls->B)->instructionStream -> n; // Function body start here.
 
-  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
+  write_opcode(ls->B, OP_BEAN_NEW_FUNCTION_SCOPE);
 
   testnext(ls, TK_LEFT_PAREN);
 
@@ -244,7 +244,6 @@ static expr * parse_definition(LexState *ls) {
 
   testnext(ls, TK_RIGHT_BRACE);
 
-  write_opcode(ls->B, OP_BEAN_END_SCOPE);
   write_opcode(ls->B, OP_BEAN_RETURN); // Get return address from stack
 
   offset_patch(ls->B, off, G(ls->B)->instructionStream -> n - off); // jump here
@@ -448,10 +447,15 @@ static expr * infix (LexState *ls, expr * left) {
       syntax_error(ls, "Just supporting a++ and a--");
     }
   } else {
+    if (binaryOp == TK_ASSIGN) {
+      delete_opcode(ls->B);
+    }
+
     parse_statement(ls, symbol_table[binaryOp].lbp);
     if (binaryOp == TK_DOT) {
       delete_opcode(ls->B);
     }
+
     write_byte(ls->B, OP_BEAN_BINARY_OP);
     write_byte(ls->B, binaryOp);
   }
@@ -479,6 +483,7 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   size_t offIf, offEndif;
 
   if (ls->t.type == TK_IF || ls->t.type == TK_ELSEIF) beanX_next(ls);
+  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
 
   testnext(ls, TK_LEFT_PAREN);
   parse_statement(ls, rbp); // condition
@@ -489,7 +494,6 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
 
   write_init_offset(ls->B); // placeholder
 
-  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
   testnext(ls, TK_LEFT_BRACE);
 
   write_opcode(ls->B, OP_BEAN_PUSH_NIL);
@@ -516,6 +520,7 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     size_t offElse, offEndelse;
 
     testnext(ls, TK_ELSE);
+    write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
     write_opcode(ls->B, OP_BEAN_JUMP);
     offElse = G(ls->B)->instructionStream->n;
     write_init_offset(ls->B); // placeholder
@@ -523,8 +528,10 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     offset_patch(ls->B, offIf, offEndif - offIf);
 
     testnext(ls, TK_LEFT_BRACE);
-    write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
+
+    write_opcode(ls->B, OP_BEAN_PUSH_NIL);
     while (ls->t.type != TK_RIGHT_BRACE) {
+      write_opcode(ls->B, OP_BEAN_DROP);
       parse_statement(ls, rbp);
     }
     testnext(ls, TK_RIGHT_BRACE);

@@ -7,6 +7,17 @@
 #include "bparser.h"
 #include "bstate.h"
 
+static Scope * find_variable_scope(bean_State * B, TValue * name) {
+  TValue * res;
+  Scope * scope = G(B) -> cScope;
+  while (scope) {
+    res = hash_get(B, scope->variables, name);
+    if (res) break;
+    scope = scope -> previous;
+  }
+  return scope;
+}
+
 static TValue * search_from_prototype_link(bean_State * B UNUSED, TValue * object, TValue * name) {
   if (ttisnil(object)) runtime_error(B, "%s", "Can not find the attribute from prototype chain.");
 
@@ -79,9 +90,9 @@ int executeInstruct(bean_State * B) {
   char code;
 
 #define CREATE_FRAME do { \
-    thread->loop += MAX_ARGS; \
+    thread->loop += MAX_ARGS + 1; \
   } while(0);
-#define DROP_FRAME (thread->loop -= MAX_ARGS)
+#define DROP_FRAME (thread->loop -= (MAX_ARGS + 1))
 
 #define CREATE_LOOP(value) (*thread->loop++ = value)
 #define DROP_LOOP() (*(--thread->loop))
@@ -99,14 +110,15 @@ int executeInstruct(bean_State * B) {
 #define CAL_STMT(action) do {                                           \
     TValue * v2 = POP();                                                \
     TValue * v1 = POP();                                                \
-    if (!ttisnumber(v1)) {                                              \
+    TValue * res = TV_MALLOC;                                           \
+   if (!ttisnumber(v1)) {                                              \
       eval_error(B, "%s", "left operand of "#action" must be number");  \
     }                                                                   \
     if (!ttisnumber(v2)) {                                              \
       eval_error(B, "%s", "right operand of "#action" must be number"); \
     }                                                                   \
-    setnvalue(v1, action(nvalue(v1), nvalue(v2)));                      \
-    PUSH(v1);                                                           \
+    setnvalue(res, action(nvalue(v1), nvalue(v2)));                      \
+    PUSH(res);                                                           \
     LOOP();                                                             \
   } while(0)
 
@@ -127,7 +139,7 @@ int executeInstruct(bean_State * B) {
     TValue * v2 = POP();                                                \
     TValue * name = POP();                                              \
     TValue * v1 = find_variable(B, name);                               \
-    if (!ttisnumber(v1)) {                                              \
+    if (!ttisnumber(v1)) {                                                \
       eval_error(B, "%s", "left operand of "#action" must be number");  \
     }                                                                   \
     if (!ttisnumber(v2)) {                                              \
@@ -147,12 +159,13 @@ int executeInstruct(bean_State * B) {
         case(TK_ADD): { // To recognize += or -=
           TValue * v2 = POP();
           TValue * v1 = POP();
+          TValue * res = TV_MALLOC;
           if (ttisnumber(v1) && ttisnumber(v2)) {
-            setnvalue(v1, add(nvalue(v1), nvalue(v2)));
+            setnvalue(res, add(nvalue(v1), nvalue(v2)));
           } else {
-            v1= concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
+            res = concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
           }
-          PUSH(v1);
+          PUSH(res);
           LOOP();
         }
         case(TK_SUB):
@@ -210,6 +223,15 @@ int executeInstruct(bean_State * B) {
           PUSH(v1);
           LOOP();
         }
+        case(TK_ASSIGN): {
+          TValue * value = POP();
+          TValue * name = POP();
+          Scope * scope = find_variable_scope(B, name);
+          if (!scope) eval_error(B, "%s", "Can't reference the variable before defined.");
+          hash_set(B, scope->variables, name, value);
+          PUSH(value);
+          LOOP();
+        }
         case(TK_DOT): {
           TValue * name = POP();
           TValue * object = POP();
@@ -253,10 +275,10 @@ int executeInstruct(bean_State * B) {
       }
     }
     CASE(PUSH_NUM): {
-      TValue * number = TV_MALLOC;
       bean_Number * np = operand_decode(ip);
-      setnvalue(number, *np);
-      PUSH(number);
+      TValue * value = TV_MALLOC;
+      setnvalue(value, *np)
+      PUSH(value);
       ip += COMMON_POINTER_SIZE;
       LOOP();
     }
@@ -497,9 +519,29 @@ int executeInstruct(bean_State * B) {
       TValue * address = TV_MALLOC;
       setnvalue(address, addr);
       CREATE_LOOP(address);
-      for (long i = 0; i < MAX_ARGS; i++) *(thread->loop + i) = NULL;
+      for (long i = 0; i <= MAX_ARGS; i++) *(thread->loop + i) = NULL;
       CREATE_FRAME;
       ip += COMMON_POINTER_SIZE;
+      LOOP();
+    }
+    CASE(NEW_FUNCTION_SCOPE): {
+      TValue * func = POP(); // function will reach here, tool not.
+      TValue * name = TV_MALLOC;
+      Fn * fn = fnvalue(func);
+      TString * str = fn -> name;
+      setsvalue(name, str);
+
+      TValue * scope = TV_MALLOC;
+      Scope * current = CS(B);
+      setsvalue(scope, (void*)current);
+      *(thread->loop - MAX_ARGS) = scope;
+      enter_scope(B);
+
+      SCSV(B, name, func);
+      LOOP();
+    }
+    CASE(END_FUNCTION_SCOPE): {
+
       LOOP();
     }
     CASE(NEW_SCOPE): {
@@ -546,7 +588,7 @@ int executeInstruct(bean_State * B) {
       TValue * func = POP();
       if(ttisfunction(func)) {
         Fn * fn = fnvalue(func);
-
+        PUSH(func);
         ip = G(B)->instructionStream->buffer + fn -> address;
       } else if (ttistool(func)) {
         Tool * tl = tlvalue(func);
@@ -566,7 +608,13 @@ int executeInstruct(bean_State * B) {
 
       LOOP();
     }
+
     CASE(RETURN): {
+      TValue * scope = *(thread->loop - MAX_ARGS);
+      void * a = svalue(scope);
+      Scope * restoreScope = (Scope *)a;
+      B->l_G->cScope = restoreScope;
+
     normal_return:
       DROP_FRAME;
       TValue * address = DROP_LOOP();

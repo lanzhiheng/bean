@@ -1,3 +1,13 @@
+var sum2 = fn sum1(i) {
+  if (i > 1) {
+    sum1(i - 1) + i
+  } else {
+    i
+  }
+}
+
+assert(sum2(4000), 8002000)
+
 fn simple(a, b) {
   return b
 }
@@ -25,47 +35,47 @@ fn sum2(i) {
 
 assert(sum2(4000), 8002000)
 
-var a = [1,2,3,4,5,6]
+// var a = [1,2,3,4,5,6]
 
-var g = a.map(fn a(i) {
-  if (i > 1) {
-    return a(i - 1)
-  }
-  i * 2
-})
-assert(g, [2,2,2,2,2,2])
+// var g = a.map(fn a(i) {
+//   if (i > 1) {
+//     return a(i - 1)
+//   }
+//   i * 2
+// })
+// assert(g, [2,2,2,2,2,2])
 
 
-fn a() { }
-assert(a.call(1), nil)
+// fn a() { }
+// assert(a.call(1), nil)
 
-fn plus(a, b, c) {
-  a + b + c
-}
+// fn plus(a, b, c) {
+//   a + b + c
+// }
 
-assert(plus.call(nil, 1, 2, 3, 4), plus(1,2,3))
-assert(plus.call(nil, 1, 2, 3), plus(1,2,3))
-assert(plus.call(nil, 1, 2), plus(1,2,nil))
-assert(plus.call(nil, 1), plus(1,nil,nil))
-assert(plus.call(nil), plus(nil,nil,nil))
+// assert(plus.call(nil, 1, 2, 3, 4), plus(1,2,3))
+// assert(plus.call(nil, 1, 2, 3), plus(1,2,3))
+// assert(plus.call(nil, 1, 2), plus(1,2,nil))
+// assert(plus.call(nil, 1), plus(1,nil,nil))
+// assert(plus.call(nil), plus(nil,nil,nil))
 
-assert(plus.apply(nil, [1, 2, 3, 4]), plus(1,2,3))
-assert(plus.apply(nil, [1, 2, 3]), plus(1,2,3))
-assert(plus.apply(nil, [1, 2]), plus(1,2,nil))
-assert(plus.apply(nil, [1]), plus(1,nil,nil))
-assert(plus.apply(nil), plus(nil,nil,nil))
+// assert(plus.apply(nil, [1, 2, 3, 4]), plus(1,2,3))
+// assert(plus.apply(nil, [1, 2, 3]), plus(1,2,3))
+// assert(plus.apply(nil, [1, 2]), plus(1,2,nil))
+// assert(plus.apply(nil, [1]), plus(1,nil,nil))
+// assert(plus.apply(nil), plus(nil,nil,nil))
 
-fn withSelf() {
-  return self
-}
+// fn withSelf() {
+//   return self
+// }
 
-assert(withSelf.call("lan"), "lan")
-var object = { name: "lanzhiheng", age: 28 }
-assert(withSelf.call(object), object)
-var array = []
-assert(withSelf.call(array), array)
+// assert(withSelf.call("lan"), "lan")
+// var object = { name: "lanzhiheng", age: 28 }
+// assert(withSelf.call(object), object)
+// var array = []
+// assert(withSelf.call(array), array)
 
-assert(plus.__proto__, Function)
-assert(print.__proto__, Meta)
-assert(assert.__proto__, Meta)
-assert(throw.__proto__, Meta)
+// assert(plus.__proto__, Function)
+// assert(print.__proto__, Meta)
+// assert(assert.__proto__, Meta)
+// assert(throw.__proto__, Meta)
