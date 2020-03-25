@@ -73,20 +73,17 @@ typedef struct Thread {
   TValue ** stack;
   TValue ** esp;
   TValue ** loop;
-  TValue ** base; // Bacic of scope
-  TValue ** frame;
-  TValue ** frameArgs;
 } Thread;
 
 int executeInstruct(bean_State * B) {
   Thread * thread = malloc(sizeof(Thread));
   thread -> stack = malloc(sizeof(TValue*) * 3000);
   thread -> esp = thread -> stack;
-  thread -> base = thread -> esp;
   thread -> loop = malloc(sizeof(TValue*) * 4000);
 
   char * ip;
   ip = G(B)->instructionStream->buffer;
+
   char code;
 
 #define CREATE_FRAME do { \
@@ -97,8 +94,6 @@ int executeInstruct(bean_State * B) {
 #define CREATE_LOOP(value) (*thread->loop++ = value)
 #define DROP_LOOP() (*(--thread->loop))
 #define READ_BYTE() *ip++;
-#define SAVE_BASE (thread->base = thread->esp)
-#define RESTORE_BASE (thread->esp = thread->base)
 #define PUSH(value) (*thread->esp++ = value)
 #define POP(value) (*(--thread->esp))
 #define PEEK(value) (*(thread->esp - 1))
@@ -569,10 +564,6 @@ int executeInstruct(bean_State * B) {
       enter_scope(B);
 
       SCSV(B, name, func);
-      LOOP();
-    }
-    CASE(END_FUNCTION_SCOPE): {
-
       LOOP();
     }
     CASE(NEW_SCOPE): {
