@@ -456,6 +456,10 @@ static expr * infix (LexState *ls, expr * left) {
       delete_opcode(ls->B);
     }
 
+    if (binaryOp == TK_LEFT_BRACKET) {
+      testnext(ls, TK_RIGHT_BRACKET);
+    }
+
     write_byte(ls->B, OP_BEAN_BINARY_OP);
     write_byte(ls->B, binaryOp);
   }
