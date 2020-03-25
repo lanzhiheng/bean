@@ -481,8 +481,13 @@ static expr * parse_variable_definition(struct LexState *ls, bindpower rbp UNUSE
 
 static expr * parse_branch(struct LexState *ls, bindpower rbp) {
   size_t offIf, offEndif;
+  bool singleBranch = false;
+  if (ls->t.type == TK_IF) {
+    testnext(ls, TK_IF);
+    singleBranch = true;
+  }
 
-  if (ls->t.type == TK_IF || ls->t.type == TK_ELSEIF) beanX_next(ls);
+  if (ls->t.type == TK_ELSEIF) testnext(ls, TK_ELSEIF);
   write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
 
   testnext(ls, TK_LEFT_PAREN);
@@ -516,7 +521,6 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     offEndelse = G(ls->B)->instructionStream->n;
     offset_patch(ls->B, offElse, offEndelse - offElse);
   } else if (ls->t.type == TK_ELSE) {
-
     size_t offElse, offEndelse;
 
     testnext(ls, TK_ELSE);
@@ -543,6 +547,7 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     offEndif = G(ls->B)->instructionStream->n;
     offset_patch(ls->B, offIf, offEndif - offIf);
     write_opcode(ls->B, OP_BEAN_END_SCOPE);
+    if (singleBranch) write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   }
 
   return NULL;

@@ -1,196 +1,196 @@
-// var a = 10
-// a += 10
-// assert(a, 20)
+var a = 10
+a += 10
+assert(a, 20)
 
-// 100 + 4444.12312312
-// 4000 - 100
-// 100 * 4.4
-// 100 << 2
-// 40 >> 2
-// 10 % 2
-// 10 / 3
-// 10 | 3
-// 10 & 3
-// 2 ^ 2
+100 + 4444.12312312
+4000 - 100
+100 * 4.4
+100 << 2
+40 >> 2
+10 % 2
+10 / 3
+10 | 3
+10 & 3
+2 ^ 2
 
-// assert(100 == 100.333, false)
-// assert(200 == 200.0, true)
+assert(100 == 100.333, false)
+assert(200 == 200.0, true)
 
-// assert(100 > 10, true)
-// assert(100 < 10, false)
-// assert(100 >= 100, true)
-// assert(100 <= 100, true)
+assert(100 > 10, true)
+assert(100 < 10, false)
+assert(100 >= 100, true)
+assert(100 <= 100, true)
 
-// assert(100 and 3000, 100)
-// assert(false or 1, 1)
-// assert(10 != 10, false)
+assert(100 and 3000, 100)
+assert(false or 1, 1)
+assert(10 != 10, false)
 
-// var a = "lanhziheng"
-// var b = "Hello World"
+var a = "lanhziheng"
+var b = "Hello World"
 
-// assert(a + b, "lanhzihengHello World")
+assert(a + b, "lanhzihengHello World")
 
-// fn a() {
-//  "hello"
-// }
+fn a() {
+ "hello"
+}
 
-// assert(a, "[Function a]")
-// assert(a(), "hello")
+assert(a, "[Function a]")
+assert(a(), "hello")
 
-// var m = fn (a, b,c, d,e) {
-//  return 900
-//  a + b + c * d
-// }
-// assert(m(10,20,1000, 3330), 900)
+var m = fn (a, b,c, d,e) {
+ return 900
+ a + b + c * d
+}
+assert(m(10,20,1000, 3330), 900)
 
-// var a = []
-// var b = [1,2]
-// var c = [2,3,4,4,"lanzhiheng"]
-// var d = ["lanzhiheng", [], 1, nil, false, true]
+var a = []
+var b = [1,2]
+var c = [2,3,4,4,"lanzhiheng"]
+var d = ["lanzhiheng", [], 1, nil, false, true]
 
-// var a = 0;
-// assert(--a, -1)
-// assert(a, -1)
-// var a = 0;
-// assert(++a, 1)
-// assert(a, 1)
+var a = 0;
+assert(--a, -1)
+assert(a, -1)
+var a = 0;
+assert(++a, 1)
+assert(a, 1)
 
-// var a = 0;
-// assert(a--, 0)
-// assert(a, -1)
-// var a = 0;
-// assert(a++, 0)
-// assert(a, 1)
+var a = 0;
+assert(a--, 0)
+assert(a, -1)
+var a = 0;
+assert(a++, 0)
+assert(a, 1)
 
-// var a = 10;
-// a += 10;
-// assert(a, 20)
-// var a = 10;
-// a -= 10;
-// assert(a, 0)
-// var a = 10;
-// a *= 10;
-// assert(a, 100)
-// var a = 10;
-// a /= 10;
-// assert(a, '1.000000')
-// var a = 10;
-// a |= 1;
-// assert(a, 11)
-// var a = 10;
-// a &= 1;
-// assert(a, 0)
-// var a = 2;
-// a ^= 1;
-// assert(a, 3)
-// var a = 10
-// a %= 2
-// assert(a, 0)
+var a = 10;
+a += 10;
+assert(a, 20)
+var a = 10;
+a -= 10;
+assert(a, 0)
+var a = 10;
+a *= 10;
+assert(a, 100)
+var a = 10;
+a /= 10;
+assert(a, '1.000000')
+var a = 10;
+a |= 1;
+assert(a, 11)
+var a = 10;
+a &= 1;
+assert(a, 0)
+var a = 2;
+a ^= 1;
+assert(a, 3)
+var a = 10
+a %= 2
+assert(a, 0)
 
-// var a = 100;
-// assert(-a, -100)
-// assert(a, 100)
+var a = 100;
+assert(-a, -100)
+assert(a, 100)
 
-// var a = 200;
-// assert(+a, 200)
-// assert(a, 200)
+var a = 200;
+assert(+a, 200)
+assert(a, 200)
 
-// var a = 300;
-// assert(!a, false)
-// assert(a, 300)
+var a = 300;
+assert(!a, false)
+assert(a, 300)
 
-// var a = 400;
-// typeof a;
-// assert(typeof a, 'number')
-// assert(a, 400)
+var a = 400;
+typeof a;
+assert(typeof a, 'number')
+assert(a, 400)
 
-// var m = 100;
+var m = 100;
 
-// if (m > 200) {
-//  var a = 100
-// m+=a;
-// } elsif (m > 3133) {
-//  var a = 300
-// m-=a
-// } else {
-//  var a = 1000000
-// m-=a
-// }
+if (m > 200) {
+ var a = 100
+m+=a;
+} elsif (m > 3133) {
+ var a = 300
+m-=a
+} else {
+ var a = 1000000
+m-=a
+}
 
-// assert(m, -999900)
+assert(m, -999900)
 
-// var m = 9000
+var m = 9000
 
-// while (m > 8000) {
-//  var a = 100;
-//  m--;
-//  m--;
-//  m+=1;
-//  m-=1000;
-//  m++;
-// }
+while (m > 8000) {
+ var a = 100;
+ m--;
+ m--;
+ m+=1;
+ m-=1000;
+ m++;
+}
 
-// assert(m, 8000)
+assert(m, 8000)
 
-// var a = 1
+var a = 1
 
-// do {
-//  a+=100;
-//  break;
-// } while(a < 90000)
+do {
+ a+=100;
+ break;
+} while(a < 90000)
 
-// assert(a, 101)
+assert(a, 101)
 
-// var mm = {
-//   a: 1,
-//   b: false,
-//   c: [],
-//   d: {},
-//   e: fn c() { "hello" },
-//   m: {
-//     d: 100
-//   }
-// }
+var mm = {
+  a: 1,
+  b: false,
+  c: [],
+  d: {},
+  e: fn c() { "hello" },
+  m: {
+    d: 100
+  }
+}
 
-// assert(mm.a, 1)
-// assert(mm.b, false)
-// assert(mm.c, [])
-// assert(mm.d, {})
-// assert(mm.e, "[Function c]")
-// assert(mm.m.d, 100)
+assert(mm.a, 1)
+assert(mm.b, false)
+assert(mm.c, [])
+assert(mm.d, {})
+assert(mm.e, "[Function c]")
+assert(mm.m.d, 100)
 
-// fn kkk() {
-//   "lanzhiheng"
-// }
+fn kkk() {
+  "lanzhiheng"
+}
 
-// var methods = {
-//   name: fn abc() {
-//     print(kkk("hello"))
-//     "liliming"
-//   }
-// }
+var methods = {
+  name: fn abc() {
+    print(kkk("hello"))
+    "liliming"
+  }
+}
 
-// var a = fn b() {
-// }
+var a = fn b() {
+}
 
-// print(a())
-// print(methods.name())
+print(a())
+print(methods.name())
 
 
-// var a = methods.name()
-// assert(a, "liliming")
+var a = methods.name()
+assert(a, "liliming")
 
-// var sum2 = fn sum1(i) {
-//   if (i > 1) {
-//     sum1(i - 1) + i
-//   } else {
-//     i
-//   }
-// }
+var sum2 = fn sum1(i) {
+  if (i > 1) {
+    sum1(i - 1) + i
+  } else {
+    i
+  }
+}
 
-// sum2(6)
-// print(sum2(10))
-// assert(sum2(4000), 8002000)
+sum2(6)
+print(sum2(10))
+assert(sum2(4000), 8002000)
 
 // var i =10
 // if (false) {
@@ -201,16 +201,14 @@
 // print(i)
 
 fn sum1(i) {
-if (i > 1) {
+  if (i > 1) {
     return sum1(i - 1) + i
   }
-i
+  i
 }
 
-print(sum1(4000))
+sum1(1)
 
-
-
-// print(sum1(10))
-// print(sum1)
-// assert(sum1(4000), 8002000)
+print(sum1(10))
+print(sum1)
+assert(sum1(4000), 8002000)
