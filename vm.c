@@ -232,6 +232,28 @@ int executeInstruct(bean_State * B) {
           PUSH(value);
           LOOP();
         }
+        case(TK_LEFT_BRACKET):{
+          TValue * attr = POP();
+          TValue * object = POP();
+          TValue * ret = G(B)->nil;
+          if (ttisarray(object)) {
+            if (ttisnumber(attr)) {
+              uint32_t index = nvalue(attr);
+              Array * array = arrvalue(object);
+              ret = array_get(B, array, index);
+            } else {
+              eval_error(B, "%s", "Just support number index for array.");
+            }
+          } else {
+            if (ttisstring(attr)) {
+              ret = search_from_prototype_link(B, object, attr);
+            } else {
+              eval_error(B, "%s", "Just support string attribute.");
+            }
+          }
+          PUSH(ret);
+          LOOP();
+        }
         case(TK_DOT): {
           TValue * name = POP();
           TValue * object = POP();
@@ -372,6 +394,15 @@ int executeInstruct(bean_State * B) {
       TValue * key = POP();
       TValue * hash = POP();
       Hash * h = hhvalue(hash);
+
+      if (ttisfunction(value)) {
+        Fn * f = fnvalue(value);
+
+        if (!f->name) {
+          f->name = svalue(key);
+        }
+      }
+
       hash_set(B, h, key, value);
       PUSH(hash);
       LOOP();
