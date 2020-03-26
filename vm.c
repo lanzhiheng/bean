@@ -297,6 +297,17 @@ int executeInstruct(bean_State * B) {
           TValue * name = POP();
           TValue * object = POP();
           TValue * value = search_from_prototype_link(B, object, name);
+          if (ttisfunction(value)) {
+            Fn * fn = fnvalue(value);
+            fn->context = object;
+          } else if (ttistool(value)) {
+            Tool * tl = tlvalue(value);
+            tl->context = object;
+
+            if(tl->getter) {
+              value = tl->function(B, object, NULL, 0);
+            }
+          }
           PUSH(value);
           LOOP();
         }
@@ -370,6 +381,16 @@ int executeInstruct(bean_State * B) {
       setfnvalue(function, fn);
       ip += COMMON_POINTER_SIZE;
       PUSH(function);
+      LOOP();
+    }
+    CASE(SELF_GET): {
+      TString * selfName = beanS_newlstr(B, "self", 4);
+      TValue * self = TV_MALLOC;
+      setsvalue(self, selfName);
+
+      TValue * value = find_variable(B, self);
+      if (!value) eval_error(B, "%s", "Can't reference the self value.");
+      PUSH(value);
       LOOP();
     }
     CASE(VARIABLE_GET): {
@@ -608,6 +629,16 @@ int executeInstruct(bean_State * B) {
       enter_scope(B);
 
       SCSV(B, name, func);
+
+      TValue * self = TV_MALLOC;
+      TString * selfName = beanS_newlstr(B, "self", 4);
+      setsvalue(self, selfName);
+      if (fn->context) {
+        SCSV(B, self, fn->context);
+      } else {
+        SCSV(B, self, G(B)->nil);
+      }
+
       LOOP();
     }
     CASE(NEW_SCOPE): {
@@ -665,7 +696,8 @@ int executeInstruct(bean_State * B) {
           TValue * res = *(thread->callStack - i - 1);
           args[i] = *res;
         }
-        TValue * res = tl->function(B, G(B)->nil, args, argc);
+        TValue * thisVal = tl->context ? tl->context : G(B)->nil;
+        TValue * res = tl->function(B, thisVal, args, argc);
         PUSH(res);
         goto normal_return;
       } else {

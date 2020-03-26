@@ -56,9 +56,9 @@ assert(array[1], "lanzhiheng")
 assert(array[9], [])
 assert(array[8], nil)
 
-// assert(temp.getA(), 1)
-// assert(temp.getB(), 2)
-// assert(thisObj.retThis(), thisObj)
+assert(temp.getA(), 1)
+assert(temp.getB(), 2)
+assert(thisObj.retThis(), thisObj)
 
 // print("Test call stack")
 // fn breakfn() {
