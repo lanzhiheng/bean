@@ -2,7 +2,7 @@ print(Date.now())
 
 var date1 = Date.build()
 print(date1)
-assert((typeof date1), 'hash')
+assert(typeof date1, 'hash')
 assert(date1.__proto__, Date)
 
 var date2 = Date.build()

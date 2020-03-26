@@ -169,9 +169,8 @@ static expr* boolean(LexState *ls, expr * exp UNUSED) {
 
 static expr* self(LexState *ls, expr *exp UNUSED) {
   checknext(ls, TK_SELF);
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_SELF;
-  return ep;
+  write_opcode(ls->B, OP_BEAN_SELF_GET);
+  return NULL;
 }
 
 static expr* left_paren(LexState *ls, expr *exp UNUSED) {

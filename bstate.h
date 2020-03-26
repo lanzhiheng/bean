@@ -104,6 +104,7 @@ typedef struct Function {
 typedef struct Fn {
   TString * name;
   size_t address;
+  TValue * context;
 } Fn;
 
 typedef enum {
