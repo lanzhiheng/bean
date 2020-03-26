@@ -53,6 +53,11 @@ static uint8_t last_opcode(bean_State * B) {
   return buff->buffer[buff->n - 1];
 }
 
+static uint8_t last_2_opcode(bean_State * B) {
+  Mbuffer * buff = G(B)->instructionStream;
+  return buff->buffer[buff->n - 2];
+}
+
 static void delete_opcode(bean_State * B) {
   Mbuffer * buff = G(B)->instructionStream;
   buff->n--;
@@ -447,8 +452,23 @@ static expr * infix (LexState *ls, expr * left) {
       syntax_error(ls, "Just supporting a++ and a--");
     }
   } else {
-    if (binaryOp == TK_ASSIGN) {
-      delete_opcode(ls->B);
+    char patchOp = 0;
+
+    if (binaryOp == TK_ASSIGN) { // If need assign, don't eval variable
+      if (last_opcode(ls->B) == OP_BEAN_VARIABLE_GET) {
+        delete_opcode(ls->B);
+      } else if (last_2_opcode(ls->B) == OP_BEAN_BINARY_OP) {
+        char lastOp = last_opcode(ls->B);
+        if (lastOp == TK_DOT) { // a.b = xxx
+          delete_opcode(ls->B);
+          write_byte(ls->B, OP_BEAN_NEXT_STEP);
+          patchOp = OP_BEAN_HASH_ATTRIBUTE_ASSIGN;
+        } else if (lastOp == TK_LEFT_BRACKET) { // a[0] = xxx Or a['hello'] = xxx
+          delete_opcode(ls->B);
+          write_byte(ls->B, OP_BEAN_NEXT_STEP);
+          patchOp = OP_BEAN_INDEX_OR_ATTRIBUTE_ASSIGN;
+        }
+      }
     }
 
     parse_statement(ls, symbol_table[binaryOp].lbp);
@@ -461,7 +481,11 @@ static expr * infix (LexState *ls, expr * left) {
     }
 
     write_byte(ls->B, OP_BEAN_BINARY_OP);
-    write_byte(ls->B, binaryOp);
+    if (patchOp) {
+      write_byte(ls->B, patchOp);
+    } else {
+      write_byte(ls->B, binaryOp);
+    }
   }
 
   return NULL;
@@ -595,6 +619,7 @@ static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
 static expr * parse_while(struct LexState *ls, bindpower rbp) {
   size_t loopBegin, loopEnd, loopTop, loopPush;
   beanX_next(ls);
+
   write_opcode(ls->B, OP_BEAN_LOOP);
   loopPush = G(ls->B)->instructionStream -> n;
   write_init_offset(ls->B);
@@ -609,6 +634,7 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
 
   testnext(ls, TK_LEFT_BRACE);
+
   while (ls->t.type != TK_RIGHT_BRACE) {
     parse_statement(ls, rbp);
   }
