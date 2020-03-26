@@ -72,6 +72,7 @@ void * operand_decode(char * buff) {
 typedef struct Thread {
   TValue ** stack;
   TValue ** esp;
+  TValue ** callStack;
   TValue ** loop;
 } Thread;
 
@@ -79,7 +80,8 @@ int executeInstruct(bean_State * B) {
   Thread * thread = malloc(sizeof(Thread));
   thread -> stack = malloc(sizeof(TValue*) * 3000);
   thread -> esp = thread -> stack;
-  thread -> loop = malloc(sizeof(TValue*) * 4000);
+  thread -> callStack = malloc(sizeof(TValue*) * 4000);
+  thread -> loop = malloc(sizeof(TValue*) * 300);
 
   char * ip;
   ip = G(B)->instructionStream->buffer;
@@ -87,12 +89,14 @@ int executeInstruct(bean_State * B) {
   char code;
 
 #define CREATE_FRAME do { \
-    thread->loop += MAX_ARGS + 1; \
+    thread->callStack += MAX_ARGS + 1; \
   } while(0);
-#define DROP_FRAME (thread->loop -= (MAX_ARGS + 1))
+#define DROP_FRAME (thread->callStack -= (MAX_ARGS + 1))
 
 #define CREATE_LOOP(value) (*thread->loop++ = value)
 #define DROP_LOOP() (*(--thread->loop))
+#define CREATE_RETURN(value) (*thread->callStack++ = value)
+#define DROP_RETURN() (*(--thread->callStack))
 #define READ_BYTE() *ip++;
 #define PUSH(value) (*thread->esp++ = value)
 #define POP(value) (*(--thread->esp))
@@ -247,6 +251,46 @@ int executeInstruct(bean_State * B) {
             }
           }
           PUSH(ret);
+          LOOP();
+        }
+        CASE(NEXT_STEP): {
+          LOOP();
+        }
+        CASE(INDEX_OR_ATTRIBUTE_ASSIGN): {
+          TValue * value = POP();
+          TValue * nameOrIndex = POP();
+          TValue * object = POP();
+
+          if (ttisarray(object)) {
+            if (ttisnumber(nameOrIndex)) {
+              uint32_t index = nvalue(nameOrIndex);
+              Array * array = arrvalue(object);
+              array_set(B, array, index, value);
+            } else {
+              eval_error(B, "%s", "Just support number index for array.");
+            }
+          } else if(ttishash(object)) {
+            if (ttisstring(nameOrIndex)) {
+              hash_set(B, hhvalue(object), nameOrIndex, value);
+            } else {
+              eval_error(B, "%s", "Just support string attribute.");
+            }
+          }
+          PUSH(value);
+          LOOP();
+        }
+        CASE(HASH_ATTRIBUTE_ASSIGN): {
+          TValue * value = POP();
+          TValue * name = POP();
+          TValue * object = POP();
+
+          if (ttishash(object)) {
+            hash_set(B, hhvalue(object), name, value);
+          } else {
+            eval_error(B, "%s", "This handler just support for hash instance.");
+          }
+
+          PUSH(value);
           LOOP();
         }
         case(TK_DOT): {
@@ -530,7 +574,7 @@ int executeInstruct(bean_State * B) {
     }
     CASE(IN_STACK): {
       TValue * value = POP();
-      TValue ** pointer = thread->loop;
+      TValue ** pointer = thread->callStack;
       for (int i = 0; i < MAX_ARGS; i++) {
         TValue * current = *(pointer - i - 1);
         if (current == NULL) {
@@ -544,8 +588,8 @@ int executeInstruct(bean_State * B) {
       long addr = (long)operand_decode(ip);
       TValue * address = TV_MALLOC;
       setnvalue(address, addr);
-      CREATE_LOOP(address);
-      for (long i = 0; i <= MAX_ARGS; i++) *(thread->loop + i) = NULL;
+      CREATE_RETURN(address);
+      for (long i = 0; i <= MAX_ARGS; i++) *(thread->callStack + i) = NULL;
       CREATE_FRAME;
       ip += COMMON_POINTER_SIZE;
       LOOP();
@@ -560,7 +604,7 @@ int executeInstruct(bean_State * B) {
       TValue * scope = TV_MALLOC;
       Scope * current = CS(B);
       setsvalue(scope, (void*)current);
-      *(thread->loop - MAX_ARGS) = scope;
+      *(thread->callStack - MAX_ARGS) = scope;
       enter_scope(B);
 
       SCSV(B, name, func);
@@ -580,7 +624,7 @@ int executeInstruct(bean_State * B) {
       TString * ts = operand_decode(ip);
       TValue * name = TV_MALLOC;
       setsvalue(name, ts);
-      TValue * value = *(thread->loop - index - 1);
+      TValue * value = *(thread->callStack - index - 1);
 
       if (value) {
         SCSV(B, name, value);
@@ -618,7 +662,7 @@ int executeInstruct(bean_State * B) {
         int argc = opCode - OP_BEAN_FUNCTION_CALL0;
 
         for (int i = 0; i < argc; i++) {
-          TValue * res = *(thread->loop - i - 1);
+          TValue * res = *(thread->callStack - i - 1);
           args[i] = *res;
         }
         TValue * res = tl->function(B, G(B)->nil, args, argc);
@@ -632,14 +676,14 @@ int executeInstruct(bean_State * B) {
     }
 
     CASE(RETURN): {
-      TValue * scope = *(thread->loop - MAX_ARGS);
+      TValue * scope = *(thread->callStack - MAX_ARGS);
       void * a = svalue(scope);
       Scope * restoreScope = (Scope *)a;
       B->l_G->cScope = restoreScope;
 
     normal_return:
       DROP_FRAME;
-      TValue * address = DROP_LOOP();
+      TValue * address = DROP_RETURN();
       ip = G(B)->instructionStream->buffer + (size_t)nvalue(address);
       LOOP();
     }

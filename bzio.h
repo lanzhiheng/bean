@@ -31,9 +31,10 @@ typedef struct Mbuffer {
 
 #define beanZ_freebuffer(B, buff)	beanZ_resizebuffer(B, buff, 0)
 
+// TODO 只有在虚拟机的时候会用到这个方法，扩容的时候尽量给予大的值避免内存溢出，目前原因未明。
 #define beanZ_append(B, buff, c) do {                \
     if (buff->n >= buff->buffsize) {                 \
-      beanZ_resizebuffer(B, buff, buff->buffsize * 2); \
+      beanZ_resizebuffer(B, buff, buff->buffsize * buff->buffsize); \
     }                                                \
     buff->buffer[buff->n++] = c;                     \
   } while(0);
