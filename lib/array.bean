@@ -1,0 +1,63 @@
+Array.each = fn(callback) {
+  var len = self.length
+  var i = 0
+  while(i < len) {
+    callback(self[i], i)
+    i = i + 1
+  }
+}
+
+Array.map = fn(callback) {
+  var arr = []
+  var len = self.length
+  var i = 0
+  while(i < len) {
+    arr[i] = callback(self[i], i)
+    i = i + 1
+  }
+  return arr
+}
+
+Array.filter = fn(callback) {
+  var arr = []
+  var len = self.length
+  var i = 0
+  while(i < len) {
+    var check = callback(self[i], i)
+    if (check) {
+      arr.push(self[i])
+    } else { // Without else will cause scope issue.
+
+    }
+
+    i = i + 1
+  }
+  return arr
+}
+
+Array.find = fn(callback) {
+  var arr = []
+  var len = self.length
+  var i = 0
+  while(i < len) {
+    var check = callback(self[i], i)
+    if (check) {
+      return self[i]
+    } else { // Without else will cause scope issue.
+
+    }
+
+    i = i + 1
+  }
+  return nil
+}
+
+Array.reduce = fn(callback, initial) {
+  var len = self.length
+  var i = 0
+  while(i < len) {
+    initial = callback(self[i], initial)
+    i = i + 1
+  }
+  return initial
+}

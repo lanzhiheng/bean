@@ -619,22 +619,25 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   size_t loopBegin, loopEnd, loopTop, loopPush;
   beanX_next(ls);
 
-  write_opcode(ls->B, OP_BEAN_LOOP);
-  loopPush = G(ls->B)->instructionStream -> n;
+  write_opcode(ls->B, OP_BEAN_PUSH_NIL);
+
+  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
+  write_opcode(ls->B, OP_BEAN_LOOP); // start loop
+  loopPush = G(ls->B)->instructionStream -> n; // start address
   write_init_offset(ls->B);
   loopTop = G(ls->B)->instructionStream -> n;
 
   parse_statement(ls, rbp); // condition
 
   write_opcode(ls->B, OP_BEAN_JUMP_FALSE);
+
   loopBegin = G(ls->B)->instructionStream -> n;
   write_init_offset(ls->B);
-
-  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
 
   testnext(ls, TK_LEFT_BRACE);
 
   while (ls->t.type != TK_RIGHT_BRACE) {
+    write_opcode(ls->B, OP_BEAN_DROP);
     parse_statement(ls, rbp);
   }
   testnext(ls, TK_RIGHT_BRACE);
@@ -647,8 +650,8 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   loopEnd = G(ls->B)->instructionStream -> n;
   offset_patch(ls->B, loopBegin, loopEnd - loopBegin);
 
-  offset_patch(ls->B, loopPush, loopEnd); // End of loop's address.
   write_opcode(ls->B, OP_BEAN_LOOP_BREAK);
+  offset_patch(ls->B, loopPush, loopEnd); // End of loop's address.
 
   write_opcode(ls->B, OP_BEAN_END_SCOPE);
   return NULL;

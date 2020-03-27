@@ -203,7 +203,7 @@ int executeInstruct(bean_State * B) {
         case(TK_AND): {
           TValue * v2 = POP();
           TValue * v1 = POP();
-          TValue * res = falsyvalue(v1) ? v2 : v1;
+          TValue * res = falsyvalue(v1) ? v1 : v2;
 
           PUSH(res);
           LOOP();
@@ -271,6 +271,13 @@ int executeInstruct(bean_State * B) {
             }
           } else if(ttishash(object)) {
             if (ttisstring(nameOrIndex)) {
+              if (ttisfunction(value)) {
+                Fn * fn = fnvalue(value);
+                if (!fn->name) {
+                  fn->name = svalue(nameOrIndex);
+                }
+              }
+
               hash_set(B, hhvalue(object), nameOrIndex, value);
             } else {
               eval_error(B, "%s", "Just support string attribute.");
@@ -285,6 +292,13 @@ int executeInstruct(bean_State * B) {
           TValue * object = POP();
 
           if (ttishash(object)) {
+            if (ttisfunction(value)) {
+              Fn * fn = fnvalue(value);
+              if (!fn->name) {
+                fn->name = svalue(name);
+              }
+            }
+
             hash_set(B, hhvalue(object), name, value);
           } else {
             eval_error(B, "%s", "This handler just support for hash instance.");
@@ -377,6 +391,7 @@ int executeInstruct(bean_State * B) {
     CASE(FUNCTION_DEFINE): {
       TValue * function = TV_MALLOC;
       Fn * fn = malloc(sizeof(Fn));
+      fn->name = NULL; // Set name as NULL for avoid segmentation fault
       fn->address = (size_t)operand_decode(ip);
       setfnvalue(function, fn);
       ip += COMMON_POINTER_SIZE;
@@ -616,19 +631,20 @@ int executeInstruct(bean_State * B) {
       LOOP();
     }
     CASE(NEW_FUNCTION_SCOPE): {
-      TValue * func = POP(); // function will reach here, tool not.
-      TValue * name = TV_MALLOC;
-      Fn * fn = fnvalue(func);
-      TString * str = fn -> name;
-      setsvalue(name, str);
-
       TValue * scope = TV_MALLOC;
       Scope * current = CS(B);
       setsvalue(scope, (void*)current);
       *(thread->callStack - MAX_ARGS) = scope;
       enter_scope(B);
 
-      SCSV(B, name, func);
+      TValue * func = POP(); // function will reach here, tool not.
+      TValue * name = TV_MALLOC;
+      Fn * fn = fnvalue(func);
+      TString * str = fn -> name;
+      if (str) {
+        setsvalue(name, str);
+        SCSV(B, name, func);
+      }
 
       TValue * self = TV_MALLOC;
       TString * selfName = beanS_newlstr(B, "self", 4);
