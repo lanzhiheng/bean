@@ -737,6 +737,10 @@ static char * read_source_file(bean_State * B, const char * path) {
 }
 
 static void preload_library(bean_State * B) {
+  char * array = read_source_file(B, "lib/array.bean");
+  beanX_setinput(B, array, beanS_newliteral(B, "array"), *array);
+  bparser(B->ls);
+
   char * json = read_source_file(B, "lib/json.bean");
   beanX_setinput(B, json, beanS_newliteral(B, "json"), *json);
   bparser(B->ls);

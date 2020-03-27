@@ -60,36 +60,36 @@ assert(temp.getA(), 1)
 assert(temp.getB(), 2)
 assert(thisObj.retThis(), thisObj)
 
-// print("Test call stack")
-// fn breakfn() {
-//  var i = 40
+print("Test call stack")
+fn breakfn() {
+ var i = 40
 
-//  while (i > 10) {
-//    i = i - 1
+ while (i > 10) {
+   i = i - 1
 
-//    if (i < 30) {
-//      if (i == 20) {
-//        5000
-//      } else {
-//        return 3000
-//      }
-//    }
-//  }
-// }
+   if (i < 30) {
+     if (i == 20) {
+       5000
+     } else {
+       return 3000
+     }
+   }
+ }
+}
 
-// assert(breakfn(), 3000)
+assert(breakfn(), 3000)
 
-// fn a() {
-//   var i = 10;
+fn a() {
+  var i = 10;
 
-//   while(i > 1) {
-//     i = i - 1;
-//     if (false) {
-//       return "hello"
-//     } else {
-//       return true
-//     }
-//   }
-// }
+  while(i > 1) {
+    i = i - 1;
+    if (false) {
+      return "hello"
+    } else {
+      return true
+    }
+  }
+}
 
-// assert(a(), true)
+assert(a(), true)

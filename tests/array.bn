@@ -93,15 +93,6 @@ eachArr.each(fn (i, c) {
  assert(i, c+1)
 })
 
-eachArr.each(fn (i) {
- fn hello() {
-   assert(self, eachArr)
- }
- assert(self, eachArr)
-
- hello()
-})
-
 var b = {
   console: fn(a) {
     print(a)
