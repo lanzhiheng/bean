@@ -1,89 +1,14 @@
+#include "vm.h"
 #include "bfunction.h"
 #include "bstring.h"
+#include "bparser.h"
 
-static TValue * primitive_Function_call(bean_State * B, TValue * thisVal UNUSED, TValue * args, int argc) {
-  TValue * self;
-  TValue * ret = G(B)->nil;
-  if (argc <= 0) { self = G(B) -> nil; }
-  int paramIndex = 0;
-  self = &args[paramIndex++];
-
-  Function * f = fcvalue(thisVal);
-  enter_scope(B);
-  call_stack_create_frame(B);
-
-  for (int i = 0; i < f->p->arity; i++) {
-    TValue * key = TV_MALLOC;
-    setsvalue(key, f->p->args[i]);
-
-    if (paramIndex < argc) {
-      TValue * value = &args[paramIndex++];
-      SCSV(B, key, value);
-    } else {
-      SCSV(B, key, G(B)->nil);
-    }
-  }
-
-  set_self_before_caling(B, self);
-  for (int j = 0; j < f->body->count; j++) {
-    expr * ex = f->body->es[j];
-    ret = eval(B, ex);
-
-    if (call_stack_peek(B)) {
-      ret = call_stack_peek_return(B);
-      break;
-    }
-  }
-  call_stack_restore_frame(B);
-  leave_scope(B);
-  return ret;
+TValue * primitive_Function_call(bean_State * B UNUSED, TValue * thisVal UNUSED, TValue * args UNUSED, int argc UNUSED) {
+  return NULL;
 }
 
-static TValue * primitive_Function_apply(bean_State * B, TValue * thisVal UNUSED, TValue * args, int argc) {
-  TValue * self;
-  TValue * ret = G(B)->nil;
-  if (argc <= 0) { self = G(B) -> nil; }
-  self = &args[0];
-
-  Array * arr;
-  if (argc == 1) {
-    arr = init_array(B);
-  }
-
-  if (argc >= 2) {
-    assert_with_message(ttisarray(&args[1]), "You must provide an array as second parameter.");
-    arr = arrvalue(&args[1]);
-  }
-
-  Function * f = fcvalue(thisVal);
-  enter_scope(B);
-  call_stack_create_frame(B);
-
-  for (int i = 0; i < f->p->arity; i++) {
-    TValue * key = TV_MALLOC;
-    setsvalue(key, f->p->args[i]);
-
-    if ((uint32_t)i < arr->count) {
-      TValue * value = arr->entries[i];
-      SCSV(B, key, value);
-    } else {
-      SCSV(B, key, G(B)->nil);
-    }
-  }
-
-  set_self_before_caling(B, self);
-  for (int j = 0; j < f->body->count; j++) {
-    expr * ex = f->body->es[j];
-    ret = eval(B, ex);
-
-    if (call_stack_peek(B)) {
-      ret = call_stack_peek_return(B);
-      break;
-    }
-  }
-  call_stack_restore_frame(B);
-  leave_scope(B);
-  return ret;
+TValue * primitive_Function_apply(bean_State * B UNUSED, TValue * thisVal UNUSED, TValue * args UNUSED, int argc UNUSED) {
+  return NULL;
 }
 
 TValue * init_Function(bean_State * B) {
