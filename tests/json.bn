@@ -4,7 +4,6 @@ var jsonObject = {
   position: "Web Developer"
 }
 
-print(JSON)
 var string = JSON.stringify(jsonObject)
 var object = JSON.parse(string)
 assert(object, jsonObject)

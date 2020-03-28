@@ -1,6 +1,7 @@
 #include "vm.h"
 #include "stdio.h"
 #include "bstate.h"
+#include "bfunction.h"
 #include "bstring.h"
 #include "bobject.h"
 #include "berror.h"
@@ -708,14 +709,82 @@ int executeInstruct(bean_State * B) {
         TValue * args = malloc(sizeof(TValue) * MAX_ARGS); // TODO: 调用栈，参数
         int argc = opCode - OP_BEAN_FUNCTION_CALL0;
 
-        for (int i = 0; i < argc; i++) {
-          TValue * res = *(thread->callStack - i - 1);
-          args[i] = *res;
+        if (tl->function == primitive_Function_call) { // a.call(self, 111, 2)
+          TValue * thisVal = tl->context ? tl->context : G(B)->nil;
+          Fn * fn = fnvalue(thisVal);
+
+          for (int i = 0; i < argc; i++) {
+            TValue * res = *(thread->callStack - i - 1);
+            args[i] = *res;
+          }
+
+          DROP_FRAME;
+          DROP_RETURN();
+
+          long addr = ip - G(B)->instructionStream->buffer;
+          TValue * address = TV_MALLOC;
+          setnvalue(address, addr);
+          CREATE_RETURN(address);
+          for (long i = 0; i <= MAX_ARGS; i++) *(thread->callStack + i) = NULL;
+          CREATE_FRAME;
+
+          TValue * context = &args[0]; // First argument is context
+
+          int i;
+          for (i = 0; i < argc - 1; i++) {
+            *(thread->callStack - i - 1) = &args[i + 1];
+          }
+
+          fn->context = context;
+          PUSH(thisVal);
+          ip = G(B)->instructionStream->buffer + fn -> address;
+          LOOP();
+        } else if (tl->function == primitive_Function_apply) {
+          TValue * thisVal = tl->context ? tl->context : G(B)->nil;
+          Fn * fn = fnvalue(thisVal);
+
+          for (int i = 0; i < argc; i++) {
+            TValue * res = *(thread->callStack - i - 1);
+            args[i] = *res;
+          }
+
+          DROP_FRAME;
+          DROP_RETURN();
+
+          long addr = ip - G(B)->instructionStream->buffer;
+          TValue * address = TV_MALLOC;
+          setnvalue(address, addr);
+          CREATE_RETURN(address);
+          for (long i = 0; i <= MAX_ARGS; i++) *(thread->callStack + i) = NULL;
+          CREATE_FRAME;
+
+          TValue * context = &args[0]; // First argument is context
+
+          Array * arguments = NULL;
+          if (ttisarray(&args[1])) {
+            arguments = arrvalue(&args[1]);
+          } else {
+            arguments = init_array(B);
+          }
+          for (size_t i = 0; i < arguments->count; i++) {
+            *(thread->callStack - i - 1) = arguments->entries[i];
+          }
+
+          fn->context = context;
+          PUSH(thisVal);
+          ip = G(B)->instructionStream->buffer + fn -> address;
+          LOOP();
+        } else {
+          TValue * thisVal = tl->context ? tl->context : G(B)->nil;
+          for (int i = 0; i < argc; i++) {
+            TValue * res = *(thread->callStack - i - 1);
+            args[i] = *res;
+          }
+
+          TValue * res = tl->function(B, thisVal, args, argc);
+          PUSH(res);
+          goto normal_return;
         }
-        TValue * thisVal = tl->context ? tl->context : G(B)->nil;
-        TValue * res = tl->function(B, thisVal, args, argc);
-        PUSH(res);
-        goto normal_return;
       } else {
         runtime_error(B, "%s", "The instance can not be called which isn't a function.");
       }
