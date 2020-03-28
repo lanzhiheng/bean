@@ -201,21 +201,6 @@ int executeInstruct(bean_State * B) {
           COMPARE_STMT(lte);
         case(TK_LT):
           COMPARE_STMT(lt);
-        case(TK_AND): {
-          TValue * v2 = POP();
-          TValue * v1 = POP();
-          TValue * res = falsyvalue(v1) ? v1 : v2;
-
-          PUSH(res);
-          LOOP();
-        }
-        case(TK_OR): {
-          TValue * v2 = POP();
-          TValue * v1 = POP();
-          TValue * ret = truthvalue(v1) ? v1 : v2;
-          PUSH(ret);
-          LOOP();
-        }
         case(TK_NE): {
           TValue * v1 = POP();
           TValue * v2 = POP();
@@ -566,6 +551,28 @@ int executeInstruct(bean_State * B) {
       if (truthvalue(condition)) {
         size_t offset = (size_t)operand_decode(ip);
         ip += offset;
+      } else {
+        ip += COMMON_POINTER_SIZE;
+      }
+      LOOP();
+    }
+    CASE(JUMP_TRUE_PUSH_BACK): {
+      TValue * condition = POP();
+      if (truthvalue(condition)) {
+        size_t offset = (size_t)operand_decode(ip);
+        ip += offset;
+        PUSH(condition);
+      } else {
+        ip += COMMON_POINTER_SIZE;
+      }
+      LOOP();
+    }
+    CASE(JUMP_FALSE_PUSH_BACK): {
+      TValue * condition = POP();
+      if (falsyvalue(condition)) {
+        size_t offset = (size_t)operand_decode(ip);
+        ip += offset;
+        PUSH(condition);
       } else {
         ip += COMMON_POINTER_SIZE;
       }
