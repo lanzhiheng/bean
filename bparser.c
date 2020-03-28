@@ -450,6 +450,20 @@ static expr * infix (LexState *ls, expr * left) {
     } else {
       syntax_error(ls, "Just supporting a++ and a--");
     }
+  } else if (binaryOp == TK_AND) {
+    size_t before;
+    write_opcode(ls->B, OP_BEAN_JUMP_FALSE_PUSH_BACK);
+    before = G(ls->B) -> instructionStream -> n;
+    write_init_offset(ls->B);
+    parse_statement(ls, symbol_table[binaryOp].lbp);
+    offset_patch(ls->B, before, G(ls->B) -> instructionStream -> n - before);
+  } else if (binaryOp == TK_OR) {
+    size_t before;
+    write_opcode(ls->B, OP_BEAN_JUMP_TRUE_PUSH_BACK);
+    before = G(ls->B) -> instructionStream -> n;
+    write_init_offset(ls->B);
+    parse_statement(ls, symbol_table[binaryOp].lbp);
+    offset_patch(ls->B, before, G(ls->B) -> instructionStream -> n - before);
   } else {
     char patchOp = 0;
 
