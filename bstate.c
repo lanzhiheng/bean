@@ -8,13 +8,13 @@
 #include "bfunction.h"
 #include "bmath.h"
 #include "bdate.h"
+/* #include "bhttp.h" */
 #include "berror.h"
 #include "barray.h"
 #include "bregex.h"
 #include "bobject.h"
 #include "bstate.h"
 #include "bparser.h"
-#include "bhttp.h"
 #include "blex.h"
 #include "mem.h"
 
@@ -209,7 +209,7 @@ void global_init(bean_State * B) {
   G -> rproto = init_Regex(B);
   G -> dproto = init_Date(B);
   G -> fproto = init_Function(B);
-  G -> netproto = init_Http(B);
+  /* G -> netproto = init_Http(B); */
 
   G -> nproto -> prototype = G -> meta;
   G -> sproto -> prototype = G -> meta;
@@ -219,7 +219,7 @@ void global_init(bean_State * B) {
   G -> rproto -> prototype = G -> meta;
   G -> dproto -> prototype = G -> meta;
   G -> fproto -> prototype = G -> meta;
-  G -> netproto -> prototype = G -> meta;
+  /* G -> netproto -> prototype = G -> meta; */
 
   G -> meta -> prototype = G->nil;
 
