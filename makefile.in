@@ -2,14 +2,16 @@ CC = gcc -v
 TARGET = bean
 CFLAGS = -g -Wall
 TFLAGS = -g -Wall -DTEST
-CFILES = $(wildcard *.c)
+ALL_FIELS = $(wildcard *.c)
+# Remove http module temporarily
+COMPILE_FILES = $(filter-out bhttp.c,$(ALL_FIELS))
 CURL = @LIBCURL@ @LIBCURL_CPPFLAGS@
 
 $(TARGET):$(OBJS)
-	$(CC) -o $(TARGET) $(CFILES) $(CFLAGS) $(LIBS) $(CURL)
+	$(CC) -o $(TARGET) $(COMPILE_FILES) $(CFLAGS) $(LIBS)
 
 test:
-	$(CC) -o $(TARGET) $(CFILES) $(TFLAGS) $(LIBS)
+	$(CC) -o $(TARGET) $(COMPILE_FILES) $(TFLAGS) $(LIBS)
 	./$(TARGET)
 
 clean:
