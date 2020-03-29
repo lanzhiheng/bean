@@ -16,7 +16,8 @@ fn parse(input) {
       error('An error occurred when parsing, at the ' +  at + ' character of the string')
     }
 
-    ch = input.charAt(at++);
+    ch = input.charAt(at);
+    at += 1;
     return ch;
   }
 
@@ -67,7 +68,8 @@ fn parse(input) {
   fn string(escape) { // 用于解析字符串
     var str = ''
 
-    if (escape) { next(escape) }
+
+    if (escape) { next(escape); }
     next('"')
 
     if (ch == '"') {
@@ -125,7 +127,7 @@ fn parse(input) {
   fn value() { // 统一入口，里面可能会有递归调用
     if (ch == '"') {
       return string()
-    } elsif (ch == '\\' and input.charAt(ch + 1) == '"')  {
+    } elsif (ch == '\\' and input.charAt(at + 1) == '"')  {
       return string('\\')
     } elsif (ch == '[') {
       return array()
