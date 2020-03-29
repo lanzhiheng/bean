@@ -16,7 +16,6 @@
 #define CommonHeader	struct GCObject *next; bu_byte tt; bu_byte marked
 
 typedef struct bean_State bean_State;
-typedef struct expr expr;
 
 /* Common type for all collectable objects */
 typedef struct GCObject {

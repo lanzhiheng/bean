@@ -74,11 +74,6 @@ typedef struct global_State {
   Mbuffer * instructionStream;
 } global_State;
 
-typedef struct dynamic_expr {
-  struct expr ** es;
-  int size;
-  int count;
-} dynamic_expr;
 
 typedef struct Proto {
   TString * name;
@@ -95,101 +90,11 @@ typedef struct Tool {
   bool getter;
 } Tool;
 
-typedef struct Function {
-  Proto * p;
-  dynamic_expr * body;
-  TValue * context;
-} Function;
-
 typedef struct Fn {
   TString * name;
   size_t address;
   TValue * context;
 } Fn;
-
-typedef enum {
-  EXPR_NIL,
-  EXPR_NUM,
-  EXPR_BOOLEAN,
-  EXPR_UNARY,
-  EXPR_CHANGE,
-  EXPR_BINARY,
-  EXPR_STRING,
-  EXPR_FUN,
-  EXPR_SELF,
-  EXPR_DVAR,
-  EXPR_GVAR,
-  EXPR_CALL,
-  EXPR_RETURN,
-  EXPR_LOOP,
-  EXPR_BRANCH,
-  EXPR_ARRAY,
-  EXPR_HASH,
-  EXPR_REGEX,
-  EXPR_BREAK
-} EXPR_TYPE;
-
-typedef struct expr {
-  EXPR_TYPE type;
-
-  union {
-    bean_Number nval;  /* for VKFLT */
-    bu_byte bval;
-    TString * sval;
-    Function * fun;
-    dynamic_expr * array;
-    dynamic_expr * hash;
-
-    struct {
-      int op;
-      struct expr * val;
-    } unary;
-
-    struct {
-      TString * match;
-      int flag;
-    } regex;
-
-    struct {
-      int op;
-      struct expr * val;
-      int prefix;
-    } change;
-
-    struct {
-      int op; // Store the TokenType
-      struct expr * left;  /* for   TK_ADD, TK_SUB, TK_MUL, TK_DIV, */
-      struct expr * right;
-      int assign; // Need reassign
-    } infix;
-
-    struct {
-      TString * name;
-      struct expr * value;
-    } var;
-
-    struct {
-      struct expr * ret_val;
-    } ret;
-
-    struct {
-      struct expr * callee;
-      dynamic_expr * args;
-    } call;
-
-    struct {
-      struct expr * condition;
-      bool firstcheck;
-      dynamic_expr * body;
-    } loop;
-
-    struct {
-      struct expr * condition;
-      dynamic_expr * if_body;
-      dynamic_expr * else_body;
-    } branch;
-  };
-} expr;
 
 #define add(a, b) (a + b)
 #define sub(a, b) (a - b)
@@ -214,7 +119,6 @@ typedef struct expr {
 #define BEAN_FAIL 0
 
 void global_init(bean_State * B);
-TValue * eval(bean_State * B, struct expr * expression);
 void run_file(const char * path);
 void run();
 void enter_scope(bean_State * B);
