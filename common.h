@@ -1,6 +1,7 @@
 #ifndef _BEAN_COMMON_H
 #define _BEAN_COMMON_H
 #include <stdlib.h>
+#include <stdint.h>
 #include <limits.h>
 #include "bean.h"
 
