@@ -236,6 +236,9 @@ void global_init(bean_State * B) {
 
   G->instructionStream = malloc(sizeof(Mbuffer));
   beanZ_initbuffer(G->instructionStream);
+
+  G->linenomap = malloc(sizeof(Ibuffer));
+  init_ibuffer(G->linenomap);
 }
 
 void exception() {

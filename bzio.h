@@ -31,12 +31,31 @@ typedef struct Mbuffer {
 
 #define beanZ_freebuffer(B, buff)	beanZ_resizebuffer(B, buff, 0)
 
-// TODO 只有在虚拟机的时候会用到这个方法，扩容的时候尽量给予大的值避免内存溢出，目前原因未明。
 #define beanZ_append(B, buff, c) do {                \
     if (buff->n >= buff->buffsize) {                 \
-      beanZ_resizebuffer(B, buff, buff->buffsize * buff->buffsize); \
+      beanZ_resizebuffer(B, buff, buff->buffsize * 2); \
     }                                                \
     buff->buffer[buff->n++] = c;                     \
+  } while(0);
+
+
+// May be it can be refactor
+typedef struct Ibuffer {
+  int *buffer;
+  size_t buffsize;
+} Ibuffer;
+
+#define BEAN_MIN_INT_BUFFER 20
+
+#define init_ibuffer(buff) ((buff)->buffer = beanM_mallocvchar(B, BEAN_MIN_INT_BUFFER , int), (buff)->buffsize = BEAN_MIN_INT_BUFFER)
+
+#define set_linenumber_ibuffer(B, buff, index, number) do {           \
+    if (index >= buff->buffsize) {                                      \
+      size_t oldSize = (buff)->buffsize * sizeof(int);                  \
+      size_t newSize = (index + (buff)->buffsize) * sizeof(int);        \
+      (buff)->buffer = beanM_realloc_(B, (buff) -> buffer, oldSize, newSize); \
+    }                                                                   \
+    buff->buffer[index] = number;                                       \
   } while(0);
 
 #endif

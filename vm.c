@@ -84,7 +84,8 @@ int executeInstruct(bean_State * B) {
   thread -> callStack = malloc(sizeof(TValue*) * 4000);
   thread -> loop = malloc(sizeof(TValue*) * 300);
 
-  char * ip;
+#define ip G(B)->instructionIndex
+
   ip = G(B)->instructionStream->buffer;
 
   char code;
@@ -112,10 +113,10 @@ int executeInstruct(bean_State * B) {
     TValue * v1 = POP();                                                \
     TValue * res = TV_MALLOC;                                           \
    if (!ttisnumber(v1)) {                                              \
-      eval_error(B, "%s", "left operand of "#action" must be number");  \
+      runtime_error(B, "%s", "left operand of "#action" must be number");  \
     }                                                                   \
     if (!ttisnumber(v2)) {                                              \
-      eval_error(B, "%s", "right operand of "#action" must be number"); \
+      runtime_error(B, "%s", "right operand of "#action" must be number"); \
     }                                                                   \
     setnvalue(res, action(nvalue(v1), nvalue(v2)));                      \
     PUSH(res);                                                           \
@@ -140,10 +141,10 @@ int executeInstruct(bean_State * B) {
     TValue * name = POP();                                              \
     TValue * v1 = find_variable(B, name);                               \
     if (!ttisnumber(v1)) {                                                \
-      eval_error(B, "%s", "left operand of "#action" must be number");  \
+      runtime_error(B, "%s", "left operand of "#action" must be number");  \
     }                                                                   \
     if (!ttisnumber(v2)) {                                              \
-      eval_error(B, "%s", "right operand of "#action" must be number"); \
+      runtime_error(B, "%s", "right operand of "#action" must be number"); \
     }                                                                   \
     setnvalue(v1, action(nvalue(v1), nvalue(v2)));                      \
     PUSH(v1);                                                           \
@@ -211,7 +212,7 @@ int executeInstruct(bean_State * B) {
           TValue * value = POP();
           TValue * name = POP();
           Scope * scope = find_variable_scope(B, name);
-          if (!scope) eval_error(B, "%s", "Can't reference the variable before defined.");
+          if (!scope) runtime_error(B, "%s", "Can't reference the variable before defined.");
           hash_set(B, scope->variables, name, value);
           PUSH(value);
           LOOP();
@@ -226,13 +227,13 @@ int executeInstruct(bean_State * B) {
               Array * array = arrvalue(object);
               ret = array_get(B, array, index);
             } else {
-              eval_error(B, "%s", "Just support number index for array.");
+              runtime_error(B, "%s", "Just support number index for array.");
             }
           } else {
             if (ttisstring(attr)) {
               ret = search_from_prototype_link(B, object, attr);
             } else {
-              eval_error(B, "%s", "Just support string attribute.");
+              runtime_error(B, "%s", "Just support string attribute.");
             }
           }
           PUSH(ret);
@@ -252,7 +253,7 @@ int executeInstruct(bean_State * B) {
               Array * array = arrvalue(object);
               array_set(B, array, index, value);
             } else {
-              eval_error(B, "%s", "Just support number index for array.");
+              runtime_error(B, "%s", "Just support number index for array.");
             }
           } else if(ttishash(object)) {
             if (ttisstring(nameOrIndex)) {
@@ -265,7 +266,7 @@ int executeInstruct(bean_State * B) {
 
               hash_set(B, hhvalue(object), nameOrIndex, value);
             } else {
-              eval_error(B, "%s", "Just support string attribute.");
+              runtime_error(B, "%s", "Just support string attribute.");
             }
           }
           PUSH(value);
@@ -286,7 +287,7 @@ int executeInstruct(bean_State * B) {
 
             hash_set(B, hhvalue(object), name, value);
           } else {
-            eval_error(B, "%s", "This handler just support for hash instance.");
+            runtime_error(B, "%s", "This handler just support for hash instance.");
           }
 
           PUSH(value);
@@ -390,14 +391,14 @@ int executeInstruct(bean_State * B) {
       setsvalue(self, selfName);
 
       TValue * value = find_variable(B, self);
-      if (!value) eval_error(B, "%s", "Can't reference the self value.");
+      if (!value) runtime_error(B, "%s", "Can't reference the self value.");
       PUSH(value);
       LOOP();
     }
     CASE(VARIABLE_GET): {
       TValue * name = POP();
       TValue * value = find_variable(B, name);
-      if (!value) eval_error(B, "%s", "Can't reference the variable before defined.");
+      if (!value) runtime_error(B, "%s", "Can't reference the variable before defined.");
       PUSH(value);
       LOOP();
     }
@@ -812,8 +813,11 @@ int executeInstruct(bean_State * B) {
       LOOP();
     }
     default: {
+      ip = G(B)->instructionStream->buffer;
+      beanZ_resetbuffer(G(B)->instructionStream);
       break;
     }
+#undef ip
   }
   return 0;
 }
