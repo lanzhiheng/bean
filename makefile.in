@@ -6,12 +6,13 @@ ALL_FIELS = $(wildcard *.c)
 # Remove http module temporarily
 COMPILE_FILES = $(filter-out bhttp.c,$(ALL_FIELS))
 CURL = @LIBCURL@ @LIBCURL_CPPFLAGS@
+LINK = -l m
 
 $(TARGET):$(OBJS)
-	$(CC) -o $(TARGET) $(COMPILE_FILES) $(CFLAGS) $(LIBS)
+	$(CC) -o $(TARGET) $(COMPILE_FILES) $(CFLAGS) $(LIBS) $(LINK)
 
 test:
-	$(CC) -o $(TARGET) $(COMPILE_FILES) $(TFLAGS) $(LIBS)
+	$(CC) -o $(TARGET) $(COMPILE_FILES) $(TFLAGS) $(LIBS) $(LINK)
 	./$(TARGET)
 
 clean:
