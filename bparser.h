@@ -45,7 +45,7 @@ typedef enum {
 } bindpower;
 
 typedef struct LexState LexState;
-typedef expr* (*denotation_fn) (LexState *ls, expr * exp);
+typedef void (*denotation_fn) (LexState *ls);
 
 typedef struct symbol {
   char * id;

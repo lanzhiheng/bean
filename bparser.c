@@ -108,27 +108,17 @@ static void testnext (LexState *ls, int c) {
 /*
 ** grep "ORDER OPR" if you change these enums  (ORDER OP)
 */
-static expr * parse_statement(LexState *ls, bindpower rbp);
-static expr * infix (LexState *ls, expr * left);
-static expr * function_call (LexState *ls, expr * left);
+static void parse_statement(LexState *ls, bindpower rbp);
+static void infix (LexState *ls);
+static void function_call (LexState *ls);
 
-static expr * string (LexState *ls, expr * exp UNUSED) {
+static void string (LexState *ls) {
   write_byte(ls->B, OP_BEAN_PUSH_STR);
   operand_pointer_encode(ls->B, ls->t.seminfo.ts);
   beanX_next(ls);
-  return NULL;
 }
 
-static expr * regex(LexState * ls, expr * exp UNUSED) {
-  expr * ep = malloc(sizeof(expr));
-  ep -> type = EXPR_REGEX;
-  ep -> regex.match = ls->t.seminfo.ts;
-  ep -> regex.flag = 0;
-  beanX_next(ls);
-  return ep;
-}
-
-static expr* num(LexState *ls, expr * exp UNUSED) {
+static void num(LexState *ls) {
   switch(ls->t.type) {
     case(TK_NUM): {
       write_opcode(ls->B, OP_BEAN_PUSH_NUM);
@@ -141,16 +131,14 @@ static expr* num(LexState *ls, expr * exp UNUSED) {
       syntax_error(ls, "Not the valid number.");
   }
   beanX_next(ls);
-  return NULL;
 }
 
-static expr* nil(LexState *ls, expr * exp UNUSED) {
+static void nil(LexState *ls) {
   write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   beanX_next(ls);
-  return NULL;
 }
 
-static expr* boolean(LexState *ls, expr * exp UNUSED) {
+static void boolean(LexState *ls) {
   switch(ls->t.type) {
     case(TK_TRUE): {
       write_opcode(ls->B, OP_BEAN_PUSH_TRUE);
@@ -164,23 +152,20 @@ static expr* boolean(LexState *ls, expr * exp UNUSED) {
       syntax_error(ls, "Not the valid boolean value.");
   }
   beanX_next(ls);
-  return NULL;
 }
 
-static expr* self(LexState *ls, expr *exp UNUSED) {
+static void self(LexState *ls) {
   checknext(ls, TK_SELF);
   write_opcode(ls->B, OP_BEAN_SELF_GET);
-  return NULL;
 }
 
-static expr* left_paren(LexState *ls, expr *exp UNUSED) {
+static void left_paren(LexState *ls) {
   checknext(ls, TK_LEFT_PAREN);
   parse_statement(ls, BP_LOWEST);
   checknext(ls, TK_RIGHT_PAREN);
-  return NULL;
 }
 
-static expr* variable(LexState *ls, expr *exp UNUSED) {
+static void variable(LexState *ls) {
   Token token = ls->t;
   beanX_next(ls);
 
@@ -188,11 +173,9 @@ static expr* variable(LexState *ls, expr *exp UNUSED) {
   operand_pointer_encode(ls->B, token.seminfo.ts);
 
   write_opcode(ls->B, OP_BEAN_VARIABLE_GET);
-
-  return NULL;
 }
 
-static expr* return_exp(LexState *ls, expr * exp UNUSED) {
+static void return_exp(LexState *ls) {
   beanX_next(ls);
 
   // TODO: support to return the null value
@@ -200,10 +183,9 @@ static expr* return_exp(LexState *ls, expr * exp UNUSED) {
 
   parse_statement(ls, BP_LOWEST);
   write_opcode(ls->B, OP_BEAN_RETURN); // Get return address from stack
-  return NULL;
 }
 
-static expr * parse_definition(LexState *ls) {
+static void parse_definition(LexState *ls) {
   TokenType tkType = ls->pre.type;
   testnext(ls, TK_FUNCTION);
 
@@ -258,13 +240,9 @@ static expr * parse_definition(LexState *ls) {
     write_opcode(ls->B, OP_BEAN_SET_FUNCTION_NAME);
     write_byte(ls->B, tkType == TK_COLON || tkType == TK_ASSIGN); // Don't set name to scope
   }
-
-  return NULL;
 }
 
-static expr * unary(LexState *ls, expr * exp UNUSED) {
-  expr * temp = malloc(sizeof(expr));
-
+static void unary(LexState *ls) {
   TokenType type = ls->t.type;
   beanX_next(ls);
 
@@ -292,29 +270,27 @@ static expr * unary(LexState *ls, expr * exp UNUSED) {
     write_opcode(ls->B, OP_BEAN_UNARY);
     write_byte(ls->B, type);
   }
-  return temp;
 }
 
-static expr * parse_array(struct LexState *ls UNUSED, expr * exp UNUSED) {
+static void parse_array(struct LexState *ls UNUSED) {
   beanX_next(ls);
 
   write_opcode(ls->B, OP_BEAN_ARRAY_PUSH);
 
-  if (checknext(ls, TK_RIGHT_BRACKET)) return NULL;
+  if (checknext(ls, TK_RIGHT_BRACKET)) return;
 
   do {
     parse_statement(ls, BP_LOWEST);
     write_opcode(ls->B, OP_BEAN_ARRAY_ITEM);
   } while(checknext(ls, TK_COMMA));
   checknext(ls, TK_RIGHT_BRACKET);
-  return NULL;
 }
 
-static expr * parse_hash(struct LexState *ls UNUSED, expr * exp UNUSED) {
+static void parse_hash(struct LexState *ls UNUSED) {
   beanX_next(ls);
 
   write_byte(ls->B, OP_BEAN_HASH_NEW);
-  if (checknext(ls, TK_RIGHT_BRACE)) return NULL;
+  if (checknext(ls, TK_RIGHT_BRACE)) return;
 
   do {
     Token token = ls->t;
@@ -332,7 +308,6 @@ static expr * parse_hash(struct LexState *ls UNUSED, expr * exp UNUSED) {
   } while(checknext(ls, TK_COMMA));
 
   checknext(ls, TK_RIGHT_BRACE);
-  return NULL;
 }
 
 symbol symbol_table[] = {
@@ -388,10 +363,9 @@ symbol symbol_table[] = {
   { "<number>", BP_NONE, num, NULL },
   { "<name>", BP_NONE, variable, NULL },
   { "<string>", BP_NONE, string, NULL },
-  { "<regex>", BP_NONE, regex, NULL },
 };
 
-static expr * function_call (LexState *ls, expr * left) {
+static void function_call (LexState *ls) {
   int args = 0;
   size_t off;
 
@@ -414,11 +388,9 @@ static expr * function_call (LexState *ls, expr * left) {
 
   write_opcode(ls->B, OP_BEAN_FUNCTION_CALL0 + args);
   offset_patch(ls->B, off, G(ls->B)->instructionStream -> n);
-
-  return NULL;
 }
 
-static expr * infix (LexState *ls, expr * left) {
+static void infix (LexState *ls) {
   int binaryOp = ls->pre.type;
 
   if (ls->t.type == TK_ASSIGN) {
@@ -500,11 +472,9 @@ static expr * infix (LexState *ls, expr * left) {
       write_byte(ls->B, binaryOp);
     }
   }
-
-  return NULL;
 }
 
-static expr * parse_variable_definition(struct LexState *ls, bindpower rbp UNUSED) {
+static void parse_variable_definition(struct LexState *ls, bindpower rbp UNUSED) {
   Token token = ls->t;
   beanX_next(ls);
 
@@ -517,10 +487,9 @@ static expr * parse_variable_definition(struct LexState *ls, bindpower rbp UNUSE
     write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   }
   write_opcode(ls->B, OP_BEAN_VARIABLE_DEFINE);
-  return NULL;
 }
 
-static expr * parse_branch(struct LexState *ls, bindpower rbp) {
+static void parse_branch(struct LexState *ls, bindpower rbp) {
   size_t offIf, offEndif;
   bool singleBranch = false;
   if (ls->t.type == TK_IF) {
@@ -590,11 +559,9 @@ static expr * parse_branch(struct LexState *ls, bindpower rbp) {
     write_opcode(ls->B, OP_BEAN_END_SCOPE);
     if (singleBranch) write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   }
-
-  return NULL;
 }
 
-static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
+static void parse_do_while(struct LexState *ls, bindpower rbp) {
   size_t loopEnd, loopTop, loopPush;
   beanX_next(ls);
 
@@ -626,11 +593,9 @@ static expr * parse_do_while(struct LexState *ls, bindpower rbp) {
   write_opcode(ls->B, OP_BEAN_LOOP_BREAK);
   offset_patch(ls->B, loopPush, G(ls->B)->instructionStream -> n); // End of loop's address.
   write_opcode(ls->B, OP_BEAN_END_SCOPE);
-
-  return NULL;
 }
 
-static expr * parse_while(struct LexState *ls, bindpower rbp) {
+static void parse_while(struct LexState *ls, bindpower rbp) {
   size_t loopBegin, loopEnd, loopTop, loopPush;
   beanX_next(ls);
 
@@ -669,61 +634,61 @@ static expr * parse_while(struct LexState *ls, bindpower rbp) {
   offset_patch(ls->B, loopPush, loopEnd); // End of loop's address.
 
   write_opcode(ls->B, OP_BEAN_END_SCOPE);
-  return NULL;
 }
 
 static void skip_semicolon(LexState * ls) { // Skip all the semicolon
   while (checknext(ls, TK_SEMI)) ;
 }
 
-static expr * parse_break(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
+static void parse_break(struct LexState *ls UNUSED, bindpower rbp UNUSED) {
   write_opcode(ls->B, OP_BEAN_LOOP_BREAK);
 
   beanX_next(ls);
   skip_semicolon(ls); // Skip all the semicolon
-  return NULL;
 }
 
-static expr * parse_statement(struct LexState *ls, bindpower rbp) {
+static void parse_statement(struct LexState *ls, bindpower rbp) {
   skip_semicolon(ls);
-  expr * tree;
 
   switch(ls->t.type) {
     case TK_BREAK:
-      return parse_break(ls, rbp);
+      parse_break(ls, rbp);
+      return;
     case TK_WHILE:
-      return parse_while(ls, rbp);
+      parse_while(ls, rbp);
+      return;
     case TK_DO:
-      return parse_do_while(ls, rbp);
+      parse_do_while(ls, rbp);
+      return;
     case TK_IF:
-      return parse_branch(ls, rbp);
+      parse_branch(ls, rbp);
+      return;
     case TK_FUNCTION:
-      return parse_definition(ls);
+      parse_definition(ls);
+      return;
     case TK_VAR: {
       beanX_next(ls);
       if (ls->t.type != TK_NAME) {
         syntax_error(ls, "Must provide a variable name.");
       }
-      return parse_variable_definition(ls, rbp);
+      parse_variable_definition(ls, rbp);
+      return;
     }
   }
-  tree = symbol_table[ls->t.type].nud(ls, NULL);
+  symbol_table[ls->t.type].nud(ls);
 
   while (rbp < get_tk_precedence(ls)) {
     Token token = ls->t;
     beanX_next(ls);
-    tree = symbol_table[token.type].led(ls, tree);
+    symbol_table[token.type].led(ls);
   }
 
   skip_semicolon(ls);
-
-  return tree;
 };
 
 
 static TValue * parse_program(LexState * ls) {
-  expr * ex = parse_statement(ls, BP_LOWEST);
-  return eval(ls->B, ex);
+  parse_statement(ls, BP_LOWEST);
 }
 
 void bparser(LexState * ls) {
