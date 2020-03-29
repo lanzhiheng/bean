@@ -146,7 +146,6 @@ int executeInstruct(bean_State * B) {
       eval_error(B, "%s", "right operand of "#action" must be number"); \
     }                                                                   \
     setnvalue(v1, action(nvalue(v1), nvalue(v2)));                      \
-    SCSV(B, name, v1);                                                  \
     PUSH(v1);                                                           \
     LOOP();                                                             \
   } while(0)
@@ -321,12 +320,13 @@ int executeInstruct(bean_State * B) {
           TValue * v2 = POP();
           TValue * name = POP();
           TValue * v1 = find_variable(B, name);
+
           if (ttisnumber(v1) && ttisnumber(v2)) {
             setnvalue(v1, add(nvalue(v1), nvalue(v2)));
           } else {
-            v1= concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
+            TValue * ret = concat(B, tvalue_inspect(B, v1), tvalue_inspect(B, v2));
+            setsvalue(v1, svalue(ret));
           }
-          SCSV(B, name, v1);
           PUSH(v1);
           LOOP();
         }
