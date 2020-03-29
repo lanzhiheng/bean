@@ -272,7 +272,11 @@ static int llex(LexState * ls, SemInfo * seminfo) {
     switch(ls -> current) {
       case '\n':
       case '\r': {
-        inclinenumber(ls);
+        ls->lastline = ls->linenumber;
+        do {
+          inclinenumber(ls);
+        } while(ls->current == '\n' || ls->current == '\r');
+
         break;
       }
       case ' ': case '\f': case '\t': case '\v': {

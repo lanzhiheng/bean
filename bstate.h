@@ -8,6 +8,7 @@
 #include "barray.h"
 
 typedef struct Mbuffer Mbuffer;
+typedef struct Ibuffer Ibuffer;
 
 typedef struct stringtable {
   struct TString ** hash;
@@ -72,6 +73,8 @@ typedef struct global_State {
   callStack * callStack;
   loopStack * loopStack;
   Mbuffer * instructionStream;
+  Ibuffer * linenomap;
+  char * instructionIndex;
 } global_State;
 
 

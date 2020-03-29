@@ -42,6 +42,15 @@ static size_t offset_patch(bean_State * B, size_t index, size_t offset) {
 static void write_byte(bean_State * B, uint8_t b) {
   Mbuffer * buff = G(B)->instructionStream;
   beanZ_append(B, buff, b);
+
+  Ibuffer * mapper = G(B)->linenomap;
+  set_linenumber_ibuffer(B, mapper, G(B)->instructionStream->n-1, B->ls->lastline);
+}
+
+
+static void delete_opcode(bean_State * B) {
+  Mbuffer * buff = G(B)->instructionStream;
+  buff->n--;
 }
 
 static void write_opcode(bean_State * B, OpCode code) {
@@ -56,11 +65,6 @@ static uint8_t last_opcode(bean_State * B) {
 static uint8_t last_2_opcode(bean_State * B) {
   Mbuffer * buff = G(B)->instructionStream;
   return buff->buffer[buff->n - 2];
-}
-
-static void delete_opcode(bean_State * B) {
-  Mbuffer * buff = G(B)->instructionStream;
-  buff->n--;
 }
 
 static void write_init_offset(bean_State * B) {
