@@ -479,18 +479,20 @@ static void infix (LexState *ls) {
 }
 
 static void parse_variable_definition(struct LexState *ls, bindpower rbp UNUSED) {
-  Token token = ls->t;
-  beanX_next(ls);
-
-  write_opcode(ls->B, OP_BEAN_PUSH_STR);
-  operand_pointer_encode(ls->B, token.seminfo.ts);
-  if (ls->t.type == TK_ASSIGN) {
+  do {
+    Token token = ls->t;
     beanX_next(ls);
-    parse_statement(ls, BP_LOWEST);
-  } else { // TODO: Supporting multi variables
-    write_opcode(ls->B, OP_BEAN_PUSH_NIL);
-  }
-  write_opcode(ls->B, OP_BEAN_VARIABLE_DEFINE);
+    write_opcode(ls->B, OP_BEAN_PUSH_STR);
+    operand_pointer_encode(ls->B, token.seminfo.ts);
+    if (ls->t.type == TK_ASSIGN) {
+      beanX_next(ls);
+      parse_statement(ls, BP_LOWEST);
+    } else { // TODO: Supporting multi variables
+      write_opcode(ls->B, OP_BEAN_PUSH_NIL);
+    }
+    write_opcode(ls->B, OP_BEAN_VARIABLE_DEFINE);
+  } while(checknext(ls, TK_COMMA));
+
 }
 
 static void parse_branch(struct LexState *ls, bindpower rbp) {

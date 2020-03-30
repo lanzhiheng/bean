@@ -93,3 +93,11 @@ fn a() {
 }
 
 assert(a(), true)
+
+// multi variable definition
+
+var a, b = 100, c, d = "Bean"
+assert(a, nil)
+assert(b, 100)
+assert(c, nil)
+assert(d, "Bean")
