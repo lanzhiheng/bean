@@ -487,7 +487,7 @@ static void parse_variable_definition(struct LexState *ls, bindpower rbp UNUSED)
   if (ls->t.type == TK_ASSIGN) {
     beanX_next(ls);
     parse_statement(ls, BP_LOWEST);
-  } else { // Supporting multi variables
+  } else { // TODO: Supporting multi variables
     write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   }
   write_opcode(ls->B, OP_BEAN_VARIABLE_DEFINE);
@@ -680,6 +680,11 @@ static void parse_statement(struct LexState *ls, bindpower rbp) {
     }
   }
   symbol_table[ls->t.type].nud(ls);
+
+  if (ls->t.type == TK_SEMI) { // semicolon should break the statement.
+    skip_semicolon(ls);
+    return;
+  }
 
   while (rbp < get_tk_precedence(ls)) {
     Token token = ls->t;

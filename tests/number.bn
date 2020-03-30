@@ -70,3 +70,9 @@ assert(100 % 8, 4)
 
 assert(100 & 30 | 30 ^ 20, 14)
 assert(30 ^ 100 & 20, 26)
+
+
+// semicolon to break the statement
+var a = 100;
+++a
+assert(101, a)
