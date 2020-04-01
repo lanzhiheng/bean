@@ -18,11 +18,7 @@ There is a simple preview for Bean.
 
 And for display the inheritance relationship, I make a diagram.
 
-![Image](https://via.placeholder.com/1000x600)
-
-## Dependencies
-
-- [libcurl](https://curl.haxx.se/libcurl/), providing some convenience function to send all kinds of HTTP request.
+![Image](docs/Meta.png)
 
 ## Install Guide
 
@@ -293,7 +289,7 @@ print(total) // => 72
 print(m) // => 2
 ```
 
-We also support do-while one
+We also support `do-while` statement
 
 ```
 var i = 100
