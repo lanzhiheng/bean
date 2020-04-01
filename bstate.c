@@ -8,6 +8,7 @@
 #include "bfunction.h"
 #include "bmath.h"
 #include "bdate.h"
+#include "bboolean.h"
 /* #include "bhttp.h" */
 #include "berror.h"
 #include "barray.h"
@@ -209,6 +210,7 @@ void global_init(bean_State * B) {
   G -> rproto = init_Regex(B);
   G -> dproto = init_Date(B);
   G -> fproto = init_Function(B);
+  G -> bproto = init_Boolean(B);
   /* G -> netproto = init_Http(B); */
 
   G -> nproto -> prototype = G -> meta;
@@ -219,6 +221,7 @@ void global_init(bean_State * B) {
   G -> rproto -> prototype = G -> meta;
   G -> dproto -> prototype = G -> meta;
   G -> fproto -> prototype = G -> meta;
+  G -> bproto -> prototype = G -> meta;
   /* G -> netproto -> prototype = G -> meta; */
 
   G -> meta -> prototype = G->nil;
@@ -228,11 +231,6 @@ void global_init(bean_State * B) {
   TValue * self = TV_MALLOC;
   setsvalue(self, beanS_newlstr(B, "self", 4));
   hash_set(B, G->globalScope->variables, self, G->nil);
-
-  G -> tVal = TV_MALLOC;
-  setbvalue(G->tVal, true);
-  G -> fVal = TV_MALLOC;
-  setbvalue(G->fVal, false);
 
   G->instructionStream = malloc(sizeof(Mbuffer));
   beanZ_initbuffer(G->instructionStream);

@@ -1,0 +1,7 @@
+var a = true
+assert(a.toString(), "true")
+assert(true.__proto__, Boolean)
+
+var b = false
+assert(b.toString(), "false")
+assert(false.__proto__, Boolean)
