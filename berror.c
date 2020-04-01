@@ -46,7 +46,7 @@ void lex_error (LexState *ls, const char *msg, int token) {
 }
 
 void syntax_error (LexState *ls, const char *msg) {
-  lex_error(ls, msg, ls->t.type);
+  lex_error(ls, msg, ls->pre.type);
 }
 
 #define COMMON_ERROR(errorType, withNo)                                        \
