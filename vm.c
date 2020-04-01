@@ -818,6 +818,12 @@ int executeInstruct(bean_State * B) {
       ip = G(B)->instructionStream->buffer + (size_t)nvalue(address);
       LOOP();
     }
+    CASE(INSPECT): {
+      TValue * value = POP();
+      TValue * string = tvalue_inspect_pure(B, value);
+      TString * ts = svalue(string);
+      printf("=> %s\n", getstr(ts));
+    }
     default: {
       ip = G(B)->instructionStream->buffer;
       beanZ_resetbuffer(G(B)->instructionStream);

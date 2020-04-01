@@ -143,19 +143,17 @@ void run() {
 
   preload_library(B);
 
+  size_t begin = G(B)->instructionStream->n; // record the begin position
   while(true) {
     setjmp(buf);
+    G(B)->instructionStream->n = begin; // rewrite the previous space
     printf("> ");
     len = getline(&source, &buffersize, stdin);
     if (len == -1) break; //  return -1 on failure
 
     if (len == 1 && source[0] == '\n') continue;
     beanX_setinput(B, source, e, *source);
-    TValue * value = TV_MALLOC;
-    bparser_for_line(B->ls, &value);
-    TValue * string = tvalue_inspect_pure(B, value);
-    TString * ts = svalue(string);
-    printf("=> %s\n", getstr(ts));
+    bparser_for_line(B->ls);
   }
 }
 
