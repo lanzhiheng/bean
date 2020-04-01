@@ -698,7 +698,7 @@ static void parse_statement(struct LexState *ls, bindpower rbp) {
 };
 
 
-static TValue * parse_program(LexState * ls) {
+static void parse_program(LexState * ls) {
   parse_statement(ls, BP_LOWEST);
 }
 
@@ -710,8 +710,9 @@ void bparser(LexState * ls) {
   }
 }
 
-void bparser_for_line(LexState * ls, TValue ** ret) {
+void bparser_for_line(LexState * ls) {
   beanX_next(ls);
-
-  *ret = parse_program(ls);
+  parse_program(ls);
+  write_byte(ls->B, OP_BEAN_INSPECT);
+  executeInstruct(ls->B);
 }
