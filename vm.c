@@ -74,6 +74,7 @@ typedef struct Thread {
   TValue ** stack;
   TValue ** esp;
   TValue ** callStack;
+  TValue ** baseCallStack;
   TValue ** loop;
 } Thread;
 
@@ -82,6 +83,7 @@ int executeInstruct(bean_State * B) {
   thread -> stack = malloc(sizeof(TValue*) * 3000);
   thread -> esp = thread -> stack;
   thread -> callStack = malloc(sizeof(TValue*) * 4000);
+  thread -> baseCallStack = thread->callStack;
   thread -> loop = malloc(sizeof(TValue*) * 300);
 
 #define ip G(B)->instructionIndex
@@ -95,6 +97,7 @@ int executeInstruct(bean_State * B) {
   } while(0);
 #define DROP_FRAME (thread->callStack -= (MAX_ARGS + 1))
 
+#define CALL_STACK_EMPTY (thread->callStack == thread->baseCallStack)
 #define CREATE_LOOP(value) (*thread->loop++ = value)
 #define DROP_LOOP() (*(--thread->loop))
 #define CREATE_RETURN(value) (*thread->callStack++ = value)
@@ -801,6 +804,9 @@ int executeInstruct(bean_State * B) {
     }
 
     CASE(RETURN): {
+      if (CALL_STACK_EMPTY) {
+        runtime_error(B, "%s", "Can not return outside the function.");
+      }
       TValue * scope = *(thread->callStack - MAX_ARGS);
       void * a = svalue(scope);
       Scope * restoreScope = (Scope *)a;
