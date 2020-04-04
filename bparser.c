@@ -497,14 +497,12 @@ static void parse_variable_definition(struct LexState *ls, bindpower rbp UNUSED)
 
 static void parse_branch(struct LexState *ls, bindpower rbp) {
   size_t offIf, offEndif;
-  bool singleBranch = false;
-  if (ls->t.type == TK_IF) {
-    testnext(ls, TK_IF);
-    singleBranch = true;
-  }
+  bool emptyIf = false;
+  #define MAX_LEN 10
+  size_t * endOfStatements = malloc(sizeof(size_t) * MAX_LEN);
+  uint8_t index = 0;
 
-  if (ls->t.type == TK_ELSEIF) testnext(ls, TK_ELSEIF);
-  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
+  testnext(ls, TK_IF);
 
   testnext(ls, TK_LEFT_PAREN);
   parse_statement(ls, rbp); // condition
@@ -515,56 +513,109 @@ static void parse_branch(struct LexState *ls, bindpower rbp) {
 
   write_init_offset(ls->B); // placeholder
 
+  write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
+
+
   testnext(ls, TK_LEFT_BRACE);
 
-  write_opcode(ls->B, OP_BEAN_PUSH_NIL);
-  while (ls->t.type != TK_RIGHT_BRACE) {
-    write_opcode(ls->B, OP_BEAN_DROP);
-    parse_statement(ls, rbp);
-  }
-  testnext(ls, TK_RIGHT_BRACE);
-
-  if (ls->t.type == TK_ELSEIF) {
-    size_t offElse, offEndelse;
-    write_opcode(ls->B, OP_BEAN_JUMP);
-    offElse = G(ls->B)->instructionStream->n;
-    write_init_offset(ls->B); // placeholder
-    offEndif = G(ls->B)->instructionStream->n;
-    offset_patch(ls->B, offIf, offEndif - offIf);
-
-    parse_branch(ls, rbp);
-
-    offEndelse = G(ls->B)->instructionStream->n;
-    offset_patch(ls->B, offElse, offEndelse - offElse);
-  } else if (ls->t.type == TK_ELSE) {
-    size_t offElse, offEndelse;
-
-    testnext(ls, TK_ELSE);
-    write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
-    write_opcode(ls->B, OP_BEAN_JUMP);
-    offElse = G(ls->B)->instructionStream->n;
-    write_init_offset(ls->B); // placeholder
-    offEndif = G(ls->B)->instructionStream->n;
-    offset_patch(ls->B, offIf, offEndif - offIf);
-
-    testnext(ls, TK_LEFT_BRACE);
-
+  if (ls->t.type == TK_RIGHT_BRACE) {
+    emptyIf = true;
+  } else {
     write_opcode(ls->B, OP_BEAN_PUSH_NIL);
     while (ls->t.type != TK_RIGHT_BRACE) {
       write_opcode(ls->B, OP_BEAN_DROP);
       parse_statement(ls, rbp);
     }
-    testnext(ls, TK_RIGHT_BRACE);
-
-    offEndelse = G(ls->B)->instructionStream->n;
-    offset_patch(ls->B, offElse, offEndelse - offElse);
-    write_opcode(ls->B, OP_BEAN_END_SCOPE);
-  } else {
-    offEndif = G(ls->B)->instructionStream->n;
-    offset_patch(ls->B, offIf, offEndif - offIf);
-    write_opcode(ls->B, OP_BEAN_END_SCOPE);
-    if (singleBranch) write_opcode(ls->B, OP_BEAN_PUSH_NIL);
   }
+
+  testnext(ls, TK_RIGHT_BRACE);
+
+  write_opcode(ls->B, OP_BEAN_END_SCOPE);
+  if (emptyIf) write_opcode(ls->B, OP_BEAN_PUSH_NIL);
+
+  write_opcode(ls->B, OP_BEAN_JUMP);
+  endOfStatements[index++] = G(ls->B)->instructionStream->n;
+  write_init_offset(ls->B); // placeholder
+
+  offEndif = G(ls->B)->instructionStream->n;
+  offset_patch(ls->B, offIf, offEndif - offIf);
+
+  write_opcode(ls->B, OP_BEAN_PUSH_NIL);
+
+  if (ls->t.type == TK_ELSEIF) {
+    while(checknext(ls, TK_ELSEIF)) {
+      write_opcode(ls->B, OP_BEAN_DROP);
+      size_t offElseIf, offEndElseIf;
+      bool emptyElseIf = false;
+
+      testnext(ls, TK_LEFT_PAREN);
+      parse_statement(ls, rbp); // condition
+      testnext(ls, TK_RIGHT_PAREN);
+
+      write_opcode(ls->B, OP_BEAN_JUMP_FALSE);
+      offElseIf = G(ls->B)->instructionStream->n;
+      write_init_offset(ls->B); // placeholder
+
+      write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
+
+      testnext(ls, TK_LEFT_BRACE);
+
+      if (ls->t.type == TK_RIGHT_BRACE) {
+        emptyElseIf = true;
+      } else {
+        write_opcode(ls->B, OP_BEAN_PUSH_NIL);
+        while (ls->t.type != TK_RIGHT_BRACE) {
+          write_opcode(ls->B, OP_BEAN_DROP);
+          parse_statement(ls, rbp);
+        }
+      }
+      testnext(ls, TK_RIGHT_BRACE);
+
+      write_opcode(ls->B, OP_BEAN_END_SCOPE);
+      if (emptyElseIf) write_opcode(ls->B, OP_BEAN_PUSH_NIL);
+
+      write_opcode(ls->B, OP_BEAN_JUMP);
+      endOfStatements[index++] = G(ls->B)->instructionStream->n;
+      write_init_offset(ls->B); // placeholder
+
+      offEndElseIf = G(ls->B)->instructionStream->n;
+      offset_patch(ls->B, offElseIf, offEndElseIf - offElseIf);
+
+      write_opcode(ls->B, OP_BEAN_PUSH_NIL);
+    }
+  }
+
+  if (ls->t.type == TK_ELSE) {
+    write_opcode(ls->B, OP_BEAN_DROP);
+    bool emptyElse = false;
+    testnext(ls, TK_ELSE);
+    write_opcode(ls->B, OP_BEAN_NEW_SCOPE);
+
+    testnext(ls, TK_LEFT_BRACE);
+
+    if (ls->t.type == TK_RIGHT_BRACE) {
+      emptyElse = true;
+    } else {
+      write_opcode(ls->B, OP_BEAN_PUSH_NIL);
+      while (ls->t.type != TK_RIGHT_BRACE) {
+        write_opcode(ls->B, OP_BEAN_DROP);
+        parse_statement(ls, rbp);
+      }
+    }
+
+    testnext(ls, TK_RIGHT_BRACE);
+    write_opcode(ls->B, OP_BEAN_END_SCOPE);
+
+    if (emptyElse) write_opcode(ls->B, OP_BEAN_PUSH_NIL);
+  }
+
+  for (uint8_t i = 0; i < index; i++) {
+    offset_patch(ls->B, endOfStatements[i], G(ls->B)->instructionStream->n - endOfStatements[i]);
+  }
+
+  free(endOfStatements);
+
+  #undef MAX_LEN
 }
 
 static void parse_do_while(struct LexState *ls, bindpower rbp) {

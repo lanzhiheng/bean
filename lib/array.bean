@@ -26,8 +26,6 @@ Array.filter = fn(callback) {
     var check = callback(self[i], i)
     if (check) {
       arr.push(self[i])
-    } else { // Without else will cause scope issue.
-
     }
 
     i = i + 1
@@ -43,8 +41,6 @@ Array.find = fn(callback) {
     var check = callback(self[i], i)
     if (check) {
       return self[i]
-    } else { // Without else will cause scope issue.
-
     }
 
     i = i + 1

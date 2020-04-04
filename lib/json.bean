@@ -175,7 +175,7 @@ fn stringify(hash) {
   var a = []
   a.push('{')
 
-  hash.keys().each(fn(k) {
+  hash.keys().each(fn cheking(k) { // TODO: There is a bug, I must pass name of this function
     var type = typeof hash[k]
     a.push('"' + k + '"')
     a.push(': ')
