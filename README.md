@@ -13,8 +13,8 @@ There is a simple preview for Bean.
 3. The syntax will be similar to JavaScript.
 4. Just `nil` and `false` will be the falsy value.
 5. The variable name or function name can contain `?`.
-6. The basic data type include `Number`, `String`, `Bool`, `Array`, `Hash`.
-7. Stack-based virtual Machine.
+6. The basic data type include `Number`, `String`, `Bool`, `Array`, `Hash`, `Function`.
+7. Stack-Based Virtual Machine.
 
 And for display the inheritance relationship, I make a diagram.
 
@@ -142,6 +142,12 @@ There are six basic type in Bean, they are `number`, `boolean`, `string`, `array
 => {}
 > typeof hash
 => "hash"
+
+> var a = fn() {}
+=> [Function a]
+> typeof a
+=> "function"
+
 ```
 
 Otherwise, including some build-in library, the instances of them or themself are `hash` type.
