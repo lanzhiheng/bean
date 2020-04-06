@@ -810,7 +810,16 @@ int executeInstruct(bean_State * B) {
       TValue * scope = *(thread->callStack - MAX_ARGS);
       void * a = svalue(scope);
       Scope * restoreScope = (Scope *)a;
+      Scope * prevoiusScope = B->l_G->cScope;
       B->l_G->cScope = restoreScope;
+
+      Scope * fcs = prevoiusScope->previous; // free the useless scope
+      while (fcs != restoreScope) {
+        Scope * temp = fcs;
+        fcs = fcs->previous;
+        free(temp->variables);
+        free(temp);
+      }
 
     normal_return:
       DROP_FRAME;
@@ -831,5 +840,6 @@ int executeInstruct(bean_State * B) {
     }
 #undef ip
   }
+
   return 0;
 }

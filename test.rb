@@ -7,7 +7,7 @@ Dir.glob('tests/*').each do |filename|
 
   status = ($?).exitstatus
   if (status != 0)
-    print "\u001b[31mF\u001b[0m"
+    print "\u001b[31mF\u001b[0m in #{filename}"
     array.push(result)
   else
     print "\u001b[32m.\u001b[0m"
